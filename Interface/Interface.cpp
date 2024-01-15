@@ -56,10 +56,17 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+
     if(htim == &TIM_Control) {
         HAL_IWDG_Refresh(&hiwdg);
         DeviceBase::DevicesHandle();
-        I2C_Bus<2>::GetInstance().RTHandle();
+
+            static uint16_t cnt = 0;
+            if (++cnt>=2) {
+                cnt = 0;
+                I2C_Bus<2>::GetInstance().RTHandle();
+            }
+
         Task1();
         Task2();
 
