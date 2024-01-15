@@ -16,19 +16,24 @@
 #define SERIAL_LENGTH_MAX 50//串口最大长度
 
 #define TCA9548A_ADDR   0x70
-#define B02_IIC_ADDRESS 0xEC
+#define B02_IIC_ADDRESS 0x76
 
 #define MS5837_30BA_ResetCommand     0x1E                //��λ
 #define	MS5837_30BA_PROM_RD 	       0xA0                //PROM��ȡ,{0XA0,0XA2,0XA4,0XA8,0XAA,0XAC,0XAE}
 #define MS5837_30BA_ADC_RD           0x00                //ADC��ȡ
 
-#define MS5837_30BA_D1_OSR256					 0x40
-#define MS5837_30BA_D1_OSR512					 0x42
-#define MS5837_30BA_D1_OSR1024					 0x44
-#define MS5837_30BA_D1_OSR2048					 0x46
-#define MS5837_30BA_D1_OSR4096					 0x48
-#define	MS5837_30BA_D1_OSR_8192   	 0x48                 //16.44msת��ʱ��
-#define	MS5837_30BA_D2_OSR_8192   	 0x58                 //16.44msת��ʱ��
+#define MS5837_30BA_D1_OSR256		    0x40
+#define MS5837_30BA_D1_OSR512		    0x42
+#define MS5837_30BA_D1_OSR1024		    0x44
+#define MS5837_30BA_D1_OSR2048		    0x46
+#define MS5837_30BA_D1_OSR4096		    0x48
+
+#define MS5837_30BA_D2_OSR256           0x58
+#define MS5837_30BA_D2_OSR512           0x58
+#define MS5837_30BA_D2_OSR1024          0x58
+#define MS5837_30BA_D2_OSR2048          0x58
+#define MS5837_30BA_D2_OSR4096          0x58
+
 
 #define CALIBRATION_CYCLES 50
 
@@ -118,10 +123,15 @@ class PressureSensor:public DeviceBase{
     void ReadPROM(){//TODO 记得考虑通道选择的问题
         auto ReadPROMCallback_Pack = [this](I2C_Task_t a){this->ReadPROMCallback(a);};
         sensorI2C.Write({MS5837_30BA_ResetCommand});
+        sensorI2C.Delay(20);
         for (int i = 0; i < 6; ++i) {
-            sensorI2C.WriteRead(MS5837_30BA_PROM_RD+2*i,Cal_C_Raw+2*i,2);
+            sensorI2C.Write({ static_cast<uint8_t >(MS5837_30BA_PROM_RD+2*i)});
+            sensorI2C.Read(Cal_C_Raw+2*i,2);
+            //sensorI2C.WriteRead(MS5837_30BA_PROM_RD+2*i,Cal_C_Raw+2*i,2);
         }
-        sensorI2C.WriteRead(MS5837_30BA_PROM_RD+2*7,Cal_C_Raw+2*7,2,ReadPROMCallback_Pack);
+        sensorI2C.Write({ static_cast<uint8_t >(MS5837_30BA_PROM_RD+2*6)});
+        sensorI2C.Read(Cal_C_Raw+2*6,2,ReadPROMCallback_Pack);
+        //sensorI2C.WriteRead(MS5837_30BA_PROM_RD+2*6,Cal_C_Raw+2*6,2,ReadPROMCallback_Pack);
     }
     void GetRawConversionsCallback(I2C_Task_t data){
         dataState = DataState_e::RAW;
@@ -130,11 +140,11 @@ class PressureSensor:public DeviceBase{
 
         auto GetRawConversionsCallback_Pack = [this](I2C_Task_t a){this->GetRawConversionsCallback(a);};
 
-        sensorI2C.Write({MS5837_30BA_D2_OSR_8192});
+        sensorI2C.Write({MS5837_30BA_D2_OSR1024});
         sensorI2C.Delay(10);
-        sensorI2C.WriteRead(MS5837_30BA_ADC_RD,D2_Temp_Raw,3);
+        sensorI2C.WriteRead(MS5837_30BA_ADC_RD,D2_Temp_Raw,3);//TODO 有人说可能有延时，自己测一下
 
-        sensorI2C.Write({MS5837_30BA_D1_OSR_8192});
+        sensorI2C.Write({MS5837_30BA_D1_OSR1024});
         sensorI2C.Delay(10);
         sensorI2C.WriteRead(MS5837_30BA_ADC_RD,D1_Pres_Raw,3,GetRawConversionsCallback_Pack);
     }
@@ -187,7 +197,10 @@ public:
     explicit PressureSensor(uint8_t _channelNum) :
     sensorI2C(B02_IIC_ADDRESS, I2C_Bus<2>::GetInstance()),
     channelI2C(TCA9548A_ADDR, I2C_Bus<2>::GetInstance()),channelNum(_channelNum) {
-        SetDivisionFactor(10);
+        SetDivisionFactor(100);
+
+        TCA_SelectSingleChannel(channelNum);
+        sensorI2C.Delay(5);
         ReadPROM();
     }
 
@@ -250,10 +263,10 @@ class SensorGroup: public DeviceBase{
     Sensor_Site_t site{};
 
     //std::vector<PressureSensor> pressureSensors;
+    PressureSensor pressureSensor0{0};
     PressureSensor pressureSensor1{1};
     PressureSensor pressureSensor2{2};
     PressureSensor pressureSensor3{3};
-    PressureSensor pressureSensor4{4};
 
 public:
     float data_plane[5]={0,0,1,0,0};//水面方程Ax+By+Cz+D=0,A*A+B*B+C*C=0,5个数据分别为A、B、C、D、拉格朗日乘数

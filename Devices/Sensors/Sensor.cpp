@@ -20,13 +20,13 @@ void SensorGroup::Handle(){
     //for (int i = 0; i < SENSOR_NUM; ++i) {
     //    data_pressure[i] = pressureSensors.at(i).GetData();
     //}
-    if (!(pressureSensor1.IsReady())&&pressureSensor2.IsReady()&&pressureSensor3.IsReady()&&pressureSensor4.IsReady()){
+    if (!(pressureSensor0.IsReady() && pressureSensor1.IsReady() && pressureSensor2.IsReady() && pressureSensor3.IsReady())){
         return;
     }
-    data_pressure[0] = pressureSensor1.GetData();
-    data_pressure[1] = pressureSensor2.GetData();
-    data_pressure[2] = pressureSensor3.GetData();
-    data_pressure[3] = pressureSensor4.GetData();
+    data_pressure[0] = pressureSensor0.GetData();
+    data_pressure[1] = pressureSensor1.GetData();
+    data_pressure[2] = pressureSensor2.GetData();
+    data_pressure[3] = pressureSensor3.GetData();
 
     Update_plane();//计算机器人参考系下水面方程
     data_depth=-data_plane[3];//计算深度
