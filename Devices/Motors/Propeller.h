@@ -15,8 +15,8 @@
 
 #define PROPELLER_NUM 8//推进器数量
 
-#define TCA9548A_ADDR         0x70
-#define PCA9685_ADDR 0x80
+#define TCA9548A_ADDR   0x70
+#define PCA9685_ADDR    0x80
 
 #define PCA9685_MODE1 0x0
 #define PCA9685_PRESCALE 0xFE
@@ -36,21 +36,24 @@ typedef struct Propeller_Component{
 }Propeller_Component_t;
 
 
-template <uint8_t busID>
-class Propeller :public DeviceBase ,public I2C_Agent<busID>{
+class Propeller :public DeviceBase{
     uint8_t rxBuffer[50];
     int32_t data[8];
     Propeller_Component_t component;
     PID pitchPID;
     PID rollPID;
     PID zPID;
+
+    I2C_Agent<2> TCAI2C;
+    I2C_Agent<2> PCAI2C;
+
     void FloatCtrl(){
 
-        component.pitch = pitchPID.PIDCalc(0.0 , 0);//PressureSensor::pressure_sensor.pitch);//pitch分量PID控制，目标为0
-        component.roll  = rollPID.PIDCalc(0.0 , 0);//PressureSensor::pressure_sensor.roll);//roll分量PID控制，目标为0
+        component.pitch = pitchPID.PIDCalc(0.0 , SensorGroup::sensorGroup.pitch);//pitch分量PID控制，目标为0
+        component.roll  = rollPID.PIDCalc(0.0 , SensorGroup::sensorGroup.roll);//roll分量PID控制，目标为0
         //------TODO:Target_depth为目标深度，根据需要修改，单位cm
         float Target_depth=10.0;
-        component.z = zPID.PIDCalc(Target_depth , 0);//PressureSensor::pressure_sensor.data_depth);//深度PID控制
+        component.z = zPID.PIDCalc(Target_depth , 0);//SensorGroup::pressure_sensor.data_depth);//深度PID控制
 
         for(int i=0;i<PROPELLER_NUM;++i){
             data[i] = 1500;
@@ -66,9 +69,7 @@ class Propeller :public DeviceBase ,public I2C_Agent<busID>{
             }
         }
     };
-    void TCA_SelectSingleChannel(uint8_t channel){
-        this->Write(ByteVector{static_cast<uint8_t>(1<<channel)});
-    }
+
     float PCA_Setfreq_Freq;
     void PCA_Setfreq_Manage(I2C_Task_t data){
 
@@ -81,39 +82,40 @@ class Propeller :public DeviceBase ,public I2C_Agent<busID>{
     oldmode = _oldmode;
     PCA_Setfreq_Freq = freq;
     auto SetfreqManage = [this](I2C_Task_t a){this->PCA_Setfreq_Manage(a);};
-        switch (firstEnter) {// TODO 简单的翻转逻辑，可靠性不高
-            case true:
-                freq *= 0.83;            //TODO 实际使用过程中存在偏差需要×矫正系数=0.83
-                prescaleval = 25000000;
-                prescaleval /= 4096;
-                prescaleval /= freq;
-                prescaleval -= 1;
-                prescale = floor(prescaleval + 0.5f);            //floor向下取整函数
-                this->WriteRead(PCA9685_MODE1, {0}, SetfreqManage);
-                break;
-            case false:
-                newmode = (oldmode & 0x7F) | 0x10; // sleep睡眠
-                this->Write({PCA9685_MODE1,newmode});// go to sleep（需要进入随眠状态才能设置频率）
-                this->Write({PCA9685_PRESCALE,prescale});// 设置预分频系数
-                this->Write({PCA9685_MODE1,oldmode});
-                this->Write({PCA9685_MODE1, static_cast<uint8_t>(oldmode | 0xA1)}); //
-                break;
+        if(firstEnter){// TODO 简单的翻转逻辑，可靠性不高
+            freq *= 0.83;            //TODO 实际使用过程中存在偏差需要×矫正系数=0.83
+            prescaleval = 25000000;
+            prescaleval /= 4096;
+            prescaleval /= freq;
+            prescaleval -= 1;
+            prescale = floor(prescaleval + 0.5f);            //floor向下取整函数
+            PCAI2C.WriteRead(PCA9685_MODE1, {0}, SetfreqManage);
+
+        }else{
+            newmode = (oldmode & 0x7F) | 0x10; // sleep睡眠
+            PCAI2C.Write({PCA9685_MODE1,newmode});// go to sleep（需要进入随眠状态才能设置频率）
+            PCAI2C.Write({PCA9685_PRESCALE,prescale});// 设置预分频系数
+            PCAI2C.Write({PCA9685_MODE1,oldmode});
+            PCAI2C.Write({PCA9685_MODE1, static_cast<uint8_t>(oldmode | 0xA1)}); //
         }
         firstEnter = ! firstEnter;
     }
     /*num:舵机PWM输出引脚0~15，on:PWM上升计数值0~4096,off:PWM下降计数值0~4096*/
     void PCA_Setpwm(uint8_t num, uint32_t on, uint32_t off)//占空比: off/4096
 {
-        this->Write({static_cast<uint8_t >(LED0_ON_L+4*num),static_cast<uint8_t >(on)});
-        this->Write({static_cast<uint8_t >(LED0_ON_H+4*num),static_cast<uint8_t >(on>>8)});
-        this->Write({static_cast<uint8_t >(LED0_OFF_L+4*num),static_cast<uint8_t >(off)});
-        this->Write({static_cast<uint8_t >(LED0_OFF_H+4*num), static_cast<uint8_t >(off>>8)});
+        PCAI2C.Write({static_cast<uint8_t >(LED0_ON_L+4*num),static_cast<uint8_t >(on)});
+        PCAI2C.Write({static_cast<uint8_t >(LED0_ON_H+4*num),static_cast<uint8_t >(on>>8)});
+        PCAI2C.Write({static_cast<uint8_t >(LED0_OFF_L+4*num),static_cast<uint8_t >(off)});
+        PCAI2C.Write({static_cast<uint8_t >(LED0_OFF_H+4*num), static_cast<uint8_t >(off>>8)});
 }
 
 public:
     HAL_StatusTypeDef rxState = HAL_TIMEOUT;
-
-    explicit Propeller(uint8_t addr) : I2C_Agent<busID>(addr,I2C_Bus<busID>::GetInstance()) {
+    void TCA_SelectSingleChannel(uint8_t channel){
+        TCAI2C.Write(ByteVector{static_cast<uint8_t>(1<<channel)});
+    }
+    Propeller() : TCAI2C(TCA9548A_ADDR,I2C_Bus<2>::GetInstance()),
+                           PCAI2C(PCA9685_ADDR,I2C_Bus<2>::GetInstance()){
         //------TODO：以下为三个自由度的PID参数，需要调试
         PID_Regulator_t _pitchPID = {
                 .kp = 10000,
@@ -144,10 +146,9 @@ public:
                 .outputMax = 100
         };
         zPID.PIDInfo = _zPID;
-
-
+        SetDivisionFactor(10);
         TCA_SelectSingleChannel(0);
-        this->Write({PCA9685_MODE1, 0x0});
+        PCAI2C.Write({PCA9685_MODE1, 0x0});
         PCA_Setfreq(50);//Hz
         for(int i=0;i<PROPELLER_NUM;++i){
             data[i]=1500;
@@ -161,11 +162,7 @@ public:
         if (rxState != HAL_OK) {
             rxState = HAL_UARTEx_ReceiveToIdle_IT(&Serial_Host, rxBuffer, 50);
         }
-        I2C_Bus<busID>::RTHandle();
         FloatCtrl();//PID控制悬浮状态
-        static uint8_t cnt = 0;
-        if (++cnt < 20)return;
-        cnt = 0;
         TCA_SelectSingleChannel(0);
         for(int i=0;i<PROPELLER_NUM;++i){
             //------TODO：i为推进器在扩展版上的接口编号，根据接线修改，目前为0-7号
@@ -191,7 +188,5 @@ public:
         }
     }
 };
-
-
 
 #endif //FINEMOTE_PROPELLER_H
