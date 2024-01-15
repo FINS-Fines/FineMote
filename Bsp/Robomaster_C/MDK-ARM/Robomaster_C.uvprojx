@@ -627,6 +627,11 @@
               <FileType>8</FileType>
               <FilePath>..\..\..\Devices\Sensors\Sensor.cpp</FilePath>
             </File>
+            <File>
+              <FileName>Propeller.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Devices\Motors\Propeller.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
