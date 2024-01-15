@@ -24,6 +24,7 @@ void Setup() {
 
     uint8_t ss[7] = "Hello\n";
     //HAL_UART_Transmit_IT(&Serial_Host, ss, 7);
+    BeepMusic::MusicChannels[0].Play(3);
 }
 
 void Loop() {
@@ -37,7 +38,7 @@ void Loop() {
 #endif
 
 //I2C_test<2> i2CTest(0x70);
-Propeller<2> propeller(0x70);
+Propeller propeller;
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t datasize)
 {
@@ -56,13 +57,13 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if(htim == &TIM_Control) {
-
+        HAL_IWDG_Refresh(&hiwdg);
         DeviceBase::DevicesHandle();
-
+        I2C_Bus<2>::GetInstance().RTHandle();
         Task1();
         Task2();
 
-        if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15)) {
+        if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0)) {
             static int index = 1;
             BeepMusic::MusicChannels[0].Play(index++);
             index %= 3;
