@@ -16,7 +16,7 @@
 #define PROPELLER_NUM 8//推进器数量
 
 #define TCA9548A_ADDR   0x70
-#define PCA9685_ADDR    0x80
+#define PCA9685_ADDR    0x40
 
 #define PCA9685_MODE1 0x0
 #define PCA9685_PRESCALE 0xFE
@@ -83,7 +83,6 @@ class Propeller :public DeviceBase{
     PCA_Setfreq_Freq = freq;
     auto SetfreqManage = [this](I2C_Task_t a){this->PCA_Setfreq_Manage(a);};
         if(firstEnter){// TODO 简单的翻转逻辑，可靠性不高
-            freq *= 0.83;            //TODO 实际使用过程中存在偏差需要×矫正系数=0.83
             prescaleval = 25000000;
             prescaleval /= 4096;
             prescaleval /= freq;
@@ -146,8 +145,8 @@ public:
                 .outputMax = 100
         };
         zPID.PIDInfo = _zPID;
-        SetDivisionFactor(10);
-        TCA_SelectSingleChannel(0);
+        SetDivisionFactor(100);
+        TCA_SelectSingleChannel(4);
         PCAI2C.Write({PCA9685_MODE1, 0x0});
         PCA_Setfreq(50);//Hz
         for(int i=0;i<PROPELLER_NUM;++i){
@@ -162,8 +161,8 @@ public:
         if (rxState != HAL_OK) {
             rxState = HAL_UARTEx_ReceiveToIdle_IT(&Serial_Host, rxBuffer, 50);
         }
-        FloatCtrl();//PID控制悬浮状态
-        TCA_SelectSingleChannel(0);
+        //FloatCtrl();//PID控制悬浮状态
+        TCA_SelectSingleChannel(4);
         for(int i=0;i<PROPELLER_NUM;++i){
             //------TODO：i为推进器在扩展版上的接口编号，根据接线修改，目前为0-7号
             PCA_Setpwm( i, 0, floor(data[i] * 4096 / 20000 + 0.5f) );
