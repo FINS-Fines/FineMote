@@ -98,7 +98,7 @@ void TaskTest() {
         buff;
     sprintf(buff, "");
 //    SEGGER_RTT_WriteString(0, "tasktest cnt:");
-//    SEGGER_RTT_WriteString(0, buff);
+    SEGGER_RTT_WriteString(0, buff);
     if (stack_usage_percent >= 40.0) {
         hahha = 0;
         return;
