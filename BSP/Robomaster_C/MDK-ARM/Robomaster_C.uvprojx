@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx,__ROBOMASTER_C</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../../../Interface;..;../../../Services;../../../Devices;../../../Algorithms/Control;../../../Algorithms;../../../Components/Examples;../../../Components;..\..\..\Services\MultiMedia;..\..\..\Components;..\..\..\Devices\Motors;..\..\..\Devices\Controllers;..\..\..\Algorithms\Communication</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../../../Interface;..;../../../Services;../../../Devices;../../../Algorithms/Control;../../../Algorithms;../../../Components/Examples;../../../Components;..\..\..\Services\MultiMedia;..\..\..\Components;..\..\..\Devices\Motors;..\..\..\Devices\Controllers;..\..\..\Algorithms\Communication;..\..\..\SEGGER\RTT</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -728,6 +728,31 @@
         </Group>
         <Group>
           <GroupName>Divice/Sensors</GroupName>
+        </Group>
+        <Group>
+          <GroupName>SEGGER/RTT</GroupName>
+          <Files>
+            <File>
+              <FileName>SEGGER_RTT.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\SEGGER\RTT\SEGGER_RTT.c</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\SEGGER\RTT\SEGGER_RTT.h</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT_Conf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\SEGGER\RTT\SEGGER_RTT_Conf.h</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT_printf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\SEGGER\RTT\SEGGER_RTT_printf.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>

@@ -30,6 +30,7 @@
 Stack_Size		EQU     0x8000
 
                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
+__stack_base
 Stack_Mem       SPACE   Stack_Size
 __initial_sp
 
@@ -418,27 +419,28 @@ FMPI2C1_ER_IRQHandler
 ;*******************************************************************************
 ; User Stack and Heap initialization
 ;*******************************************************************************
-                 IF      :DEF:__MICROLIB
-                
+;                 IF      :DEF:__MICROLIB
+                 EXPORT  __stack_base
                  EXPORT  __initial_sp
                  EXPORT  __heap_base
-                 EXPORT  __heap_limit
+                 EXPORT  __heap_limit                 
+                 EXPORT  Stack_Size
                 
-                 ELSE
+;                 ELSE
                 
-                 IMPORT  __use_two_region_memory
-                 EXPORT  __user_initial_stackheap
+;                 IMPORT  __use_two_region_memory
+;                 EXPORT  __user_initial_stackheap
                  
-__user_initial_stackheap
+;__user_initial_stackheap
 
-                 LDR     R0, =  Heap_Mem
-                 LDR     R1, =(Stack_Mem + Stack_Size)
-                 LDR     R2, = (Heap_Mem +  Heap_Size)
-                 LDR     R3, = Stack_Mem
-                 BX      LR
+;                 LDR     R0, =  Heap_Mem
+;                 LDR     R1, =(Stack_Mem + Stack_Size)
+;                 LDR     R2, = (Heap_Mem +  Heap_Size)
+;                 LDR     R3, = Stack_Mem
+;                 BX      LR
 
-                 ALIGN
+;                 ALIGN
 
-                 ENDIF
+;                 ENDIF
 
                  END

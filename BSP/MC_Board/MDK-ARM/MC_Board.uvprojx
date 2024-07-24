@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F446xx,__MC_BOARD</Define>
               <Undefine></Undefine>
-              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../../../Interface;../../../Services;../../../Devices;../../../Components;..\..\..\Devices\Controllers;..\..\..\Devices\Motors;..\..\..\Devices;..\..\..\Algorithms\Communication;../../../Algorithms;..\..\..\Services\Bus;..\..\..\Services\MultiMedia;..\..\..\Services\FineWarden</IncludePath>
+              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../../../Interface;../../../Services;../../../Devices;../../../Components;..\..\..\Devices\Controllers;..\..\..\Devices\Motors;..\..\..\Devices;..\..\..\Algorithms\Communication;../../../Algorithms;..\..\..\Services\Bus;..\..\..\Services\MultiMedia;..\..\..\Services\FineWarden;..\..\..\SEGGER\RTT</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -886,6 +886,31 @@
               <FileName>FZMotion.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\Services\FineWarden\FZMotion.cpp</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>SEGGER/RTT</GroupName>
+          <Files>
+            <File>
+              <FileName>SEGGER_RTT.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\SEGGER\RTT\SEGGER_RTT.c</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\SEGGER\RTT\SEGGER_RTT.h</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT_Conf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\SEGGER\RTT\SEGGER_RTT_Conf.h</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT_printf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\SEGGER\RTT\SEGGER_RTT_printf.c</FilePath>
             </File>
           </Files>
         </Group>

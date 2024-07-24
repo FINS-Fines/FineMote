@@ -409,16 +409,16 @@ FPU_IRQHandler
 ;                 IMPORT  __use_two_region_memory
 ;                 EXPORT  __user_initial_stackheap
                  
-__user_initial_stackheap
+;__user_initial_stackheap
+;
+;                 LDR     R0, =  Heap_Mem
+;                 LDR     R1, =(Stack_Mem + Stack_Size)
+;                 LDR     R2, = (Heap_Mem +  Heap_Size)
+;                 LDR     R3, = Stack_Mem
+;                 BX      LR
 
-                 LDR     R0, =  Heap_Mem
-                 LDR     R1, =(Stack_Mem + Stack_Size)
-                 LDR     R2, = (Heap_Mem +  Heap_Size)
-                 LDR     R3, = Stack_Mem
-                 BX      LR
+;                 ALIGN
 
-                 ALIGN
-
-                 ENDIF
+;                 ENDIF
 
                  END
