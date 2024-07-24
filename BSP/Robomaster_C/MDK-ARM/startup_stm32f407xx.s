@@ -32,6 +32,7 @@
 Stack_Size		EQU     0x8000
 
                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
+__stack_base
 Stack_Mem       SPACE   Stack_Size
 __initial_sp
 
@@ -396,16 +397,17 @@ FPU_IRQHandler
 ;*******************************************************************************
 ; User Stack and Heap initialization
 ;*******************************************************************************
-                 IF      :DEF:__MICROLIB
-                
+;                 IF      :DEF:__MICROLIB
+				
+                 EXPORT  __stack_base
                  EXPORT  __initial_sp
                  EXPORT  __heap_base
                  EXPORT  __heap_limit
+                 EXPORT  Stack_Size
                 
-                 ELSE
-                
-                 IMPORT  __use_two_region_memory
-                 EXPORT  __user_initial_stackheap
+;                 ELSE
+;                 IMPORT  __use_two_region_memory
+;                 EXPORT  __user_initial_stackheap
                  
 __user_initial_stackheap
 

@@ -27,6 +27,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "SEGGER_RTT.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -121,6 +122,8 @@ int main(void)
   } else {
       BSP_Setup();
       Setup();
+  SEGGER_RTT_ConfigUpBuffer(0, "RTTUP", NULL, 0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
+  SEGGER_RTT_ConfigDownBuffer(0, "RTTDOWN", NULL, 0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
       /* USER CODE END 2 */
 
       /* Infinite loop */

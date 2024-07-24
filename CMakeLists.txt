@@ -127,6 +127,7 @@ INCLUDE_SUB_DIR_INC(${PROJECT_SOURCE_DIR}/Algorithms)
 INCLUDE_SUB_DIR_INC(${PROJECT_SOURCE_DIR}/Services)
 INCLUDE_SUB_DIR_INC(${PROJECT_SOURCE_DIR}/Components)
 INCLUDE_SUB_DIR_INC(${PROJECT_SOURCE_DIR}/Tests)
+INCLUDE_SUB_DIR_INC(${PROJECT_SOURCE_DIR}/SEGGER/RTT)
 
 #include_directories(
 #        Interface
@@ -146,6 +147,7 @@ file(GLOB_RECURSE COMMON_SOURCE_FILES
         "Services/*.*"
         "Components/*.*"
         "Tests/*.*"
+        "SEGGER/RTT/*.*"
         )
 
 add_subdirectory(BSP/MC_Board)
