@@ -25,15 +25,43 @@ public:
         this->SetDivisionFactor(20);
     }
 
+    void SetTargetAngle(float targetAngle) {
+        if(params.targetType != Motor_Ctrl_Type_e::Position) {
+            return;
+        }
+        lastTarget = target;
+        target = targetAngle + angleOffset;
+        if(isInit)
+        {
+            lastTarget = target;
+            isInit = false;
+        }
+        if(target-lastTarget<-180)
+        {
+            angleOffset += 360.f;
+            target += 360.f;
+        }
+        if(target-lastTarget>180)
+        {
+            angleOffset -= 360.f;
+            target -= 360.f;
+        }
+    }
+
     void Handle() override {
         Update();
         controller->Calc();
         MessageGenerate();
-    };
+    }
 
     RS485_Agent<busID> rs485Agent;
 
 private:
+
+    float lastTarget = 0;
+    float angleOffset = 0;
+    bool isInit = true;
+
     void SetFeedback() override {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Position:
@@ -45,7 +73,7 @@ private:
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Position: {
-                uint32_t txAngle = controller->GetOutput() * 16384.0f / 360.0f;
+                int32_t txAngle = controller->GetOutput() * 16384.0f / 360.0f;
 
                 rs485Agent.txbuf[0] = 0x3E;//协议头
                 rs485Agent.txbuf[1] = 0x00;//包序号
@@ -67,10 +95,11 @@ private:
     }
 
     void Update() {
-        state.position = (float) ((rs485Agent.rxbuf[7] | (rs485Agent.rxbuf[8] << 8u)) * 360.0f / 16384.0f);//单圈编码值
-        state.speed = (int16_t)(rs485Agent.rxbuf[11] | (rs485Agent.rxbuf[12] << 8u));
-        state.torque = 0;//电机应答不返回电流值
-        state.temperature = 0;//电机应答不返回温度参数
+        // state.position = (float) ((rs485Agent.rxbuf[7] | (rs485Agent.rxbuf[8] << 8u)) * 360.0f / 16384.0f);//单圈编码值
+        // state.speed = (int16_t)(rs485Agent.rxbuf[11] | (rs485Agent.rxbuf[12] << 8u));
+        // state.torque = 0;//电机应答不返回电流值
+        // state.temperature = 0;//电机应答不返回温度参数
+        state.position = target;
     }
 /*    void AngleCalc() {
         state.position = (float) (rs485Agent.rxbuf[7] | (rs485Agent.rxbuf[8] << 8u) | (rs485Agent.rxbuf[9] << 16u) |
