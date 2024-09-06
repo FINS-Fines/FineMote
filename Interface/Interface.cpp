@@ -38,9 +38,12 @@ void Task2() {
 
 /*****  示例3 *****/
 #include "Chassis.h"
+#include "Chassis_differential.h"
 #include "RMD_L_40xx_v3.h"
 #include "Motor4010.h"
 #include "Motor4315.h"
+#include "dji_group_agent.h"
+#include "M3508_temp.h"
 
 /*
 constexpr PID_Param_t speedPID = {0.25f, 0.002f, 0.3f, 2000, 2000};
@@ -63,39 +66,26 @@ Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02);
 Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 */
 
+//constexpr PID_Param_t anglePID = {2.0f, 0.0005f, 0.05f, 2000, 2000};
+constexpr PID_Param_t speedPID = {0.15f, 0.002f, 0.3f, 2000, 16384};
 
+auto wheelControllers = CreateControllers<PID, 2>(speedPID);
 
-
-constexpr PID_Param_t anglePID = {2.0f, 0.0005f, 0.05f, 2000, 2000};
-constexpr PID_Param_t speedPID = {0.15f, 0.002f, 0.3f, 2000, 2000};
-
-auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
 
 #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
 #define TORQUE_2_POSITION {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Position}
 #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
 
-RMD_L_40xx_v3<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x242);
-RMD_L_40xx_v3<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x244);
-RMD_L_40xx_v3<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x246);
-RMD_L_40xx_v3<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x248);
+#define M3508_left_para {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed, 19.f}
+#define M3508_right_para {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed, -19.f}
 
-RMD_L_40xx_v3<1> SFRMotor(DIRECT_POSITION, swerveControllers[0], 0x241);
-RMD_L_40xx_v3<1> SFLMotor(DIRECT_POSITION, swerveControllers[1], 0x243);
-RMD_L_40xx_v3<1> SBLMotor(DIRECT_POSITION, swerveControllers[2], 0x245);
-RMD_L_40xx_v3<1> SBRMotor(DIRECT_POSITION, swerveControllers[3], 0x247);
+M3508<1> LMotor(M3508_left_para, wheelControllers[0], 0x201);
+M3508<2> RMotor(M3508_right_para, wheelControllers[0], 0x202);
 
 //首先调取底盘类的构建器，然后使用提供的电机添加函数，将上文构建的电机指针传入构建器，最后由构建器返回构建好的底盘类对象
-Chassis chassis = Chassis::Build().
-        AddCFLMotor(CFLMotor).
-        AddCFRMotor(CFRMotor).
-        AddCBLMotor(CBLMotor).
-        AddCBRMotor(CBRMotor).
-        AddSFLMotor(SFLMotor).
-        AddSFRMotor(SFRMotor).
-        AddSBLMotor(SBLMotor).
-        AddSBRMotor(SBRMotor).
+Chassis_d chassis = Chassis_d::Build().
+        AddLMotor(LMotor).
+        AddRMotor(RMotor).
         Build();
 
 /*auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
@@ -111,7 +101,7 @@ RadioMaster_Zorro remote;
  */
 void Task3() {
     constexpr float speedLimit = 2;
-    chassis.ChassisSetVelocity(remote.GetInfo().rightCol * speedLimit, remote.GetInfo().rightRol * speedLimit, remote.GetInfo().leftRol * PI);
+    chassis.ChassisSetVelocity(remote.GetInfo().rightCol * speedLimit, remote.GetInfo().leftRol * PI);
 }
 
 /*****  示例4 *****/
@@ -139,7 +129,7 @@ void Setup() {
     std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
         motion.Decode(data, length);
     };
-    UARTBaseLite<5>::GetInstance().Bind(decodeFunc);
+//    UARTBaseLite<5>::GetInstance().Bind(decodeFunc);
 }
 
 /**
