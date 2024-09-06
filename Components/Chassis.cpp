@@ -29,7 +29,7 @@ void Chassis::ChassisStop() {
 }
 
 void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVelocity) {
-    float ClassisSpeed[4];
+    float ChassisSpeed[4];
     float RFLAngle, RFRAngle, RBLAngle, RBRAngle;
     float vx, vy, w;
     vx = lrVelocity;
@@ -48,10 +48,10 @@ void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVeloci
     RBRAngle = atan2(B, D) * 180 / PI;
 
     //计算四个轮子线速度，单位：度/s
-    ClassisSpeed[0] = -sqrt(A * A + D * D)  / (WHEEL_DIAMETER * PI) * 360;//右前轮1
-    ClassisSpeed[1] = sqrt(A * A + C * C)/ (WHEEL_DIAMETER * PI) * 360;//左前轮2
-    ClassisSpeed[2] = sqrt(B * B + C * C) / (WHEEL_DIAMETER * PI) * 360;//左后轮3
-    ClassisSpeed[3] = -sqrt(B * B + D * D) / (WHEEL_DIAMETER * PI) * 360;//右后轮4
+    ChassisSpeed[0] = -sqrt(A * A + D * D)  / (WHEEL_DIAMETER * PI) * 360;//右前轮1
+    ChassisSpeed[1] = sqrt(A * A + C * C)/ (WHEEL_DIAMETER * PI) * 360;//左前轮2
+    ChassisSpeed[2] = sqrt(B * B + C * C) / (WHEEL_DIAMETER * PI) * 360;//左后轮3
+    ChassisSpeed[3] = -sqrt(B * B + D * D) / (WHEEL_DIAMETER * PI) * 360;//右后轮4
 
 /*    float nowAngle[4] = {SFR.state.position - SFR.zeroAngle, SFL.state.position - SFL.zeroAngle,
                          SBL.state.position - SBL.zeroAngle, SBR.state.position - SBR.zeroAngle};*/
@@ -63,10 +63,10 @@ void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVeloci
     SBR.SetTargetAngle(RBRAngle);
 
     //设置底盘电机转速
-    CFR.SetTargetSpeed(ClassisSpeed[0]);
-    CFL.SetTargetSpeed(ClassisSpeed[1]);
-    CBL.SetTargetSpeed(ClassisSpeed[2]);
-    CBR.SetTargetSpeed(ClassisSpeed[3]);
+    CFR.SetTargetSpeed(ChassisSpeed[0]);
+    CFL.SetTargetSpeed(ChassisSpeed[1]);
+    CBL.SetTargetSpeed(ChassisSpeed[2]);
+    CBR.SetTargetSpeed(ChassisSpeed[3]);
 
 }
 
