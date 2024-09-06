@@ -1,5 +1,5 @@
 <component name="CopyrightManager">
-  <settings>
+  <settings default="FINS">
     <module2copyright>
       <element module="Project Source Files" copyright="FINS" />
     </module2copyright>

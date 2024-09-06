@@ -18,7 +18,7 @@ PWM_UNIT_t pwmList[7] = {
 {&htim8,TIM_CHANNEL_3}
 };
 
-UART_HandleTypeDef *uartHandleList[3] = {&huart3, &huart1, &huart6};
+UART_HandleTypeDef *uartHandleList[7] = {nullptr, &huart1, nullptr, &huart3, nullptr, nullptr, &huart6};
 GPIO_TypeDef *rs485TxPortList[3] = {nullptr, nullptr, nullptr};
 uint16_t rs485TxPinList[3] = {NULL, NULL, NULL};
 

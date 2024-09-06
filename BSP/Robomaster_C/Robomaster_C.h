@@ -62,7 +62,7 @@ public:
 
 #define CAN_BUS_MAXIMUM_COUNT 2
 
-extern UART_HandleTypeDef *uartHandleList[3];
+extern UART_HandleTypeDef *uartHandleList[7];
 #define UART_PERIPHERAL
 
 #define RS485_NO_XXX

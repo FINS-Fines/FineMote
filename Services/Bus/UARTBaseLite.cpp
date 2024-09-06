@@ -9,8 +9,8 @@
 #include "UART_Base.h"
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
-    if (huart == &huart5) {
-        UARTBaseLite<5>::GetInstance().RxHandle(Size);
+    if (huart == &huart6) {
+        UARTBaseLite<6>::GetInstance().RxHandle(Size);
     }
     else if (huart == &huart3) {
         UARTBaseLite<3>::GetInstance().RxHandle(Size);
