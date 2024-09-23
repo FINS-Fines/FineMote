@@ -9,7 +9,7 @@
 //
 
 #include "Chassis_differential.h"
-#include <cmath>
+
 
 void Chassis_d::ChassisSetVelocity(float _fbV, float _rtV) {
   ChassisStopFlag = false;
@@ -31,16 +31,10 @@ void Chassis_d::WheelsSpeedCalc(float fbVelocity, float rtVelocity) {
   float w = rtVelocity / 180.f * PI; // rad/s
 
   /// TODO speed limit
+  //计算四个轮子线速度，单位：度/s
+  ChassisSpeed[0] = (v + (WIDTH * w) / 2) / (WHEEL_DIAMETER * PI) * 360;//左轮
+  ChassisSpeed[1] = (v - (WIDTH * w) / 2) / (WHEEL_DIAMETER * PI) * 360;//右轮
 
-  if (abs(rtVelocity) > 0.1f) {
-    float r = v / w;
-    ChassisSpeed[0] = v / r * (r - WIDTH / 2);
-    ChassisSpeed[0] = v / r * (r + WIDTH / 2);
-  } else {
-    //计算四个轮子线速度，单位：度/s
-    ChassisSpeed[0] = fbVelocity / (WHEEL_DIAMETER * PI) * 360;//左轮
-    ChassisSpeed[1] = fbVelocity / (WHEEL_DIAMETER * PI) * 360;//右轮
-  }
 
   //设置底盘电机转速
   LMotor.SetTargetSpeed(ChassisSpeed[0]);
