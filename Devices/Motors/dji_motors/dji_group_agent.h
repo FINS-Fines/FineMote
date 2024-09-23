@@ -29,7 +29,7 @@ typedef enum group_id {
 template<int busID>
 class dji_group_agent : public DeviceBase {
 public:
-    template<typename T>
+//    template<typename T>
     explicit dji_group_agent(uint32_t addr) :canAgent(addr) {
       switch (addr) {
         case (0x200):

@@ -15,6 +15,7 @@
 
 #ifdef MOTOR_COMPONENTS
 
+#include <cmath>
 #include "DeviceBase.h"
 #include "Bus/CAN_Base.h"
 #include "Motors/MotorBase.h"
@@ -22,10 +23,10 @@
 
 typedef struct dji_raw_feedback {
     bool initialized;
-    uint16_t last_ecd;
-    uint16_t ecd;
-    uint16_t speed; // rpm
-    uint16_t rx_torque;
+    int16_t last_ecd;
+    int16_t ecd;
+    int16_t speed; // rpm
+    int16_t rx_torque;
     uint8_t temperature;
 } dji_raw_feedback_t;
 
@@ -33,8 +34,8 @@ template<int busID>
 class M3508 : public MotorBase {
 public:
     template<typename T>
-    M3508(const Motor_Param_t &&params, T &_controller, uint32_t addr) : MotorBase(
-            std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+    M3508(const Motor_Param_t &&params, T &_controller, uint32_t addr, dji_group_agent<busID>* _group) : MotorBase(
+            std::forward<const Motor_Param_t>(params)), canAgent(addr), groupAgent(_group) {
       ResetController(_controller);
     }
 
@@ -50,6 +51,8 @@ public:
 private:
     dji_raw_feedback_t raw{false};
 
+    int16_t txTorque;
+
     void SetFeedback() final {
       switch (params.targetType) {
         case Motor_Ctrl_Type_e::Position:
@@ -62,21 +65,23 @@ private:
     }
 
     void MessageGenerate() {
-      volatile int16_t txTorque = controller->GetOutput();
+      txTorque = controller->GetOutput() * (params.reductionRatio / fabs(params.reductionRatio));
       INRANGE(txTorque, -16384, 16384);
       groupAgent->SetOutput(canAgent.addr, txTorque);
+      txTorque = 0;
     }
 
     void Update() {
       if (!raw.initialized) {
-        raw.ecd = (uint16_t) (canAgent.rxbuf[0] << 8 | canAgent.rxbuf[1]);
+        raw.ecd = (int16_t) (canAgent.rxbuf[0] << 8 | canAgent.rxbuf[1]);
         raw.last_ecd = raw.ecd;
+        raw.initialized = true;
       } else {
         raw.last_ecd = raw.ecd;
-        raw.ecd = (uint16_t) (canAgent.rxbuf[0] << 8 | canAgent.rxbuf[1]);
+        raw.ecd = (int16_t) (canAgent.rxbuf[0] << 8 | canAgent.rxbuf[1]);
       }
-      raw.speed = (uint16_t) (canAgent.rxbuf[2] << 8 | canAgent.rxbuf[3]);
-      raw.rx_torque = (uint16_t) (canAgent.rxbuf[4] << 8 | canAgent.rxbuf[5]);
+      raw.speed = (int16_t) (canAgent.rxbuf[2] << 8 | canAgent.rxbuf[3]);
+      raw.rx_torque = (int16_t) (canAgent.rxbuf[4] << 8 | canAgent.rxbuf[5]);
       raw.temperature = canAgent.rxbuf[6];
 
       if (abs(raw.ecd - raw.last_ecd) < 4096) {
