@@ -22,8 +22,8 @@ extern "C" {
 
 // 发送完成中断回调函数
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    if(huart == &huart6) {
-        UARTBaseLite<6>::GetInstance().TxLoader();
+    if(huart == &huart5) {
+        UARTBaseLite<5>::GetInstance().TxLoader();
         GetUartHandle_BusMap()[huart]->CallbackHandle(UART_Base::Callback_e::WRITE);
     }
     else if(huart == &huart1){
@@ -40,8 +40,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 // 出错中断回调函数
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     GetUartHandle_BusMap()[huart]->CallbackHandle(UART_Base::Callback_e::ERROR_CALL);
-    if (huart == &huart6) {
-        UARTBaseLite<6>::GetInstance().RxHandle(1);
+    if (huart == &huart5) {
+        UARTBaseLite<5>::GetInstance().RxHandle(1);
     }
 
 }
