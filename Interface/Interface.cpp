@@ -67,7 +67,7 @@ Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 */
 
 //constexpr PID_Param_t anglePID = {2.0f, 0.0005f, 0.05f, 2000, 2000};
-constexpr PID_Param_t speedPID = {0.15f, 0.002f, 0.3f, 2000, 16384};
+constexpr PID_Param_t speedPID = {10.0f, 0.0f, 100.f, 2000, 16384};
 
 auto wheelControllers = CreateControllers<PID, 2>(speedPID);
 
@@ -79,8 +79,9 @@ auto wheelControllers = CreateControllers<PID, 2>(speedPID);
 #define M3508_left_para {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed, 19.f}
 #define M3508_right_para {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed, -19.f}
 
-M3508<1> LMotor(M3508_left_para, wheelControllers[0], 0x201);
-M3508<2> RMotor(M3508_right_para, wheelControllers[0], 0x202);
+dji_group_agent<1> group_1_1(0x200);
+M3508<1> LMotor(M3508_left_para, wheelControllers[0], 0x201, &group_1_1);
+M3508<1> RMotor(M3508_right_para, wheelControllers[1], 0x202, &group_1_1);
 
 //首先调取底盘类的构建器，然后使用提供的电机添加函数，将上文构建的电机指针传入构建器，最后由构建器返回构建好的底盘类对象
 Chassis_d chassis = Chassis_d::Build().
@@ -100,8 +101,8 @@ RadioMaster_Zorro remote;
  * @brief 底盘根据遥控器数据运动
  */
 void Task3() {
-    constexpr float speedLimit = 2;
-    chassis.ChassisSetVelocity(remote.GetInfo().rightCol * speedLimit, remote.GetInfo().leftRol * PI);
+    constexpr float speedLimit = 3.f;
+    chassis.ChassisSetVelocity(remote.GetInfo().rightCol * speedLimit, remote.GetInfo().leftRol * 360.f);
 }
 
 /*****  示例4 *****/
