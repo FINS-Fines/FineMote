@@ -79,44 +79,44 @@ int main(void)
   /* USER CODE BEGIN 1 */
   static uint8_t firstEnter = 1;
   if(firstEnter) {
-      /* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-      /* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-      /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-      HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-      /* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
       SystemClock_PreConfig();
-      /* USER CODE END Init */
+  /* USER CODE END Init */
 
-      /* Configure the system clock */
-      SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-      /* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
       SystemClock_PostConfig();
-      /* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-      /* Initialize all configured peripherals */
-      MX_GPIO_Init();
-      MX_DMA_Init();
-      MX_CAN1_Init();
-      MX_CAN2_Init();
-      MX_SPI1_Init();
-      MX_UART5_Init();
-      MX_USART1_UART_Init();
-      MX_ADC1_Init();
-      MX_I2C1_Init();
-      MX_TIM8_Init();
-      MX_I2C3_Init();
-      MX_SPI2_Init();
-      MX_USART2_UART_Init();
-      MX_TIM3_Init();
-      MX_TIM2_Init();
-      MX_TIM7_Init();
-      MX_USART3_UART_Init();
-      //MX_IWDG_Init();
-      /* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_CAN1_Init();
+  MX_CAN2_Init();
+  MX_SPI1_Init();
+  MX_UART5_Init();
+  MX_USART1_UART_Init();
+  MX_ADC1_Init();
+  MX_I2C1_Init();
+  MX_TIM8_Init();
+  MX_I2C3_Init();
+  MX_SPI2_Init();
+  MX_USART2_UART_Init();
+  MX_TIM3_Init();
+  MX_TIM2_Init();
+  MX_TIM7_Init();
+  MX_USART3_UART_Init();
+  MX_IWDG_Init();
+  /* USER CODE BEGIN 2 */
       HAL_GPIO_WritePin(GPIOC, Power_OUT1_EN_Pin|Power_5V_EN_Pin|RS485_DIR1_Pin|LED1_Pin
                                |GPIO_PIN_1|Power_OUT2_EN_Pin, GPIO_PIN_SET);
 
@@ -124,14 +124,14 @@ int main(void)
   } else {
       BSP_Setup();
       Setup();
-      /* USER CODE END 2 */
+  /* USER CODE END 2 */
 
-      /* Infinite loop */
-      /* USER CODE BEGIN WHILE */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
       while (1) {
-          /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-          /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
           Loop();
       }
   }
@@ -187,7 +187,7 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 /**
- * @brief 将时钟源选择为内部时钟，避免Clion的Debug模式无法使能锁相�????
+ * @brief 将时钟源选择为内部时钟，避免Clion的Debug模式无法使能锁相�?????
  */
 void SystemClock_PreConfig(void) {
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
