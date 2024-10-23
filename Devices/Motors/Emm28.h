@@ -27,7 +27,7 @@ public:
         Update();
         controller->Calc();
         MessageGenerate();
-        GetCurrentPosition();
+        // GetCurrentPosition();
     }
 
     CAN_Agent<busID> canAgent;

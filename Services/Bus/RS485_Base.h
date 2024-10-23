@@ -63,7 +63,7 @@ template <uint8_t busID>
 class RS485_Agent : public DeviceBase{
 public:
 
-    RS485_Agent(uint32_t _addr) : addr(_addr){}
+    RS485_Agent(uint32_t _addr,uint8_t _addrPosition) : addr(_addr),addrPosition(_addrPosition){}
 
     void SendMsg(uint16_t size){
         RS485_Base<busID>::GetInstance().Transmit(txbuf,size);
@@ -71,7 +71,7 @@ public:
 
 /**** 验证地址（貌似放这里不太合适） ****/
     void Handle() override{
-        if(RS485_Base<busID>::GetInstance().rxBuffer[2] == addr){
+        if(RS485_Base<busID>::GetInstance().rxBuffer[addrPosition] == addr){
             std::copy(RS485_Base<busID>::GetInstance().rxBuffer,RS485_Base<busID>::GetInstance().rxBuffer+30,rxbuf);
         }
     }
@@ -79,6 +79,7 @@ public:
     uint32_t addr;
     uint8_t rxbuf[30]{0};
     uint8_t txbuf[30]{0};
+    uint8_t addrPosition;
 };
 
 #endif //RS485_BASE_MODULE
