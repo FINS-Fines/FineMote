@@ -19,7 +19,7 @@
 #include "Odrive.h"
 #include "FZMotion.h"
 #include "Manipulator.h"
-#include "D28_485.h"
+#include "D28_5_485.h"
 #include "RadioMaster_Zorro.h"
 #include "RadioMaster_Pocket.h"
 
@@ -158,20 +158,32 @@ auto manipulatorControllers = CreateControllers<Amplifier<1>, 6>();
 
 #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
 
-Odrive<2> AMotor(DIRECT_POSITION,manipulatorControllers[0],0x02);
-Odrive<2> BMotor(DIRECT_POSITION,manipulatorControllers[1],0x03);
-Odrive<2> CMotor(DIRECT_POSITION,manipulatorControllers[2],0x04);
+
 Emm28<2>  DMotor(DIRECT_POSITION,manipulatorControllers[3],0x0400);
 Emm28<2>  EMotor(DIRECT_POSITION,manipulatorControllers[4],0x0500);
 HO3507<2> FMotor(DIRECT_POSITION,manipulatorControllers[5],0x01);
+Odrive<2> AMotor(DIRECT_POSITION,manipulatorControllers[0],0x02);
+Odrive<2> BMotor(DIRECT_POSITION,manipulatorControllers[1],0x03);
+Odrive<2> CMotor(DIRECT_POSITION,manipulatorControllers[2],0x04);
+
 
 D28_485<2> CEncoder(0x03);
 D28_485<2> DEncoder(0x04);
 D28_485<2> EEncoder(0x05);
 
 
+float AAngle{0};
+float BAngle{0};
+float CAngle{0};
+float DAngle{0};
+float EAngle{0};
+float FAngle{0};
+
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor);
 void Task4() {
+
+    manipulator.UpdataEncoderData(CEncoder.angle,DEncoder.angle,EEncoder.angle);
+    manipulator.SetAngle(AAngle,BAngle,CAngle,DAngle,EAngle,FAngle);
 }
 
 /**
