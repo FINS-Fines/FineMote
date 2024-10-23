@@ -15,7 +15,7 @@ public:
 
     explicit RS485_Base(){
         HALInit::GetInstance();
-        this->SetDivisionFactor(4);
+        this->SetDivisionFactor(100);
         HAL_UARTEx_ReceiveToIdle_IT(uartHandleList[busID], UARTBaseLite<busID>::GetInstance().rxBuffer[0], 200);
 
         std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
