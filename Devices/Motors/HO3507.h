@@ -106,8 +106,8 @@ private:
     }
 
     void MessageGenerate() {
-        ChooseCtrlType();
-        Start();
+        // ChooseCtrlType();
+        // Start();
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Speed: {
                 float txSpeed = controller->GetOutput();
@@ -116,6 +116,19 @@ private:
                 canAgent[1] = 0x00;
                 canAgent[2] = (txSpeedCode >> 4) & 0x0FF;
                 canAgent[3] = ((txSpeedCode << 8) & 0xF00)+1; //kp
+                canAgent[4] = 0x00;
+                canAgent[5] = 0x02; //kd
+                canAgent[6] = 0x00;
+                canAgent[7] = 0x00;
+                break;
+            }
+            case Motor_Ctrl_Type_e::Position: {
+                float txPosition = controller->GetOutput();
+                int32_t txPositionCode = txPosition/360.0f*0x8000+0x8000;
+                canAgent[0] = (txPositionCode >> 8) & 0xFF;
+                canAgent[1] = txPositionCode & 0xFF;
+                canAgent[2] = 0x81;
+                canAgent[3] = 0x01; //kp
                 canAgent[4] = 0x00;
                 canAgent[5] = 0x02; //kd
                 canAgent[6] = 0x00;
