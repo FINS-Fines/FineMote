@@ -166,24 +166,37 @@ Odrive<2> AMotor(DIRECT_POSITION,manipulatorControllers[0],0x02);
 Odrive<2> BMotor(DIRECT_POSITION,manipulatorControllers[1],0x03);
 Odrive<2> CMotor(DIRECT_POSITION,manipulatorControllers[2],0x04);
 
-
 D28_485<2> CEncoder(0x03);
 D28_485<2> DEncoder(0x04);
 D28_485<2> EEncoder(0x05);
 
-
-float AAngle{0};
-float BAngle{0};
-float CAngle{0};
-float DAngle{0};
-float EAngle{0};
-float FAngle{0};
-
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor);
-void Task4() {
 
+struct ManiAngle
+{
+    float AAngle{0};
+    float BAngle{0};
+    float CAngle{0};
+    float DAngle{0};
+    float EAngle{0};
+    float FAngle{0};
+}__packed;
+ManiAngle angle;
+bool isDataAvailable = false;
+
+uint8_t rxData[40]{};
+void Task4() {
+    memcpy(rxData,UARTBaseLite<5>::GetInstance().rxBuffer[0],40);
+    if(rxData[0] == 0xAA && rxData[1] == 0xBB && rxData[26] == 0xCC && rxData[27] == 0xDD)
+    {
+        isDataAvailable = true;
+        memcpy(&angle,rxData+2,24);
+    }
     manipulator.UpdataEncoderData(CEncoder.angle,DEncoder.angle,EEncoder.angle);
-    manipulator.SetAngle(AAngle,BAngle,CAngle,DAngle,EAngle,FAngle);
+    if(manipulator.isInitFinished && isDataAvailable)
+    {
+        manipulator.SetAngle(angle.AAngle/PI*180,angle.BAngle/PI*180,angle.CAngle/PI*180,angle.DAngle/PI*180,angle.EAngle/PI*180,angle.FAngle/PI*180);
+    }
 }
 
 /**
@@ -204,6 +217,8 @@ void Setup() {
     //     motion.Decode(data, length);
     // };
     // UARTBaseLite<5>::GetInstance().Bind(decodeFunc);
+    HAL_UARTEx_ReceiveToIdle_IT(uartHandleList[5],UARTBaseLite<5>::GetInstance().rxBuffer[0], 200);
+
 }
 
 /**
