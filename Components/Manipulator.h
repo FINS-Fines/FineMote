@@ -29,13 +29,16 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{347};
-    const float DTargetAngle{48};
+    const float CTargetAngle{135};
+    const float DTargetAngle{49};
+    const float ETargetAngle{223};
     float targetAngle[6]{};
     float reductionRatio[6]{25, 30, 30, 50, 50, 1};
     float angleOffset[6]{0, 0, 0, 0, 0, 0};
 
 public:
+    bool isInitFinished = false;
+
     Manipulator(MotorBase* _motorA, MotorBase* _motorB, MotorBase* _motorC, MotorBase* _motorD, MotorBase* _motorE,
                 MotorBase* _motorF):
         motorA(_motorA), motorB(_motorB), motorC(_motorC), motorD(_motorD), motorE(_motorE), motorF(_motorF)
@@ -63,22 +66,29 @@ public:
     {
         enum State
         {
+            WaitForOdriveInit,
             GetEncoderData,
             InitThirdJoint,
             InitOtherJoint,
             Finish
         };
-        static State state=GetEncoderData;
+        static State state = WaitForOdriveInit;
 
-        // static float initialCAngle{0};
-        // static float initialDAngle{0};
-        // static float initialEAngle{0};
+
         static uint32_t counter{0};
 
         switch (state)
         {
+            case WaitForOdriveInit:
+                counter++;
+                if(counter>6000)
+                {
+                    counter = 0;
+                    state = GetEncoderData;
+                }
+                break;
             case GetEncoderData:
-                if(EncoderCAngle == 0 && EncoderDAngle == 0)
+                if(EncoderCAngle == 0 || EncoderDAngle == 0 || EncoderEAngle == 0)
                 {
                     break;
                 }
@@ -88,9 +98,6 @@ public:
                 counter++;
                 if(counter>=2000)
                 {
-                    // initialCAngle=initialCAngle/(float)counter;
-                    // initialDAngle=initialDAngle/(float)counter;
-                    // initialEAngle=initialEAngle/(float)counter;
                     state = InitThirdJoint;
                     counter=0;
                 }
@@ -105,9 +112,10 @@ public:
                 }
                 break;
             case InitOtherJoint:
-                angleOffset[1] = 101;
-                angleOffset[3] = DTargetAngle-initialDAngle;
-                angleOffset[4] = 0;
+                angleOffset[0] = 5;
+                angleOffset[1] = 80;
+                angleOffset[3] = -(DTargetAngle-initialDAngle);
+                angleOffset[4] = -(ETargetAngle-initialEAngle);
                 counter++;
                 if(counter>5000)
                 {
@@ -115,6 +123,7 @@ public:
                 }
                 break;
             case Finish:
+                isInitFinished = true;
                 break;
         }
     }
