@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F446xx,__MC_BOARD</Define>
               <Undefine></Undefine>
-              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../../../Interface;../../../Services;../../../Devices;../../../Components;../../../Devices/Controllers;../../../Devices/Motors;../../../Algorithms/Communication;../../../Algorithms;../../../Services/Bus;../../../Services/MultiMedia;../../../Services/FineWarden;../../../Devices/Encoders</IncludePath>
+              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../../../Interface;../../../Services;../../../Devices;../../../Components;../../../Devices/Controllers;../../../Devices/Motors;../../../Algorithms/Communication;../../../Algorithms;../../../Services/Bus;../../../Services/MultiMedia;../../../Services/FineWarden;../../../Devices/Encoders;..\..\..\Services\FineSerial</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
