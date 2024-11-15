@@ -15,7 +15,7 @@ public:
 
     explicit RS485_Base(){
         HALInit::GetInstance();
-        this->SetDivisionFactor(100);
+        // this->SetDivisionFactor(100);
         HAL_UARTEx_ReceiveToIdle_IT(uartHandleList[busID], UARTBaseLite<busID>::GetInstance().rxBuffer[0], 200);
 
         std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
@@ -63,7 +63,7 @@ template <uint8_t busID>
 class RS485_Agent : public DeviceBase{
 public:
 
-    RS485_Agent(uint32_t _addr,uint8_t _addrPosition) : addr(_addr),addrPosition(_addrPosition){}
+    RS485_Agent(uint32_t _addr) : addr(_addr){}
 
     void SendMsg(uint16_t size){
         RS485_Base<busID>::GetInstance().Transmit(txbuf,size);
@@ -71,7 +71,7 @@ public:
 
 /**** 验证地址（貌似放这里不太合适） ****/
     void Handle() override{
-        if(RS485_Base<busID>::GetInstance().rxBuffer[addrPosition] == addr){
+        if(RS485_Base<busID>::GetInstance().rxBuffer[0] == addr || RS485_Base<busID>::GetInstance().rxBuffer[2] == addr){
             std::copy(RS485_Base<busID>::GetInstance().rxBuffer,RS485_Base<busID>::GetInstance().rxBuffer+30,rxbuf);
         }
     }
@@ -79,7 +79,6 @@ public:
     uint32_t addr;
     uint8_t rxbuf[30]{0};
     uint8_t txbuf[30]{0};
-    uint8_t addrPosition;
 };
 
 #endif //RS485_BASE_MODULE

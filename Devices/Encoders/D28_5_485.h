@@ -16,7 +16,7 @@
 template<int busID>
 class D28_485 : public DeviceBase {
 public:
-    D28_485(uint32_t addr) :  rs485Agent(addr,addrPosition) {
+    D28_485(uint32_t addr) :  rs485Agent(addr) {
         this->SetDivisionFactor(300);
     }
     void Handle() override {
@@ -58,25 +58,33 @@ private:
 
     void Update() {
         int Position;
-        if((rs485Agent.rxbuf[0]>>7) == 0)
+        uint32_t crc32 = CRC32Calc(rs485Agent.rxbuf, 17);
+        uint32_t received_crc = (uint32_t)rs485Agent.rxbuf[17] |
+                       ((uint32_t)rs485Agent.rxbuf[18] << 8) |
+                       ((uint32_t)rs485Agent.rxbuf[19] << 16) |
+                       ((uint32_t)rs485Agent.rxbuf[20] << 24);
+        if(crc32 == received_crc)
         {
-            Position = (((int64_t)0x000000)<<40) |\
-            (((int64_t)rs485Agent.rxbuf[1])<<32) | \
-            (((int64_t)rs485Agent.rxbuf[2])<<24) | \
-            (((int64_t)rs485Agent.rxbuf[3])<<16) | \
-            (((int64_t)rs485Agent.rxbuf[4])<<8) | \
-            (((int64_t)rs485Agent.rxbuf[5])<<0);
-        } else{
-            Position = (((int64_t)0xFFFFFF)<<40) |\
-            (((int64_t)rs485Agent.rxbuf[1])<<32) | \
-            (((int64_t)rs485Agent.rxbuf[2])<<24) | \
-            (((int64_t)rs485Agent.rxbuf[3])<<16) | \
-            (((int64_t)rs485Agent.rxbuf[4])<<8) | \
-            (((int64_t)rs485Agent.rxbuf[5])<<0);
+            if((rs485Agent.rxbuf[0]>>7) == 0)
+            {
+                Position = (((int64_t)0x000000)<<40) |\
+                (((int64_t)rs485Agent.rxbuf[1])<<32) | \
+                (((int64_t)rs485Agent.rxbuf[2])<<24) | \
+                (((int64_t)rs485Agent.rxbuf[3])<<16) | \
+                (((int64_t)rs485Agent.rxbuf[4])<<8) | \
+                (((int64_t)rs485Agent.rxbuf[5])<<0);
+            } else{
+                Position = (((int64_t)0xFFFFFF)<<40) |\
+                (((int64_t)rs485Agent.rxbuf[1])<<32) | \
+                (((int64_t)rs485Agent.rxbuf[2])<<24) | \
+                (((int64_t)rs485Agent.rxbuf[3])<<16) | \
+                (((int64_t)rs485Agent.rxbuf[4])<<8) | \
+                (((int64_t)rs485Agent.rxbuf[5])<<0);
+            }
+            angle = (float)Position/1048576*360;
+            angle += angle<0?360:0;
+            angle = fmodf(angle,360);
         }
-        angle = (float)Position/1048576*360;
-        angle += angle<0?360:0;
-        angle = fmodf(angle,360);
     }
 };
 
