@@ -20,6 +20,7 @@ private:
     MotorBase* motorD;
     MotorBase* motorE;
     MotorBase* motorF;
+    // MotorBase* motorG;
 
     float initialCAngle{0};
     float initialDAngle{0};
@@ -29,16 +30,16 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{135};
+    const float CTargetAngle{222};
     const float DTargetAngle{49};
-    const float ETargetAngle{223};
+    const float ETargetAngle{230};
     float targetAngle[6]{};
     float reductionRatio[6]{25, 30, 30, 50, 50, 1};
     float angleOffset[6]{0, 0, 0, 0, 0, 0};
 
 public:
     bool isInitFinished = false;
-
+    bool GetInitCommand = false;
     Manipulator(MotorBase* _motorA, MotorBase* _motorB, MotorBase* _motorC, MotorBase* _motorD, MotorBase* _motorE,
                 MotorBase* _motorF):
         motorA(_motorA), motorB(_motorB), motorC(_motorC), motorD(_motorD), motorE(_motorE), motorF(_motorF)
@@ -68,6 +69,7 @@ public:
         {
             WaitForOdriveInit,
             GetEncoderData,
+            WaitForInitCommand,
             InitThirdJoint,
             InitOtherJoint,
             Finish
@@ -98,8 +100,14 @@ public:
                 counter++;
                 if(counter>=2000)
                 {
-                    state = InitThirdJoint;
+                    state = WaitForInitCommand;
                     counter=0;
+                }
+                break;
+            case WaitForInitCommand:
+                if(GetInitCommand)
+                {
+                    state = InitThirdJoint;
                 }
                 break;
             case InitThirdJoint://先初始化三关节，防止打到五关节编码器
