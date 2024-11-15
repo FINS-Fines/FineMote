@@ -208,6 +208,16 @@ void Chassis::ResetOdometry(float _x = 0, float _y = 0, float _angle = 0) {
 	yaw = _angle;
 }
 
+void Chassis::OffsetOdometry(float _x = 0, float _y = 0, float _angle = 0) {
+	// chassisPos = matrixf::zeros<3, 1>();
+	chassisPos[0][0] += _x;
+	x += _x;
+	chassisPos[1][0] += _y;
+	y += _y;
+	chassisPos[2][0] += _angle;
+	yaw += _angle;
+}
+
 
 
 

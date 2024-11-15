@@ -76,6 +76,7 @@ public:
     void Handle() override;
     void LSOdometry();
     void ICFOdometry();
+    void OffsetOdometry(float _x, float _y, float _angle);
     void ResetOdometry(float _x,float _y,float _angle);
     bool ChassisStopFlag = true;
     float FBVelocity{}, LRVelocity{}, RTVelocity{};
@@ -213,12 +214,14 @@ class RoutePlanning {
 public:
     float RTVel{0}, FBVel{0}, LRVel{0};
     bool isFinished = false;
+    bool isArrived = true;
 
     RoutePlanning(const float _Kp): currentX(0), currentY(0), currentAngle(0), Kp(_Kp), target(0, 0, 0, 0, 0, 0, 0) {
     }
 
     void AddTarget(float x, float xVel, float y, float yVel, float angle, float angleVel, float time) {
         targetList.emplace(x, xVel, y, yVel, angle, angleVel, time);
+        isFinished = false;
     }
 
     void Update(const float x, const float xVel, const float y, const float yVel, const float angle,
@@ -279,7 +282,6 @@ private:
     float currentX, currentY, currentAngle, currentXVel, currentYVel, currentAngleVel;
     float Kp;
     Target target;
-    bool isArrived = true;
     VelocityProfile* XVelProfilePtr = nullptr;
     VelocityProfile* YVelProfilePtr = nullptr;
     VelocityProfile* RTVelProfilePtr = nullptr;
