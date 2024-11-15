@@ -14,13 +14,16 @@
 class Manipulator : public DeviceBase
 {
 private:
+    const float endEffectorCloseAngle = 298;
+    const float endEffectorOpenAngle = 355;
+
     MotorBase* motorA;
     MotorBase* motorB;
     MotorBase* motorC;
     MotorBase* motorD;
     MotorBase* motorE;
     MotorBase* motorF;
-    // MotorBase* motorG;
+    MotorBase* motorG;
 
     float initialCAngle{0};
     float initialDAngle{0};
@@ -30,53 +33,26 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{222};
+    const float CTargetAngle{230};
     const float DTargetAngle{49};
     const float ETargetAngle{230};
     float targetAngle[6]{};
     float reductionRatio[6]{25, 30, 30, 50, 50, 1};
-    float angleOffset[6]{0, 0, 0, 0, 0, 0};
+    float angleOffset[7]{0, 0, 0, 0, 0, 0};
 
-public:
-    bool isInitFinished = false;
-    bool GetInitCommand = false;
-    Manipulator(MotorBase* _motorA, MotorBase* _motorB, MotorBase* _motorC, MotorBase* _motorD, MotorBase* _motorE,
-                MotorBase* _motorF):
-        motorA(_motorA), motorB(_motorB), motorC(_motorC), motorD(_motorD), motorE(_motorE), motorF(_motorF)
+    enum State
     {
-    }
-
-    void UpdataEncoderData(float CAngle, float DAngle, float EAngle)
-    {
-        EncoderCAngle = CAngle;
-        EncoderDAngle = DAngle;
-        EncoderEAngle = EAngle;
-    }
-
-    void SetAngle(float AAngle, float BAngle, float CAngle, float DAngle, float EAngle, float FAngle)
-    {
-        targetAngle[0] = AAngle;
-        targetAngle[1] = BAngle;
-        targetAngle[2] = -CAngle;
-        targetAngle[3] = DAngle;
-        targetAngle[4] = -EAngle;
-        targetAngle[5] = FAngle;
-    }
+        WaitForOdriveInit,
+        GetEncoderData,
+        WaitForInitCommand,
+        InitThirdJoint,
+        InitOtherJoint,
+        Finish
+    };
+    State state = WaitForOdriveInit;
 
     void ManipulatorInit()
     {
-        enum State
-        {
-            WaitForOdriveInit,
-            GetEncoderData,
-            WaitForInitCommand,
-            InitThirdJoint,
-            InitOtherJoint,
-            Finish
-        };
-        static State state = WaitForOdriveInit;
-
-
         static uint32_t counter{0};
 
         switch (state)
@@ -120,10 +96,16 @@ public:
                 }
                 break;
             case InitOtherJoint:
-                angleOffset[0] = 5;
+                angleOffset[0] = 7;
                 angleOffset[1] = 80;
                 angleOffset[3] = -(DTargetAngle-initialDAngle);
                 angleOffset[4] = -(ETargetAngle-initialEAngle);
+                angleOffset[5] = 195;
+                angleOffset[6] = endEffectorCloseAngle;
+
+                motorF->Enable();
+                motorG->Enable();
+
                 counter++;
                 if(counter>5000)
                 {
@@ -146,6 +128,35 @@ public:
         motorF->SetTargetAngle((targetAngle[5] + angleOffset[5]) * reductionRatio[5]);
     }
 
+public:
+    bool isInitFinished = false;
+    bool GetInitCommand = false;
+
+    Manipulator(MotorBase* _motorA, MotorBase* _motorB, MotorBase* _motorC, MotorBase* _motorD, MotorBase* _motorE,
+                MotorBase* _motorF,MotorBase* _motorG):
+        motorA(_motorA), motorB(_motorB), motorC(_motorC), motorD(_motorD), motorE(_motorE), motorF(_motorF),motorG(_motorG){}
+
+    void UpdataEncoderData(float CAngle, float DAngle, float EAngle)
+    {
+        EncoderCAngle = CAngle;
+        EncoderDAngle = DAngle;
+        EncoderEAngle = EAngle;
+    }
+
+    void SetAngle(float AAngle, float BAngle, float CAngle, float DAngle, float EAngle, float FAngle)
+    {
+        targetAngle[0] = AAngle;
+        targetAngle[1] = BAngle;
+        targetAngle[2] = -CAngle;
+        targetAngle[3] = DAngle;
+        targetAngle[4] = -EAngle;
+        targetAngle[5] = FAngle;
+    }
+
+    void SetEndEffectorAngle(bool isOpen)
+    {
+        motorG->SetTargetAngle(isOpen?endEffectorOpenAngle:endEffectorCloseAngle);
+    }
 
     void Handle() override
     {
