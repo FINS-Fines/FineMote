@@ -53,11 +53,11 @@ public:
         }
     }
 
-    void Enable() {
+    virtual void Enable() {
 
     }
 
-    void Disable() {
+    virtual void Disable() {
 
     }
 
