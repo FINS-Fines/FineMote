@@ -25,6 +25,12 @@ public:
         MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr){
         ResetController(_controller);
         initTick = HAL_GetTick();
+        this->SetDivisionFactor(20);
+    }
+
+    void Enable() override
+    {
+        allowMotorControl = true;
     }
 
     void Handle() final{
@@ -34,8 +40,12 @@ public:
             ChooseCtrlType();
             Start();
         }
-        else{
-            MessageGenerate();
+        else
+        {
+            if(allowMotorControl)
+            {
+                MessageGenerate();
+            }
         }
     };
 
@@ -43,7 +53,7 @@ public:
 
 private:
     uint32_t initTick;
-
+    bool allowMotorControl = false;
     void SetFeedback() final{
         switch (params.targetType){
         case Motor_Ctrl_Type_e::Position:
@@ -134,15 +144,17 @@ private:
             }
         case Motor_Ctrl_Type_e::Position:{
                 float txPosition = controller->GetOutput();
-                int32_t txPositionCode = txPosition / 360.0f * 0x8000 + 0x8000;
+                uint16_t txPositionCode = txPosition / 360.0f * 0x8000 + 0x8000;
+                uint16_t velocity = (100/200) * 0x800 + 0x800;//100为设置速度，200为最大速度
+                uint16_t torque = (1/4) * 0x800 + 0x800;//100为设置速度，200为最大速度
                 canAgent[0] = (txPositionCode >> 8) & 0xFF;
                 canAgent[1] = txPositionCode & 0xFF;
-                canAgent[2] = 0x81;
-                canAgent[3] = 0x01; //kp
-                canAgent[4] = 0x00;
-                canAgent[5] = 0x02; //kd
+                canAgent[2] = 0x90;
+                canAgent[3] = 0x00; //kp
+                canAgent[4] = 0x50;
+                canAgent[5] = 0x60; //kd
                 canAgent[6] = 0x00;
-                canAgent[7] = 0x00;
+                canAgent[7] = 0xA0;
                 break;
             }
         }
