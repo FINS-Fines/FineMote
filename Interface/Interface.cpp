@@ -22,6 +22,7 @@
 #include "D28_5_485.h"
 #include "RadioMaster_Zorro.h"
 #include "RadioMaster_Pocket.h"
+#include "FineSerial.h"
 
 /**
  * @brief LED闪烁
@@ -51,23 +52,24 @@ void Task2() {
 
 /*****  示例3 *****/
 
-// constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
-//
-// auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-// auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
-//
-// //构建组成底盘的各个电机
-// #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
-// Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
-// Motor4010<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143);
-// Motor4010<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
-// Motor4010<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
-//
-// #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
-// Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04);
-// Motor4315<1> SBLMotor(DIRECT_POSITION, swerveControllers[1], 0x03);
-// Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02);
-// Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
+/*****  底盘部分  *****/
+constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
+
+auto wheelControllers = CreateControllers<PID, 4>(speedPID);
+auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
+
+//构建组成底盘的各个电机
+#define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
+Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
+Motor4010<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143);
+Motor4010<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
+Motor4010<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
+
+#define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
+Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04);
+Motor4315<1> SBLMotor(DIRECT_POSITION, swerveControllers[1], 0x03);
+Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02);
+Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 
 
 // constexpr PID_Param_t speedPID = {0.1f, 0.003f, 0.1f, 2000, 2000};
@@ -89,79 +91,28 @@ void Task2() {
 // RMD_L_40xx_v3<1> SBLMotor(DIRECT_POSITION, swerveControllers[2], 0x245);
 // RMD_L_40xx_v3<1> SBRMotor(DIRECT_POSITION, swerveControllers[3], 0x247);
 
-// // 首先调取底盘类的构建器，然后使用提供的电机添加函数，将上文构建的电机指针传入构建器，最后由构建器返回构建好的底盘类对象
-// Chassis chassis = Chassis::Build().
-//                   AddCFLMotor(CFLMotor).
-//                   AddCFRMotor(CFRMotor).
-//                   AddCBLMotor(CBLMotor).
-//                   AddCBRMotor(CBRMotor).
-//                   AddSFLMotor(SFLMotor).
-//                   AddSFRMotor(SFRMotor).
-//                   AddSBLMotor(SBLMotor).
-//                   AddSBRMotor(SBRMotor).
-//                   Build();
+// 首先调取底盘类的构建器，然后使用提供的电机添加函数，将上文构建的电机指针传入构建器，最后由构建器返回构建好的底盘类对象
+Chassis chassis = Chassis::Build().
+                  AddCFLMotor(CFLMotor).
+                  AddCFRMotor(CFRMotor).
+                  AddCBLMotor(CBLMotor).
+                  AddCBRMotor(CBRMotor).
+                  AddSFLMotor(SFLMotor).
+                  AddSFRMotor(SFRMotor).
+                  AddSBLMotor(SBLMotor).
+                  AddSBRMotor(SBRMotor).
+                  Build();
 
 
+/*****  机械臂部分  *****/
 
-
-/**
- * @brief 底盘根据遥控器数据运动
- */
-
-// FZMotion motion;
-// RadioMaster_Zorro remote;
-// RoutePlanning route_planning(0.3);//Kp为误差补偿系数
-//
-// float plannedVelX{0},plannedVelY{0},plannedVelAngle{0},plannedX,plannedY,plannedAngle;
-// bool isPlanStart = false;
-
-void Task3() {
-    // constexpr float speedLimit = 2;
-    //
-    // if(remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::DOWN_POS)//任务模式
-    // {
-    //     route_planning.Update(chassis.chassisPos[0][0],chassis.WCSVelocity[0][0],chassis.chassisPos[1][0],chassis.WCSVelocity[1][0],chassis.chassisPos[2][0],chassis.WCSVelocity[2][0]);
-    //     if(!isPlanStart)
-    //     {
-    //         route_planning.AddTarget(0.5,0,0.7,0,-PI/2,0,5);
-    //         route_planning.AddTarget(1,0,1.5,0,0,0,5);
-    //         route_planning.AddTarget(0,0,2,0,PI/2,0,5);
-    //         route_planning.AddTarget(-0.5,0,1,0,PI/4,0,5);
-    //         route_planning.AddTarget(-1,0,0,0,0,0,5);
-    //
-			 //      isPlanStart=true;
-    //     }
-    //     route_planning.CalcSpeed();
-    //     chassis.ChassisSetVelocity(route_planning.FBVel,route_planning.LRVel,route_planning.RTVel);
-    //     route_planning.GetPlannedVel(plannedX,plannedY,plannedAngle,plannedVelX,plannedVelY,plannedVelAngle);
-    // }
-    // else if(remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::UP_POS)//遥控模式
-    // {
-    //     chassis.ChassisSetVelocity(remote.GetInfo().rightCol * speedLimit,
-    //                                remote.GetInfo().rightRol * speedLimit,
-    //                                -remote.GetInfo().leftRol * PI);//通道值取负，
-    // }
-    //
-    // //重置里程计和任务
-    // if (remote.GetInfo().sA == RemoteControl::SWITCH_STATE_E::DOWN_POS) {
-    //     chassis.ResetOdometry(0,0,0);
-    //     isPlanStart = false;
-    // }
-    //
-    // if (remote.GetInfo().sD == RemoteControl::SWITCH_STATE_E::DOWN_POS) {
-    //   chassis.ResetOdometry(0,0,motion.GetData().rig0_info.eul_Y/180.0f*PI);
-    // }
-}
-
-
-auto manipulatorControllers = CreateControllers<Amplifier<1>, 6>();
-
+auto manipulatorControllers = CreateControllers<Amplifier<1>, 7>();
 #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
-
 
 Emm28<2>  DMotor(DIRECT_POSITION,manipulatorControllers[3],0x0400);
 Emm28<2>  EMotor(DIRECT_POSITION,manipulatorControllers[4],0x0500);
-HO3507<2> FMotor(DIRECT_POSITION,manipulatorControllers[5],0x01);
+HO3507<2> FMotor(DIRECT_POSITION,manipulatorControllers[5],0x07);
+HO3507<2> GMotor(DIRECT_POSITION,manipulatorControllers[6],0x08);
 Odrive<2> AMotor(DIRECT_POSITION,manipulatorControllers[0],0x02);
 Odrive<2> BMotor(DIRECT_POSITION,manipulatorControllers[1],0x03);
 Odrive<2> CMotor(DIRECT_POSITION,manipulatorControllers[2],0x04);
@@ -172,31 +123,88 @@ D28_485<2> EEncoder(0x05);
 
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor);
 
-struct ManiAngle
-{
-    float AAngle{0};
-    float BAngle{0};
-    float CAngle{0};
-    float DAngle{0};
-    float EAngle{0};
-    float FAngle{0};
-}__packed;
-ManiAngle angle;
-bool isDataAvailable = false;
 
-uint8_t rxData[40]{};
-void Task4() {
-    memcpy(rxData,UARTBaseLite<5>::GetInstance().rxBuffer[0],40);
-    if(rxData[0] == 0xAA && rxData[1] == 0xBB && rxData[26] == 0xCC && rxData[27] == 0xDD)
-    {
-        isDataAvailable = true;
-        memcpy(&angle,rxData+2,24);
-    }
+// FZMotion motion;
+RadioMaster_Zorro remote;
+RoutePlanning route_planning(0.3);//Kp为误差补偿系数
+
+float plannedVelX{0},plannedVelY{0},plannedVelAngle{0},plannedX,plannedY,plannedAngle;
+uint8_t tmpData[37]{};
+CommandType currentTask;
+uint8_t crc8 = 0;
+float path[3]{};
+void Task3() {
+    crc8 = FineSerial<5>::GetInstance().crc8;
+    memcpy(tmpData,FineSerial<5>::GetInstance().rxData,37);
+    currentTask = FineSerial<5>::GetInstance().command_type;
+    path[0] = FineSerial<5>::GetInstance().path_point.x;
+    path[1] = FineSerial<5>::GetInstance().path_point.y;
+    path[2] = FineSerial<5>::GetInstance().path_point.yaw;
+
     manipulator.UpdataEncoderData(CEncoder.angle,DEncoder.angle,EEncoder.angle);
-    if(manipulator.isInitFinished && isDataAvailable)
+    route_planning.Update(chassis.chassisPos[0][0],chassis.WCSVelocity[0][0],chassis.chassisPos[1][0],chassis.WCSVelocity[1][0],chassis.chassisPos[2][0],chassis.WCSVelocity[2][0]);
+    if(!FineSerial<5>::GetInstance().isCurrentTaskFinished)
     {
-        manipulator.SetAngle(angle.AAngle/PI*180,angle.BAngle/PI*180,angle.CAngle/PI*180,angle.DAngle/PI*180,angle.EAngle/PI*180,angle.FAngle/PI*180);
+        switch (FineSerial<5>::GetInstance().command_type)
+        {
+            case CommandType::NONE:
+                break;
+            case CommandType::MISSION_START:
+                manipulator.GetInitCommand = true;//
+                break;
+            case CommandType::MOVE_CHASSIS:
+                chassis.ChassisSetVelocity(FineSerial<5>::GetInstance().chassis_vel.fbVel,FineSerial<5>::GetInstance().chassis_vel.lrVel,FineSerial<5>::GetInstance().chassis_vel.rtvel);
+                break;
+            case CommandType::SET_PATH_POINT:
+                route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x,0,FineSerial<5>::GetInstance().path_point.y,0,FineSerial<5>::GetInstance().path_point.yaw,0,8);
+                chassis.ChassisSetVelocity(route_planning.FBVel,route_planning.LRVel,route_planning.RTVel);
+                if(route_planning.isFinished)
+                {
+                    FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                }
+                break;
+            case CommandType::ODOMETRY_OFFSET:
+                chassis.ResetOdometry(FineSerial<5>::GetInstance().offset_data.x,FineSerial<5>::GetInstance().offset_data.y,FineSerial<5>::GetInstance().offset_data.yaw);
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                break;
+            case CommandType::CHASSIS_STOP:
+                chassis.ChassisSetVelocity(0,0,0);
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                break;
+            case CommandType::MOVE_MANIPULATOR:
+                manipulator.GetInitCommand = true;//
+                float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA/PI*180;
+                float BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB/PI*180;
+                float CAngle = FineSerial<5>::GetInstance().manipulator_angle.angleC/PI*180;
+                float DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD/PI*180;
+                float EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE/PI*180;
+                float FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF/PI*180;
+                float endEffectorAngle = FineSerial<5>::GetInstance().endEffectorState?180:0;//180开，0关
+                GMotor.SetTargetAngle(endEffectorAngle);
+                if(manipulator.isInitFinished)
+                {
+                    manipulator.SetAngle(AAngle,BAngle,CAngle,DAngle,EAngle,FAngle);
+                }
+                break;
+        }
     }
+}
+
+
+
+
+void Task4(){
+    // manipulator.UpdataEncoderData(CEncoder.angle,DEncoder.angle,EEncoder.angle);
+    // float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA/PI*180;
+    // float BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB/PI*180;
+    // float CAngle = FineSerial<5>::GetInstance().manipulator_angle.angleC/PI*180;
+    // float DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD/PI*180;
+    // float EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE/PI*180;
+    // float FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF/PI*180;
+    // if(manipulator.isInitFinished)
+    // {
+    //     manipulator.SetAngle(AAngle,BAngle,CAngle,DAngle,EAngle,FAngle);
+    // }
 }
 
 /**
@@ -214,11 +222,12 @@ void Setup() {
     // UARTBaseLite<3>::GetInstance().Bind(remoteDecodeFunc);
     //
     // std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
-    //     motion.Decode(data, length);
+    //     FineSerial<5>::GetInstance().Decode(data, length);
     // };
     // UARTBaseLite<5>::GetInstance().Bind(decodeFunc);
-    HAL_UARTEx_ReceiveToIdle_IT(uartHandleList[5],UARTBaseLite<5>::GetInstance().rxBuffer[0], 200);
 
+    RS485_Base<1>::GetInstance().SetDivisionFactor(4);
+    RS485_Base<2>::GetInstance().SetDivisionFactor(100);
 }
 
 /**
