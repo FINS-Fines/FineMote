@@ -60,8 +60,8 @@ class Chassis : public DeviceBase {
     Matrixf<3,3> A(AData);
     invA = matrixf::inv(A);
 
-    float BData[2*2] = {10,0,
-                        0,10};
+    float BData[2*2] = {100,0,
+                        0,100};
     B = Matrixf<2,2>(BData);
     float QData[3*3] = {0.1,0,0,
                         0,0.1,0,
@@ -81,8 +81,10 @@ public:
     bool ChassisStopFlag = true;
     float FBVelocity{}, LRVelocity{}, RTVelocity{};
     float epi = 0.2;
+    float alpha = 0.5;
     float x{0},y{0},yaw{0};
     float FRX,FRY,FLX,FLY,BLX,BLY,BRX,BRY;
+    float wheelError[4]{};
 
     Matrixf<3,3> invA;
     Matrixf<2,3> H1,H2,H3,H4;
@@ -271,7 +273,7 @@ public:
         RTVel = wcs_vel_rt;
 
         if(targetList.empty()) {
-            isArrived = fabsf(target.angle - currentAngle) < 0.003 && fabsf(target.x - currentX) < 0.001 && fabsf(target.y - currentY) < 0.001;
+            isArrived = fabsf(target.angle - currentAngle) < 0.06 && fabsf(target.x - currentX) < 0.03 && fabsf(target.y - currentY) < 0.03;
             return;
         }
         isArrived = fabsf(target.angle - currentAngle) < 0.06 && fabsf(target.x - currentX) < 0.03 && fabsf(target.y - currentY) < 0.03;
