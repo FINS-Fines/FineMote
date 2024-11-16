@@ -14,29 +14,36 @@
 #include "Verify.h"
 
 
-enum class CommandType{
-    NONE = 0x00,
+enum class SingleCommandType{
+    NONE = 0X00,
     MISSION_START = 0X01,
-    MOVE_CHASSIS = 0X02,
-    SET_PATH_POINT = 0x03,
-    ODOMETRY_OFFSET = 0X04,
-    CHASSIS_STOP = 0X05,
-    MOVE_MANIPULATOR = 0X06,
-};//分为连续指令和单发指令
+    SET_PATH_POINT = 0X02,
+    ODOMETRY_OFFSET = 0X03,
+    CHASSIS_STOP = 0X04,
+    END_EFFECTOR = 0X05,
+};
+
+enum class ContinuousCommandType {
+    NONE = 0X00,
+    MOVE_CHASSIS = 0X0A,
+    MOVE_MANIPULATOR = 0X0B,
+};
+
 
 template <uint8_t busID>
-class FineSerial : public DeviceBase
-{
+class FineSerial : public DeviceBase{
 public:
-    // uint8_t rxData[37]{};
-    // uint8_t crc8{0};
-    // uint16_t datasize{0};
-    // uint8_t command[32]{};
-    // uint32_t dataLength{0};
+    uint8_t rxData[37]{};
+    uint8_t crc8{0};
+    uint16_t datasize{0};
+    uint8_t command[32]{};
+    uint32_t dataLength{0};
     bool isCurrentTaskFinished = false;
     bool endEffectorState = false;//false关，true开
     bool isMissionStart = false;
-    CommandType command_type = CommandType::NONE;
+    bool chassisStopFlag = false;
+    SingleCommandType singleCommand = SingleCommandType::NONE;
+    ContinuousCommandType continuousCommand = ContinuousCommandType::NONE;
 
     static FineSerial& GetInstance(){
         static FineSerial instance;
@@ -50,43 +57,46 @@ public:
 
     void Decode(uint8_t* data, uint16_t size){
         uint8_t commandLength = data[2];
-        // memcpy(&rxData,data,size);
-        // memcpy(&command,data+3,commandLength);
-        // dataLength = size;
-        // crc8 = data[size-2];
-        if(data[0] == 0xAA && data[size-1] == 0xBB && CRC8Calc(data+3,commandLength) == data[size-2])//通过帧头帧尾和CRCC8校验
-        {
-            command_type = static_cast<CommandType>(data[1]);
-            isCurrentTaskFinished = false;
-            switch (command_type)
-            {
-            case CommandType::NONE:
-                break;
-            case CommandType::MISSION_START:
-                isMissionStart = true;
-                break;
-            case CommandType::MOVE_CHASSIS:
-                memcpy(&chassis_vel,data+3,12);
-                break;
-            case CommandType::SET_PATH_POINT:
-                memcpy(&path_point,data+3,12);
-                break;
-            case CommandType::ODOMETRY_OFFSET:
-                memcpy(&offset_data,data+3,12);
-                break;
-            case CommandType::CHASSIS_STOP:
-                break;
-            case CommandType::MOVE_MANIPULATOR:
-                if(commandLength == 1)
-                {
+        memcpy(&rxData,data,size);
+        memcpy(&command,data+3,commandLength);
+        dataLength = size;
+        crc8 = data[size-2];
+        if(data[0] == 0xAA && data[size-1] == 0xBB && CRC8Calc(data+3,commandLength) == data[size-2]){
+            if(data[1]<0x0A){
+                singleCommand = static_cast<SingleCommandType>(data[1]);
+                switch (singleCommand){
+                case SingleCommandType::NONE:
+                    break;
+                case SingleCommandType::MISSION_START:
+                    isMissionStart = true;
+                    break;
+                case SingleCommandType::SET_PATH_POINT:
+                    memcpy(&path_point,data+3,12);
+                    break;
+                case SingleCommandType::ODOMETRY_OFFSET:
+                    memcpy(&offset_data,data+3,12);
+                    break;
+                case SingleCommandType::CHASSIS_STOP:
+                    chassisStopFlag = data[3] == 0x01;
+                    break;
+                case SingleCommandType::END_EFFECTOR:
                     endEffectorState = data[3] == 0x01;
+                    break;
                 }
-                else
-                {
+                isCurrentTaskFinished = false;
+            }
+            else{
+                continuousCommand = static_cast<ContinuousCommandType>(data[1]);
+                switch (continuousCommand){
+                case ContinuousCommandType::NONE:
+                    break;
+                case ContinuousCommandType::MOVE_CHASSIS:
+                    memcpy(&chassis_vel,data+3,12);
+                    break;
+                case ContinuousCommandType::MOVE_MANIPULATOR:
                     memcpy(&manipulator_angle,data+3,24);
+                    break;
                 }
-                last_tick = HAL_GetTick();
-                break;
             }
         }
     }
@@ -128,23 +138,13 @@ public:
 private:
     uint32_t last_tick{0};
 
-    void Upload()
-    {
-        if(command_type == CommandType::NONE)
-        {
+    void Upload(){
+        if(singleCommand == SingleCommandType::NONE){
             return;
         }
-        if (command_type == CommandType::MOVE_MANIPULATOR)
-        {
-            if(HAL_GetTick() - last_tick > 3000)
-            {
-                isCurrentTaskFinished = true;
-            }
-        }
-
         uint8_t txData[6]{};
         txData[0] = 0xAA;
-        txData[1] = static_cast<uint8_t>(command_type);
+        txData[1] = static_cast<uint8_t>(singleCommand);
         txData[2] = 0x01;
         txData[3] = static_cast<uint8_t>(isCurrentTaskFinished);
         txData[4] = CRC8Calc(txData+3,1);
@@ -152,8 +152,7 @@ private:
         UARTBaseLite<busID>::GetInstance().Transmit(txData,6);
     }
 
-    FineSerial()
-    {
+    FineSerial(){
         HALInit::GetInstance();
         HAL_UARTEx_ReceiveToIdle_IT(uartHandleList[busID], UARTBaseLite<busID>::GetInstance().rxBuffer[0], 200);
         std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
@@ -162,8 +161,7 @@ private:
         UARTBaseLite<busID>::GetInstance().Bind(decodeFunc);
     }
 
-    void Handle() override
-    {
+    void Handle() override{
         Upload();
     }
 };

@@ -121,79 +121,93 @@ D28_485<2> CEncoder(0x03);
 D28_485<2> DEncoder(0x04);
 D28_485<2> EEncoder(0x05);
 
-Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor);
+Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor);
 
 
 // FZMotion motion;
 RadioMaster_Zorro remote;
 RoutePlanning route_planning(0.3);//Kp为误差补偿系数
 
-float plannedVelX{0},plannedVelY{0},plannedVelAngle{0},plannedX,plannedY,plannedAngle;
+// float plannedVelX{0},plannedVelY{0},plannedVelAngle{0},plannedX,plannedY,plannedAngle;
+SingleCommandType currentTask = SingleCommandType::NONE;
 uint8_t tmpData[37]{};
-CommandType currentTask;
 uint8_t crc8 = 0;
 float path[3]{};
+bool isTaskGet = false;
+
 void Task3() {
+    // chassis.ChassisSetVelocity(1,1,0);
     crc8 = FineSerial<5>::GetInstance().crc8;
-    memcpy(tmpData,FineSerial<5>::GetInstance().rxData,37);
-    currentTask = FineSerial<5>::GetInstance().command_type;
+    memcpy(tmpData, FineSerial<5>::GetInstance().rxData, 37);
+    currentTask = FineSerial<5>::GetInstance().singleCommand;
+    manipulator.GetInitCommand = true; //暂时默认机械臂开机就启动
+
     path[0] = FineSerial<5>::GetInstance().path_point.x;
     path[1] = FineSerial<5>::GetInstance().path_point.y;
     path[2] = FineSerial<5>::GetInstance().path_point.yaw;
 
-    manipulator.UpdataEncoderData(CEncoder.angle,DEncoder.angle,EEncoder.angle);
-    route_planning.Update(chassis.chassisPos[0][0],chassis.WCSVelocity[0][0],chassis.chassisPos[1][0],chassis.WCSVelocity[1][0],chassis.chassisPos[2][0],chassis.WCSVelocity[2][0]);
-    if(!FineSerial<5>::GetInstance().isCurrentTaskFinished)
-    {
-        switch (FineSerial<5>::GetInstance().command_type)
-        {
-            case CommandType::NONE:
-                break;
-            case CommandType::MISSION_START:
-                manipulator.GetInitCommand = true;//
-                break;
-            case CommandType::MOVE_CHASSIS:
-                chassis.ChassisSetVelocity(FineSerial<5>::GetInstance().chassis_vel.fbVel,FineSerial<5>::GetInstance().chassis_vel.lrVel,FineSerial<5>::GetInstance().chassis_vel.rtvel);
-                break;
-            case CommandType::SET_PATH_POINT:
-                route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x,0,FineSerial<5>::GetInstance().path_point.y,0,FineSerial<5>::GetInstance().path_point.yaw,0,8);
-                chassis.ChassisSetVelocity(route_planning.FBVel,route_planning.LRVel,route_planning.RTVel);
-                if(route_planning.isFinished)
-                {
-                    FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-                }
-                break;
-            case CommandType::ODOMETRY_OFFSET:
-                chassis.ResetOdometry(FineSerial<5>::GetInstance().offset_data.x,FineSerial<5>::GetInstance().offset_data.y,FineSerial<5>::GetInstance().offset_data.yaw);
+    manipulator.UpdataEncoderData(CEncoder.angle, DEncoder.angle, EEncoder.angle);
+    route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
+                          chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
+
+    /*****  单次任务部分  *****/
+    if (!FineSerial<5>::GetInstance().isCurrentTaskFinished){
+        switch (FineSerial<5>::GetInstance().singleCommand){
+        case SingleCommandType::NONE:
+            break;
+        case SingleCommandType::MISSION_START:
+            manipulator.GetInitCommand = true;
+            break;
+        case SingleCommandType::SET_PATH_POINT:
+            if(!isTaskGet)
+            {
+                route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,
+                                         FineSerial<5>::GetInstance().path_point.y, 0,
+                                         FineSerial<5>::GetInstance().path_point.yaw, 0, 5);
+                isTaskGet = true;
+            }
+            route_planning.CalcSpeed();
+            chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
+            if (route_planning.isFinished){
                 FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-                break;
-            case CommandType::CHASSIS_STOP:
-                chassis.ChassisSetVelocity(0,0,0);
-                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-                break;
-            case CommandType::MOVE_MANIPULATOR:
-                manipulator.GetInitCommand = true;//
-                float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA/PI*180;
-                float BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB/PI*180;
-                float CAngle = FineSerial<5>::GetInstance().manipulator_angle.angleC/PI*180;
-                float DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD/PI*180;
-                float EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE/PI*180;
-                float FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF/PI*180;
-                float endEffectorAngle = FineSerial<5>::GetInstance().endEffectorState?180:0;//180开，0关
-                GMotor.SetTargetAngle(endEffectorAngle);
-                if(manipulator.isInitFinished)
-                {
-                    manipulator.SetAngle(AAngle,BAngle,CAngle,DAngle,EAngle,FAngle);
-                }
-                break;
+                isTaskGet = false;
+            }
+            break;
+        case SingleCommandType::ODOMETRY_OFFSET:
+            chassis.ResetOdometry(FineSerial<5>::GetInstance().offset_data.x,
+                                  FineSerial<5>::GetInstance().offset_data.y,
+                                  FineSerial<5>::GetInstance().offset_data.yaw);
+            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+            break;
+        case SingleCommandType::CHASSIS_STOP:
+            chassis.ChassisSetVelocity(0, 0, 0);
+            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+            break;
+        case SingleCommandType::END_EFFECTOR:
+            manipulator.SetEndEffectorAngle(FineSerial<5>::GetInstance().endEffectorState);
+            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+            break;
         }
+    }
+
+    /*****  循环任务部分  *****/
+    if (manipulator.isInitFinished){
+        float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA / PI * 180;
+        float BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB / PI * 180;
+        float CAngle = FineSerial<5>::GetInstance().manipulator_angle.angleC / PI * 180;
+        float DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD / PI * 180;
+        float EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE / PI * 180;
+        float FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF / PI * 180;
+        manipulator.SetAngle(AAngle, BAngle, CAngle, DAngle, EAngle, FAngle);
     }
 }
 
 
-
+float FAngle = 195;
+float GAngle = 298;//355
 
 void Task4(){
+    // manipulator.GetInitCommand = true;
     // manipulator.UpdataEncoderData(CEncoder.angle,DEncoder.angle,EEncoder.angle);
     // float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA/PI*180;
     // float BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB/PI*180;
@@ -201,6 +215,7 @@ void Task4(){
     // float DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD/PI*180;
     // float EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE/PI*180;
     // float FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF/PI*180;
+    // manipulator.SetEndEffectorAngle(FineSerial<5>::GetInstance().endEffectorState);
     // if(manipulator.isInitFinished)
     // {
     //     manipulator.SetAngle(AAngle,BAngle,CAngle,DAngle,EAngle,FAngle);
