@@ -121,7 +121,7 @@ D28_485<2> CEncoder(0x03);
 D28_485<2> DEncoder(0x04);
 D28_485<2> EEncoder(0x05);
 
-Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor);
+Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
 
 
 // FZMotion motion;
@@ -130,23 +130,23 @@ RoutePlanning route_planning(0.3);//Kp为误差补偿系数
 
 // float plannedVelX{0},plannedVelY{0},plannedVelAngle{0},plannedX,plannedY,plannedAngle;
 SingleCommandType currentTask = SingleCommandType::NONE;
+ContinuousCommandType continuousTask = ContinuousCommandType::NONE;
 uint8_t tmpData[37]{};
 uint8_t crc8 = 0;
 float path[3]{};
-bool isTaskGet = false;
+bool isPathPointSet = false;
 
 void Task3() {
-    // chassis.ChassisSetVelocity(1,1,0);
     crc8 = FineSerial<5>::GetInstance().crc8;
     memcpy(tmpData, FineSerial<5>::GetInstance().rxData, 37);
     currentTask = FineSerial<5>::GetInstance().singleCommand;
-    manipulator.GetInitCommand = true; //暂时默认机械臂开机就启动
+    continuousTask = FineSerial<5>::GetInstance().continuousCommand;
 
     path[0] = FineSerial<5>::GetInstance().path_point.x;
     path[1] = FineSerial<5>::GetInstance().path_point.y;
     path[2] = FineSerial<5>::GetInstance().path_point.yaw;
 
-    manipulator.UpdataEncoderData(CEncoder.angle, DEncoder.angle, EEncoder.angle);
+    // manipulator.UpdataEncoderData(CEncoder.angle, DEncoder.angle, EEncoder.angle);
     route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
                           chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
 
@@ -159,24 +159,19 @@ void Task3() {
             manipulator.GetInitCommand = true;
             break;
         case SingleCommandType::SET_PATH_POINT:
-            if(!isTaskGet)
-            {
-                route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,
-                                         FineSerial<5>::GetInstance().path_point.y, 0,
-                                         FineSerial<5>::GetInstance().path_point.yaw, 0, 5);
-                isTaskGet = true;
+            if(!isPathPointSet){
+                route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, 5);
+                isPathPointSet = true;
             }
-            route_planning.CalcSpeed();
+            // route_planning.CalcSpeed();
             chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
             if (route_planning.isFinished){
                 FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-                isTaskGet = false;
+                isPathPointSet = false;
             }
             break;
         case SingleCommandType::ODOMETRY_OFFSET:
-            chassis.ResetOdometry(FineSerial<5>::GetInstance().offset_data.x,
-                                  FineSerial<5>::GetInstance().offset_data.y,
-                                  FineSerial<5>::GetInstance().offset_data.yaw);
+            chassis.ResetOdometry(FineSerial<5>::GetInstance().offset_data.x,FineSerial<5>::GetInstance().offset_data.y,FineSerial<5>::GetInstance().offset_data.yaw);
             FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
             break;
         case SingleCommandType::CHASSIS_STOP:
@@ -190,23 +185,29 @@ void Task3() {
         }
     }
 
+    manipulator.GetInitCommand = true; //暂时默认机械臂开机就启动
     /*****  循环任务部分  *****/
     if (manipulator.isInitFinished){
-        float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA / PI * 180;
-        float BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB / PI * 180;
-        float CAngle = FineSerial<5>::GetInstance().manipulator_angle.angleC / PI * 180;
-        float DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD / PI * 180;
-        float EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE / PI * 180;
-        float FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF / PI * 180;
+        const float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA / PI * 180;
+        const float BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB / PI * 180;
+        const float CAngle = FineSerial<5>::GetInstance().manipulator_angle.angleC / PI * 180;
+        const float DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD / PI * 180;
+        const float EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE / PI * 180;
+        const float FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF / PI * 180;
         manipulator.SetAngle(AAngle, BAngle, CAngle, DAngle, EAngle, FAngle);
     }
 }
 
 
-float FAngle = 195;
-float GAngle = 298;//355
+// float FAngle = 195;
+// float GAngle = 298;//355
 
 void Task4(){
+    // FMotor.Enable();
+    // GMotor.Enable();
+    // FMotor.SetTargetAngle(FAngle);
+    // GMotor.SetTargetAngle(GAngle);
+
     // manipulator.GetInitCommand = true;
     // manipulator.UpdataEncoderData(CEncoder.angle,DEncoder.angle,EEncoder.angle);
     // float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA/PI*180;
