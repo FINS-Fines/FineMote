@@ -36,7 +36,7 @@ public:
     void Handle() final{
         Update();
         controller->Calc();
-        if (HAL_GetTick() - initTick < 1000){
+        if (HAL_GetTick() - initTick < 5000){
             ChooseCtrlType();
             Start();
         }
@@ -53,7 +53,6 @@ public:
 
 private:
     uint32_t initTick;
-    bool allowMotorControl = false;
     void SetFeedback() final{
         switch (params.targetType){
         case Motor_Ctrl_Type_e::Position:
