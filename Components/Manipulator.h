@@ -10,10 +10,42 @@
 #include "ProjectConfig.h"
 #include "DeviceBase.h"
 #include "MotorBase.h"
+#include "EncoderBase.h"
 
-class Manipulator : public DeviceBase
-{
+class Manipulator : public DeviceBase{
+public:
+    bool isInitFinished = false;
+    bool GetInitCommand = false;
+
+    Manipulator(MotorBase* _motorA, MotorBase* _motorB, MotorBase* _motorC, MotorBase* _motorD, MotorBase* _motorE,
+                MotorBase* _motorF,MotorBase* _motorG,EncoderBase* _encoderC,EncoderBase* _encoderD,EncoderBase* _encoderE):
+        motorA(_motorA), motorB(_motorB), motorC(_motorC), motorD(_motorD), motorE(_motorE), motorF(_motorF),motorG(_motorG),EncoderC(_encoderC),EncoderD(_encoderD),EncoderE(_encoderE){}
+
+    void SetAngle(float AAngle, float BAngle, float CAngle, float DAngle, float EAngle, float FAngle)
+    {
+        targetAngle[0] = AAngle;
+        targetAngle[1] = BAngle;
+        targetAngle[2] = -CAngle;
+        targetAngle[3] = DAngle;
+        targetAngle[4] = -EAngle;
+        targetAngle[5] = FAngle;
+    }
+
+    void SetEndEffectorAngle(bool isOpen)
+    {
+        endEffectorState = isOpen;
+    }
+
+    void Handle() override
+    {
+        UpdateEncoderData();
+        ManipulatorInit();
+        SendAngle();
+    }
+
+
 private:
+    bool endEffectorState = true;
     const float endEffectorCloseAngle = 298;
     const float endEffectorOpenAngle = 355;
 
@@ -24,6 +56,9 @@ private:
     MotorBase* motorE;
     MotorBase* motorF;
     MotorBase* motorG;
+    EncoderBase* EncoderC;
+    EncoderBase* EncoderD;
+    EncoderBase* EncoderE;
 
     float initialCAngle{0};
     float initialDAngle{0};
@@ -33,9 +68,9 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{230};
+    const float CTargetAngle{225};
     const float DTargetAngle{49};
-    const float ETargetAngle{230};
+    const float ETargetAngle{226};
     float targetAngle[6]{};
     float reductionRatio[6]{25, 30, 30, 50, 50, 1};
     float angleOffset[7]{0, 0, 0, 0, 0, 0};
@@ -88,6 +123,8 @@ private:
                 break;
             case InitThirdJoint://先初始化三关节，防止打到五关节编码器
                 angleOffset[2]=CTargetAngle-initialCAngle;
+                motorC->Enable();
+
                 counter++;
                 if(counter>5000)
                 {
@@ -103,6 +140,10 @@ private:
                 angleOffset[5] = 195;
                 angleOffset[6] = endEffectorCloseAngle;
 
+                motorA->Enable();
+                motorB->Enable();
+                motorD->Enable();
+                motorE->Enable();
                 motorF->Enable();
                 motorG->Enable();
 
@@ -126,42 +167,14 @@ private:
         motorD->SetTargetAngle((targetAngle[3] + angleOffset[3]) * reductionRatio[3]);
         motorE->SetTargetAngle((targetAngle[4] + angleOffset[4]) * reductionRatio[4]);
         motorF->SetTargetAngle((targetAngle[5] + angleOffset[5]) * reductionRatio[5]);
+        motorG->SetTargetAngle(endEffectorState?endEffectorOpenAngle:endEffectorCloseAngle);
     }
 
-public:
-    bool isInitFinished = false;
-    bool GetInitCommand = false;
-
-    Manipulator(MotorBase* _motorA, MotorBase* _motorB, MotorBase* _motorC, MotorBase* _motorD, MotorBase* _motorE,
-                MotorBase* _motorF,MotorBase* _motorG):
-        motorA(_motorA), motorB(_motorB), motorC(_motorC), motorD(_motorD), motorE(_motorE), motorF(_motorF),motorG(_motorG){}
-
-    void UpdataEncoderData(float CAngle, float DAngle, float EAngle)
+    void UpdateEncoderData()
     {
-        EncoderCAngle = CAngle;
-        EncoderDAngle = DAngle;
-        EncoderEAngle = EAngle;
-    }
-
-    void SetAngle(float AAngle, float BAngle, float CAngle, float DAngle, float EAngle, float FAngle)
-    {
-        targetAngle[0] = AAngle;
-        targetAngle[1] = BAngle;
-        targetAngle[2] = -CAngle;
-        targetAngle[3] = DAngle;
-        targetAngle[4] = -EAngle;
-        targetAngle[5] = FAngle;
-    }
-
-    void SetEndEffectorAngle(bool isOpen)
-    {
-        motorG->SetTargetAngle(isOpen?endEffectorOpenAngle:endEffectorCloseAngle);
-    }
-
-    void Handle() override
-    {
-        ManipulatorInit();
-        SendAngle();
+        EncoderCAngle = EncoderC->GetAngle();
+        EncoderDAngle = EncoderD->GetAngle();
+        EncoderEAngle = EncoderE->GetAngle();
     }
 };
 
