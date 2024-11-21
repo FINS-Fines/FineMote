@@ -27,7 +27,6 @@ typedef struct {
 class MotorBase : public DeviceBase {
 public:
     explicit MotorBase(const Motor_Param_t&& params) : params(params) {
-
     }
 
     template<typename T>
@@ -82,6 +81,7 @@ public:
 
 protected:
     virtual void SetFeedback() = 0;
+    bool allowMotorControl = false;
 
     float target = 0;
     Motor_State_t state = {0, 0, 0, 0};

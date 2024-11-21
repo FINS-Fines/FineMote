@@ -21,12 +21,21 @@ public:
     template<typename T>
     Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr) : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
         ResetController(_controller);
+        this->SetDivisionFactor(20);
+    }
+
+    void Enable() override
+    {
+        allowMotorControl = true;
     }
 
     void Handle() final{
         Update();
         controller->Calc();
-        MessageGenerate();
+        if(allowMotorControl)
+        {
+            MessageGenerate();
+        }
     }
 
     CAN_Agent<busID> canAgent;
