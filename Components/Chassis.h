@@ -203,7 +203,7 @@ private:
 };
 
 
-class RoutePlanning {
+class RoutePlanning : public DeviceBase{
     struct Target {
         float x, xVel, y, yVel, angle, angleVel, time;
 
@@ -218,7 +218,7 @@ public:
     bool isFinished = false;
     bool isArrived = true;
 
-    RoutePlanning(const float _Kp): currentX(0), currentY(0), currentAngle(0), Kp(_Kp), target(0, 0, 0, 0, 0, 0, 0) {
+    RoutePlanning(const float Kp): currentX(0), currentY(0), currentAngle(0), Kp(Kp), target(0, 0, 0, 0, 0, 0, 0) {
     }
 
     void AddTarget(float x, float xVel, float y, float yVel, float angle, float angleVel, float time) {
@@ -232,7 +232,7 @@ public:
         currentXVel = xVel, currentYVel = yVel, currentAngleVel = angleVel;
     }
 
-    void GetPlannedVel(float& _x,float& _y,float& _angle,float& _xVel,float& _yVel,float& _rtVel) {
+    void GetPlannedVelAndPos(float& _x,float& _y,float& _angle,float& _xVel,float& _yVel,float& _rtVel) {
         if(XVelProfilePtr && YVelProfilePtr && RTVelProfilePtr) {
             _x = XVelProfilePtr->GetOutput()[0][0];
             _y = YVelProfilePtr->GetOutput()[0][0];
@@ -243,6 +243,18 @@ public:
         }
     }
 
+    void Handle() override {
+        CalcSpeed();
+    }
+
+private:
+    std::queue<Target> targetList;
+    float currentX, currentY, currentAngle, currentXVel, currentYVel, currentAngleVel;
+    float Kp;
+    Target target;
+    VelocityProfile* XVelProfilePtr = nullptr;
+    VelocityProfile* YVelProfilePtr = nullptr;
+    VelocityProfile* RTVelProfilePtr = nullptr;
 
     void CalcSpeed() {
         if (isArrived) {
@@ -278,15 +290,6 @@ public:
         }
         isArrived = fabsf(target.angle - currentAngle) < 0.06 && fabsf(target.x - currentX) < 0.03 && fabsf(target.y - currentY) < 0.03;
     }
-
-private:
-    std::queue<Target> targetList;
-    float currentX, currentY, currentAngle, currentXVel, currentYVel, currentAngleVel;
-    float Kp;
-    Target target;
-    VelocityProfile* XVelProfilePtr = nullptr;
-    VelocityProfile* YVelProfilePtr = nullptr;
-    VelocityProfile* RTVelProfilePtr = nullptr;
 };
 
 #endif //FINEMOTE_CHASSIS_H
