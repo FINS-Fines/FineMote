@@ -12,23 +12,19 @@
 #include "Bus/RS485_Base.h"
 #include "Communication/Verify.h"
 #include "cmath"
+#include "EncoderBase.h"
 
 template<int busID>
-class D28_485 : public DeviceBase {
+class D28_485 : public EncoderBase {
 public:
     D28_485(uint32_t addr) :  rs485Agent(addr) {
         this->SetDivisionFactor(300);
     }
-    void Handle() override {
-		GetAngle();
-		Update();
-    };
-
-    RS485_Agent<busID> rs485Agent;
-    float angle{0};
 
 private:
     uint8_t addrPosition{0};
+    RS485_Agent<busID> rs485Agent;
+
 
     void GetAngle() {
         rs485Agent.txbuf[0] = rs485Agent.addr;
@@ -85,6 +81,11 @@ private:
             angle += angle<0?360:0;
             angle = fmodf(angle,360);
         }
+    }
+
+    void Handle() override {
+        GetAngle();
+        Update();
     }
 };
 
