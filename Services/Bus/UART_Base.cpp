@@ -42,10 +42,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 // 出错中断回调函数
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     GetUartHandle_BusMap()[huart]->CallbackHandle(UART_Base::Callback_e::ERROR_CALL);
-    if (huart == &huart5) {
-        UARTBaseLite<5>::GetInstance().RxHandle(1);
+
+    if(HAL_UART_GetError(huart) & HAL_UART_ERROR_ORE)
+    {
+        __HAL_UART_FLUSH_DRREGISTER(huart);  //读DR寄存器，就可以清除ORE错误标志位
     }
 
+
+    if(__HAL_UART_GET_FLAG(huart,UART_FLAG_ORE) != RESET)
+    {
+        __HAL_UART_CLEAR_OREFLAG(huart);
+    }
+
+    if (huart == &huart5) {
+        UARTBaseLite<5>::GetInstance().RxHandle(0);
+    }
 }
 
 #ifdef __cplusplus

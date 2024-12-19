@@ -44,7 +44,7 @@ public:
     }
 
     void RxHandle(uint16_t size) {
-        if(decodeFunc) {
+        if(decodeFunc && size > 0) {
             decodeFunc(rxBuffer[0], size);
         }
         HAL_UARTEx_ReceiveToIdle_IT(uartHandleList[ID], rxBuffer[0], 200);
