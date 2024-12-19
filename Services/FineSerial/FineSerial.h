@@ -56,12 +56,15 @@ public:
 
 
     void Decode(uint8_t* data, uint16_t size){
-        uint8_t commandLength = data[2];
-        memcpy(&rxData,data,size);
-        memcpy(&command,data+3,commandLength);
-        dataLength = size;
-        crc8 = data[size-2];
-        if(data[0] == 0xAA && data[size-1] == 0xBB && CRC8Calc(data+3,commandLength) == data[size-2]){
+        // memcpy(&rxData,data,size);
+        // memcpy(&command,data+3,commandLength);
+        // dataLength = size;
+        // crc8 = data[size-2];
+        if(data[0] == 0xAA && data[size-1] == 0xBB){
+            uint8_t commandLength = data[2];
+            if(CRC8Calc(data+3,commandLength) != data[size-2]){
+                return;
+            }
             if(data[1]<0x0A){
                 singleCommand = static_cast<SingleCommandType>(data[1]);
                 switch (singleCommand){
@@ -77,10 +80,10 @@ public:
                     memcpy(&offset_data,data+3,12);
                     break;
                 case SingleCommandType::CHASSIS_STOP:
-                    chassisStopFlag = data[3] == 0x01;
+                    chassisStopFlag = (data[3] == 0x01);
                     break;
                 case SingleCommandType::END_EFFECTOR:
-                    endEffectorState = data[3] == 0x01;
+                    endEffectorState = (data[3] == 0x01);
                     break;
                 }
                 isCurrentTaskFinished = false;
@@ -94,6 +97,7 @@ public:
                     memcpy(&chassis_vel,data+3,12);
                     break;
                 case ContinuousCommandType::MOVE_MANIPULATOR:
+                    if(size != 29){return;}
                     memcpy(&manipulator_angle,data+3,24);
                     break;
                 }
@@ -147,9 +151,13 @@ private:
         txData[1] = static_cast<uint8_t>(singleCommand);
         txData[2] = 0x01;
         txData[3] = static_cast<uint8_t>(isCurrentTaskFinished);
-        txData[4] = CRC8Calc(txData+3,1);
+        // txData[4] = CRC8Calc(txData+3,1);
+        txData[4] = 0x00;
         txData[5] = 0xBB;
         UARTBaseLite<busID>::GetInstance().Transmit(txData,6);
+
+        isCurrentTaskFinished = false;
+        singleCommand = SingleCommandType::NONE;
     }
 
     FineSerial(){
@@ -162,7 +170,10 @@ private:
     }
 
     void Handle() override{
-        Upload();
+        if(isCurrentTaskFinished)
+        {
+            Upload();
+        }
     }
 };
 

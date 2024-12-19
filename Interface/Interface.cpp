@@ -17,11 +17,10 @@
 #include "Emm28.h"
 #include "HO3507.h"
 #include "Odrive.h"
-#include "FZMotion.h"
+// #include "FZMotion.h"
 #include "Manipulator.h"
 #include "D28_5_485.h"
 #include "RadioMaster_Zorro.h"
-#include "RadioMaster_Pocket.h"
 #include "FineSerial.h"
 
 /**
@@ -53,7 +52,7 @@ void Task2() {
 /*****  示例3 *****/
 
 /*****  底盘部分  *****/
-constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
+constexpr PID_Param_t speedPID = {0.3f, 0.005f, 0.33f, 2000, 2000};
 
 auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
@@ -119,36 +118,69 @@ Odrive<2> CMotor(DIRECT_POSITION,manipulatorControllers[2],0x04);
 
 D28_485<2> CEncoder(0x03);
 D28_485<2> DEncoder(0x04);
-D28_485<2> EEncoder(0x05);
+D28_485<2> EEncoder(0x01);
 
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
 
-
 // FZMotion motion;
 RadioMaster_Zorro remote;
-RoutePlanning route_planning(0.3);//Kp为误差补偿系数
+RoutePlanning route_planning(0.5);//Kp为误差补偿系数
 
-// float plannedVelX{0},plannedVelY{0},plannedVelAngle{0},plannedX,plannedY,plannedAngle;
+float AAngle,BAngle,CAngle,DAngle,EAngle,FAngle;
 SingleCommandType currentTask = SingleCommandType::NONE;
 ContinuousCommandType continuousTask = ContinuousCommandType::NONE;
 uint8_t tmpData[37]{};
-uint8_t crc8 = 0;
+// uint8_t crc8 = 0;
 float path[3]{};
 bool isPathPointSet = false;
+bool pathCommandFlag = false;
+int pathPointCnt = 0;
+
+// float sm_userdata_path[22][4] = {
+//     {0.0, -0.155, 0.0, 3},
+//     {-0.65, -0.155, 0.0, 3},
+//     {-1.45, -0.115, 0.0, 3},//转盘
+//     {-1.06, -0.155, 0.0, 3},
+//     {-1.06, -0.155, PI-7./180.*PI, 3},
+//     {-1.23, -1.83, PI-7./180.*PI, 7},//第一次加工区
+//     {-2.04, -1.78, PI-7./180.*PI, 3},
+//     {-2.0, -1.78, PI/2-7./180.*PI, 3},
+//     {-2.0, -0.96, PI/2-7./180.*PI, 3},//第一次暂存区
+//     {-1.95, -0.05, PI/2-4./180.*PI, 5},
+//     {-1.95, -0.05, 0.0, 5},
+//     {-1.45, -0.06, 0.0, 3},//第二次转盘
+//     {-1.06, -0.06, 0.0, 3},
+//     {-1.06, -0.06, PI-7./180.*PI, 3},
+//     {-1.26, -1.79, PI-7./180.*PI, 7},//第二次加工区
+//     {-2.04, -1.79, PI-7./180.*PI, 3},
+//     {-2.0, -1.78, PI/2-7./180.*PI, 3},
+//     {-2.0, -0.96, PI/2-7./180.*PI, 3},//第二次暂存区
+//     {-1.95, -0.05, PI/2-4./180.*PI, 5},
+//     {-1.95, -0.05, 0.0, 5},
+//     {-0.1, -0.05, 0.0, 8},
+//     {-0.1, 0.0, 0.01, 5},//回起点
+// };
 
 void Task3() {
-    crc8 = FineSerial<5>::GetInstance().crc8;
-    memcpy(tmpData, FineSerial<5>::GetInstance().rxData, 37);
+    route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
+                      chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
+
+    // crc8 = FineSerial<5>::GetInstance().crc8;
+    // memcpy(tmpData, FineSerial<5>::GetInstance().rxData, 37);
     currentTask = FineSerial<5>::GetInstance().singleCommand;
     continuousTask = FineSerial<5>::GetInstance().continuousCommand;
 
     path[0] = FineSerial<5>::GetInstance().path_point.x;
     path[1] = FineSerial<5>::GetInstance().path_point.y;
     path[2] = FineSerial<5>::GetInstance().path_point.yaw;
-
-    // manipulator.UpdataEncoderData(CEncoder.angle, DEncoder.angle, EEncoder.angle);
-    route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
-                          chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
+    // if(pathCommandFlag)
+    // {
+    //     if(pathPointCnt == 22){return;}
+    //     route_planning.AddTarget(sm_userdata_path[pathPointCnt][0], 0, sm_userdata_path[pathPointCnt][1], 0,
+    //                              sm_userdata_path[pathPointCnt][2], 0, sm_userdata_path[pathPointCnt][3]);
+    //     pathPointCnt++;
+    //     pathCommandFlag = false;
+    // }
 
     /*****  单次任务部分  *****/
     if (!FineSerial<5>::GetInstance().isCurrentTaskFinished){
@@ -157,21 +189,25 @@ void Task3() {
             break;
         case SingleCommandType::MISSION_START:
             manipulator.GetInitCommand = true;
+            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
             break;
         case SingleCommandType::SET_PATH_POINT:
-            if(!isPathPointSet){
-                route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, 5);
-                isPathPointSet = true;
-            }
-            // route_planning.CalcSpeed();
-            chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
-            if (route_planning.isFinished){
-                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-                isPathPointSet = false;
-            }
+            // if(!isPathPointSet){
+            //     route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, 5);
+            //     isPathPointSet = true;
+            // }
+            // chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
+            // if (route_planning.isFinished){
+            //     FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+            //     isPathPointSet = false;
+            // }
+
+            route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, 5);
+            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+
             break;
         case SingleCommandType::ODOMETRY_OFFSET:
-            chassis.ResetOdometry(FineSerial<5>::GetInstance().offset_data.x,FineSerial<5>::GetInstance().offset_data.y,FineSerial<5>::GetInstance().offset_data.yaw);
+            chassis.OffsetOdometry(FineSerial<5>::GetInstance().offset_data.x,FineSerial<5>::GetInstance().offset_data.y,FineSerial<5>::GetInstance().offset_data.yaw);
             FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
             break;
         case SingleCommandType::CHASSIS_STOP:
@@ -187,14 +223,21 @@ void Task3() {
 
     manipulator.GetInitCommand = true; //暂时默认机械臂开机就启动
     /*****  循环任务部分  *****/
+    chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
     if (manipulator.isInitFinished){
-        const float AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA / PI * 180;
-        const float BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB / PI * 180;
-        const float CAngle = FineSerial<5>::GetInstance().manipulator_angle.angleC / PI * 180;
-        const float DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD / PI * 180;
-        const float EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE / PI * 180;
-        const float FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF / PI * 180;
-        manipulator.SetAngle(AAngle, BAngle, CAngle, DAngle, EAngle, FAngle);
+        manipulator.SetAngle(FineSerial<5>::GetInstance().manipulator_angle.angleA / PI * 180.0f,
+                             FineSerial<5>::GetInstance().manipulator_angle.angleB / PI * 180.0f,
+                             FineSerial<5>::GetInstance().manipulator_angle.angleC / PI * 180.0f,
+                             FineSerial<5>::GetInstance().manipulator_angle.angleD / PI * 180.0f,
+                             FineSerial<5>::GetInstance().manipulator_angle.angleE / PI * 180.0f,
+                             FineSerial<5>::GetInstance().manipulator_angle.angleF / PI * 180.0f);
+        AAngle = FineSerial<5>::GetInstance().manipulator_angle.angleA / PI * 180.0f;
+        BAngle = FineSerial<5>::GetInstance().manipulator_angle.angleB / PI * 180.0f;
+        CAngle = FineSerial<5>::GetInstance().manipulator_angle.angleC / PI * 180.0f;
+        DAngle = FineSerial<5>::GetInstance().manipulator_angle.angleD / PI * 180.0f;
+        EAngle = FineSerial<5>::GetInstance().manipulator_angle.angleE / PI * 180.0f;
+        FAngle = FineSerial<5>::GetInstance().manipulator_angle.angleF / PI * 180.0f;
+
     }
 }
 
@@ -263,9 +306,10 @@ void Loop() {
 extern "C" {
 #endif
 
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if(htim == &TIM_Control) {
-        HAL_IWDG_Refresh(&hiwdg);
+        // HAL_IWDG_Refresh(&hiwdg);
         DeviceBase::DevicesHandle();
         Task1();
         Task2();
