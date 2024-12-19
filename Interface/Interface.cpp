@@ -80,6 +80,7 @@ D28_485<2> EEncoder(0x01);
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
 
 void Task3() {
+    manipulator.GetInitCommand = true;
     if(manipulator.isInitFinished)
     {
         manipulator.SetAngle(manipulator_angle.angleA,manipulator_angle.angleB,manipulator_angle.angleC,
