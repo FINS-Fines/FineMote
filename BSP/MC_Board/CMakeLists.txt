@@ -52,7 +52,12 @@ file(GLOB_RECURSE EXCLUDE_SRCS
 # 从源文件列表(SOURCES)中剔除干扰文件(EXCLUDE_SRCS)
 list(REMOVE_ITEM SOURCES ${EXCLUDE_SRCS})
 
-add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT})
+add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT}
+        ../../Services/FineSerial/FineSerial.h
+        ../../Services/FineSerial/FineSerial.h
+        ../../Services/FineSerial/FineSerial.cpp
+        ../../Devices/Encoders/EncoderBase.h
+        ../../Devices/Encoders/EncoderBase.cpp)
 
 
 
