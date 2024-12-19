@@ -25,21 +25,24 @@ public:
     {
         targetAngle[0] = AAngle;
         targetAngle[1] = BAngle;
-        targetAngle[2] = -CAngle;
+        targetAngle[2] = -CAngle + BAngle / reductionRatio[2]; //三关节与二关节耦合
         targetAngle[3] = DAngle;
         targetAngle[4] = -EAngle;
         targetAngle[5] = FAngle;
     }
 
-    void SetEndEffectorAngle(bool isOpen)
+    void SetEndEffectorAngle(const bool isOpen)
     {
         endEffectorState = isOpen;
     }
 
     void Handle() override
     {
-        UpdateEncoderData();
-        ManipulatorInit();
+        if(!isInitFinished)
+        {
+            UpdateEncoderData();
+            ManipulatorInit();
+        }
         SendAngle();
     }
 
@@ -47,7 +50,7 @@ public:
 private:
     bool endEffectorState = true;
     const float endEffectorCloseAngle = 298;
-    const float endEffectorOpenAngle = 355;
+    const float endEffectorOpenAngle = 359;
 
     MotorBase* motorA;
     MotorBase* motorB;
@@ -68,9 +71,9 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{225};
+    const float CTargetAngle{224.4};
     const float DTargetAngle{49};
-    const float ETargetAngle{226};
+    const float ETargetAngle{70};
     float targetAngle[6]{};
     float reductionRatio[6]{25, 30, 30, 50, 50, 1};
     float angleOffset[7]{0, 0, 0, 0, 0, 0};
@@ -133,7 +136,7 @@ private:
                 }
                 break;
             case InitOtherJoint:
-                angleOffset[0] = 7;
+                angleOffset[0] = 9.8;
                 angleOffset[1] = 80;
                 angleOffset[3] = -(DTargetAngle-initialDAngle);
                 angleOffset[4] = -(ETargetAngle-initialEAngle);
