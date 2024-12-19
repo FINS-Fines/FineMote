@@ -16,7 +16,7 @@
 
 #define LENGTH  0.2406f //车身长0.240225f
 #define WIDTH  0.24f //车身宽
-#define WHEEL_DIAMETER 0.05229//4010直径 m
+#define WHEEL_DIAMETER 0.0527//4010直径 m
 #define PI 3.1415926f
 
 class ChassisBuilder;
@@ -81,7 +81,7 @@ public:
     bool ChassisStopFlag = true;
     float FBVelocity{}, LRVelocity{}, RTVelocity{};
     float epi = 0.2;
-    float alpha = 0.5;
+    float alpha = 0.8;
     float x{0},y{0},yaw{0};
     float FRX,FRY,FLX,FLY,BLX,BLY,BRX,BRY;
     float wheelError[4]{};
@@ -284,11 +284,11 @@ private:
         LRVel = sinf(currentAngle) * wcs_vel_y + cosf(currentAngle) * wcs_vel_x;
         RTVel = wcs_vel_rt;
 
-        if(targetList.empty()) {
-            isArrived = fabsf(target.angle - currentAngle) < 0.06 && fabsf(target.x - currentX) < 0.03 && fabsf(target.y - currentY) < 0.03;
-            return;
-        }
-        isArrived = fabsf(target.angle - currentAngle) < 0.06 && fabsf(target.x - currentX) < 0.03 && fabsf(target.y - currentY) < 0.03;
+        // if(targetList.empty()) {
+        //     isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > target.time + 5;
+        //     return;
+        // }
+        isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > (target.time + 0.5);
     }
 };
 
