@@ -62,8 +62,30 @@ struct ManipulatorAngle{
     uint8_t endEffecctor{0};
 }__packed manipulator_angle;
 
-void Task3() {
+auto manipulatorControllers = CreateControllers<Amplifier<1>, 7>();
+#define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
 
+Emm28<2>  DMotor(DIRECT_POSITION,manipulatorControllers[3],0x0400);
+Emm28<2>  EMotor(DIRECT_POSITION,manipulatorControllers[4],0x0500);
+HO3507<2> FMotor(DIRECT_POSITION,manipulatorControllers[5],0x07);
+HO3507<2> GMotor(DIRECT_POSITION,manipulatorControllers[6],0x08);
+Odrive<2> AMotor(DIRECT_POSITION,manipulatorControllers[0],0x02);
+Odrive<2> BMotor(DIRECT_POSITION,manipulatorControllers[1],0x03);
+Odrive<2> CMotor(DIRECT_POSITION,manipulatorControllers[2],0x04);
+
+D28_485<2> CEncoder(0x03);
+D28_485<2> DEncoder(0x04);
+D28_485<2> EEncoder(0x01);
+
+Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
+
+void Task3() {
+    if(manipulator.isInitFinished)
+    {
+        manipulator.SetAngle(manipulator_angle.angleA,manipulator_angle.angleB,manipulator_angle.angleC,
+                             manipulator_angle.angleD,manipulator_angle.angleE,manipulator_angle.angleF);
+        manipulator.SetEndEffectorAngle(static_cast<bool>(manipulator_angle.endEffecctor));
+    }
 }
 
 void Task4(){
