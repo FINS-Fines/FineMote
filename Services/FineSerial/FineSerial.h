@@ -39,7 +39,7 @@ public:
     uint8_t command[32]{};
     uint32_t dataLength{0};
     bool isCurrentTaskFinished = false;
-    bool endEffectorState = false;//false关，true开
+    bool endEffectorState = true;//false关，true开
     bool isMissionStart = false;
     bool chassisStopFlag = false;
     SingleCommandType singleCommand = SingleCommandType::NONE;
