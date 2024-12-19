@@ -123,14 +123,16 @@ public:
         // float time{0};
     }__packed path_point;
 
-    struct ManipulatorAngle{
-        float angleA{0};
-        float angleB{0};
-        float angleC{0};
-        float angleD{0};
-        float angleE{0};
-        float angleF{0};
-    }__packed manipulator_angle;
+    // struct ManipulatorAngle{
+    //     float angleA{0};
+    //     float angleB{0};
+    //     float angleC{0};
+    //     float angleD{0};
+    //     float angleE{0};
+    //     float angleF{0};
+    // }__packed manipulator_angle;
+
+    uint8_t manipulator_angle[24]{};
 
     struct OffsetData{
         float x{0};
@@ -151,7 +153,6 @@ private:
         txData[1] = static_cast<uint8_t>(singleCommand);
         txData[2] = 0x01;
         txData[3] = static_cast<uint8_t>(isCurrentTaskFinished);
-        // txData[4] = CRC8Calc(txData+3,1);
         txData[4] = 0x00;
         txData[5] = 0xBB;
         UARTBaseLite<busID>::GetInstance().Transmit(txData,6);
