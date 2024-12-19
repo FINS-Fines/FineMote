@@ -9,7 +9,7 @@
 
 #include "BeepMusic.h"
 
-UART_HandleTypeDef *uartHandleList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, &huart5};
+UART_HandleTypeDef *uartHandleList[] = {nullptr, &huart1, &huart2, nullptr, &huart4, &huart5};
 GPIO_TypeDef *rs485TxPortList[3] = {nullptr, GPIOC, GPIOB};
 uint16_t rs485TxPinList[3] = {0, GPIO_PIN_15, GPIO_PIN_3};
 
