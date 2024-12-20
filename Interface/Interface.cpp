@@ -83,8 +83,8 @@ void Task3() {
     manipulator.GetInitCommand = true;
     if(manipulator.isInitFinished)
     {
-        manipulator.SetAngle(manipulator_angle.angleA,manipulator_angle.angleB,manipulator_angle.angleC,
-                             manipulator_angle.angleD,manipulator_angle.angleE,manipulator_angle.angleF);
+        manipulator.SetAngle(manipulator_angle.angleA / PI * 180.0f ,manipulator_angle.angleB / PI * 180.0f,manipulator_angle.angleC / PI * 180.0f,
+                             manipulator_angle.angleD / PI * 180.0f,manipulator_angle.angleE / PI * 180.0f,manipulator_angle.angleF / PI * 180.0f);
         manipulator.SetEndEffectorAngle(static_cast<bool>(manipulator_angle.endEffecctor));
     }
 }
