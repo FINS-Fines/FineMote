@@ -7,6 +7,8 @@
 #ifndef FINEMOTE_MANIPULATOR_H
 #define FINEMOTE_MANIPULATOR_H
 
+#include <cmath>
+
 #include "ProjectConfig.h"
 #include "DeviceBase.h"
 #include "MotorBase.h"
@@ -71,9 +73,15 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{224.4};
-    const float DTargetAngle{49};
+    const float CTargetAngle{224.1};
+    const float DTargetAngle{48.2};
     const float ETargetAngle{70};
+    const float CZeroPointAngle{222.3};//12
+    const float DZeroPointAngle{48.5};//7.2
+    const float EZeroPointAngle{70};//7.2//暂未测量
+    const float CZP2Target = CTargetAngle - CZeroPointAngle;
+    const float DZP2Target = DTargetAngle - DZeroPointAngle;
+    const float EZP2Target = ETargetAngle - EZeroPointAngle;
     float targetAngle[6]{};
     float reductionRatio[6]{25, 30, 30, 50, 50, 1};
     float angleOffset[7]{0, 0, 0, 0, 0, 0};
@@ -104,7 +112,7 @@ private:
                 }
                 break;
             case GetEncoderData:
-                if(EncoderCAngle == 0 || EncoderDAngle == 0 || EncoderEAngle == 0)
+                if(EncoderCAngle == 0 || EncoderDAngle == 0)// || EncoderEAngle == 0)
                 {
                     break;
                 }
@@ -124,8 +132,9 @@ private:
                     state = InitThirdJoint;
                 }
                 break;
-            case InitThirdJoint://先初始化三关节，防止打到五关节编码器
-                angleOffset[2]=CTargetAngle-initialCAngle;
+        case InitThirdJoint://先初始化三关节，防止打到五关节编码器
+                angleOffset[2] = CZP2Target + 12.0f *std::roundf((CZeroPointAngle - initialCAngle)/12.0f);
+                // angleOffset[2]=CTargetAngle-initialCAngle;
                 motorC->Enable();
 
                 counter++;
@@ -136,10 +145,12 @@ private:
                 }
                 break;
             case InitOtherJoint:
-                angleOffset[0] = 9.8;
-                angleOffset[1] = 80;
-                angleOffset[3] = -(DTargetAngle-initialDAngle);
-                angleOffset[4] = -(ETargetAngle-initialEAngle);
+                angleOffset[0] = -4.6;
+                angleOffset[1] = 80.3;
+                // angleOffset[3] = -(DTargetAngle-initialDAngle);
+                // angleOffset[4] = -(ETargetAngle-initialEAngle);
+                angleOffset[3] = -(DZP2Target + 12.0f *std::roundf((DZeroPointAngle - initialDAngle)/12.0f));
+                angleOffset[4] = -(EZP2Target + 12.0f *std::roundf((EZeroPointAngle - initialEAngle)/12.0f));
                 angleOffset[5] = 195;
                 angleOffset[6] = endEffectorCloseAngle;
 
