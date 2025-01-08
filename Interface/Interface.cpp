@@ -8,10 +8,10 @@
 
 #include "LED.h"
 #include "BeepMusic.h"
-#include "Chassis.h"
 #include "Motor4010.h"
 #include "Motor4315.h"
 #include "RMD_L_40xx_v3.h"
+#include "POV_Chassis.h++"
 #include "RadioMaster_Zorro.h"
 
 /*****  示例1 *****/
@@ -84,17 +84,17 @@ RMD_L_40xx_v3<1> SFLMotor(TORQUE_2_POSITION, swerveControllers[1], 0x243);
 RMD_L_40xx_v3<1> SBLMotor(TORQUE_2_POSITION, swerveControllers[2], 0x245);
 RMD_L_40xx_v3<1> SBRMotor(TORQUE_2_POSITION, swerveControllers[3], 0x247);
 
-// 首先调取底盘类的构建器，然后使用提供的电机添加函数，将上文构建的电机指针传入构建器，最后由构建器返回构建好的底盘类对象
-Chassis chassis = Chassis::Build().
-                  AddCFLMotor(CFLMotor).
-                  AddCFRMotor(CFRMotor).
-                  AddCBLMotor(CBLMotor).
-                  AddCBRMotor(CBRMotor).
-                  AddSFLMotor(SFLMotor).
-                  AddSFRMotor(SFRMotor).
-                  AddSBLMotor(SBLMotor).
-                  AddSBRMotor(SBRMotor).
-                  Build();
+constexpr float ROBOT_LENGTH = 0.2406f; //车身长0.240225f
+constexpr float ROBOT_WIDTH = 0.24f; //车身宽
+constexpr float WHEEL_DIAMETER = 0.05229; //4010直径
+
+auto chassis = POV_ChassisBuilder( \
+    WHEEL_DIAMETER, \
+    Swerve_t{&SFRMotor, &CFRMotor,  ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180},
+    Swerve_t{&SFLMotor, &CFLMotor,  ROBOT_LENGTH / 2,  ROBOT_WIDTH / 2},
+    Swerve_t{&SBLMotor, &CBLMotor, -ROBOT_LENGTH / 2,  ROBOT_WIDTH / 2},
+    Swerve_t{&SBRMotor, &CBRMotor, -ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180}
+    );
 
 RadioMaster_Zorro remote;
 
@@ -102,9 +102,15 @@ void Task3() {
     constexpr float SPEED_LIMIT = 2.0f;
 
     if(remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::UP_POS) { //遥控模式
-        chassis.ChassisSetVelocity(remote.GetInfo().rightCol * SPEED_LIMIT,
-                                   remote.GetInfo().rightRol * SPEED_LIMIT,
-                                   -remote.GetInfo().leftRol * PI);//通道值取负，
+        std::array<float, 3> targetV = {
+            remote.GetInfo().rightCol * SPEED_LIMIT,
+            -remote.GetInfo().rightRol * SPEED_LIMIT,
+            -remote.GetInfo().leftRol * PI };
+
+        chassis.SetVelocity(std::move(targetV));
+
+    } else if (remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::DOWN_POS) { //急停
+        chassis.SetVelocity(std::array<float, 3>{0, 0, 0});
     }
 }
 
