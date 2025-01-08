@@ -11,10 +11,10 @@ enum class Motor_Ctrl_Type_e: uint16_t {
 };
 
 typedef struct {
-    float position;//单位为度
-    float speed;//单位为DPS
-    float torque;//转矩电流的相对值，具体值参考电调手册
-    float temperature;//电机温度，单位摄氏度
+    float position; //单位为度
+    float speed; //单位为DPS
+    float torque; //转矩电流的相对值，具体值参考电调手册
+    int8_t temperature; //电机温度，单位摄氏度
 } Motor_State_t;
 
 using Motor_Param_t = struct Motor_Param_t {
