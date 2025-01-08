@@ -18,10 +18,10 @@ typedef struct {
 } Motor_State_t;
 
 using Motor_Param_t = struct Motor_Param_t {
-    Motor_Ctrl_Type_e ctrlType;//控制电机的方式
-    Motor_Ctrl_Type_e targetType;//控制电机哪个状态
-    bool multiTurnSamePosition = false;//多圈电机是否在同一位置
-    float reductionRatio = 1;//减速比
+    Motor_Ctrl_Type_e ctrlType; //控制电机的方式
+    Motor_Ctrl_Type_e targetType; //控制电机哪个状态
+    bool multiTurnSamePosition = false; //多圈电机是否在同一位置
+    const float reductionRatio = 1; //减速比
 };
 
 class MotorBase : public DeviceBase {
@@ -66,14 +66,14 @@ public:
         if(params.targetType != Motor_Ctrl_Type_e::Speed) {
             return;
         }
-        target = targetSpeed;
+        target = targetSpeed * params.reductionRatio; //多圈目标，减速后
     }
 
     void SetTargetAngle(float targetAngle) {
         if(params.targetType != Motor_Ctrl_Type_e::Position) {
             return;
         }
-        target = targetAngle;
+        target = targetAngle * params.reductionRatio; //多圈目标，减速后
 
         if (params.multiTurnSamePosition) {
             while (target - state.position < -180.f * params.reductionRatio){
@@ -89,11 +89,15 @@ public:
         return state;
     }
 
+    const float GetMultiTurnPosition() {
+        return state.position / params.reductionRatio;
+    }
+
 protected:
     virtual void SetFeedback() = 0;
 
-    float target = 0;
-    Motor_State_t state = {0, 0, 0, 0};
+    float target = 0; //多圈目标，减速后
+    Motor_State_t state = {0, 0, 0, 0}; //单圈状态，不考虑减速
     Motor_Param_t params;
     ControllerBase* controller = nullptr;
 };
