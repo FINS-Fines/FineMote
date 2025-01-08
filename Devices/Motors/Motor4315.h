@@ -9,7 +9,6 @@
 
 #include "ProjectConfig.h"
 
-
 #ifdef MOTOR_COMPONENTS
 
 #include "DeviceBase.h"
@@ -37,41 +36,41 @@ public:
 private:
     void SetFeedback() override {
         switch (params.ctrlType) {
-        case Motor_Ctrl_Type_e::Position:
-            controller->SetFeedback({&state.position});
-            break;
-        }
+            case Motor_Ctrl_Type_e::Position:
+                controller->SetFeedback({&state.position});
+                break;
+            }
     }
 
     void MessageGenerate() {
         switch (params.ctrlType) {
-        case Motor_Ctrl_Type_e::Position: {
-            float targetAngle = controller->GetOutput();
+            case Motor_Ctrl_Type_e::Position: {
+                float targetAngle = -1 * controller->GetOutput(); //统一正方向
+                int32_t txAngle = targetAngle * 16384.0f / 360.0f;
 
-            int32_t txAngle = targetAngle * 16384.0f / 360.0f;
-            rs485Agent.txbuf[0] = 0x3E;//协议头
-            rs485Agent.txbuf[1] = 0x00;//包序号
-            rs485Agent.txbuf[2] = rs485Agent.addr; //ID
-            rs485Agent.txbuf[3] = 0x55;//相对位置闭环控制命令码
-            rs485Agent.txbuf[4] = 0x04;//数据包长度
-            rs485Agent.txbuf[5] = txAngle;
-            rs485Agent.txbuf[6] = txAngle >> 8u;
-            rs485Agent.txbuf[7] = txAngle >> 16u;
-            rs485Agent.txbuf[8] = txAngle >> 24u;
-            uint16_t crc16 = CRC16Calc(rs485Agent.txbuf, 9);
-            rs485Agent.txbuf[9] = crc16;
-            rs485Agent.txbuf[10] = crc16 >> 8u;
-            rs485Agent.SendMsg(11);
-            break;
-        }
+                rs485Agent.txbuf[0] = 0x3E;//协议头
+                rs485Agent.txbuf[1] = 0x00;//包序号
+                rs485Agent.txbuf[2] = rs485Agent.addr; //ID
+                rs485Agent.txbuf[3] = 0x55;//相对位置闭环控制命令码
+                rs485Agent.txbuf[4] = 0x04;//数据包长度
+                rs485Agent.txbuf[5] = txAngle;
+                rs485Agent.txbuf[6] = txAngle >> 8u;
+                rs485Agent.txbuf[7] = txAngle >> 16u;
+                rs485Agent.txbuf[8] = txAngle >> 24u;
+                uint16_t crc16 = CRC16Calc(rs485Agent.txbuf, 9);
+                rs485Agent.txbuf[9] = crc16;
+                rs485Agent.txbuf[10] = crc16 >> 8u;
+                rs485Agent.SendMsg(11);
+                break;
+            }
         }
     }
 
     void Update() {
-        state.position = (float) ((rs485Agent.rxbuf[7] | (rs485Agent.rxbuf[8] << 8u) | (rs485Agent.rxbuf[9] << 16u) | (rs485Agent.rxbuf[10] << 24u)) * 360.0f / 16384.0f);//多圈编码值
-        state.speed = (int16_t)(rs485Agent.rxbuf[11] | (rs485Agent.rxbuf[12] << 8u));
-        state.torque = 0;//电机应答不返回电流值
-        state.temperature = 0;//电机应答不返回温度参数
+        state.position = -1 * ((rs485Agent.rxbuf[7] | (rs485Agent.rxbuf[8] << 8u) | (rs485Agent.rxbuf[9] << 16u) | (rs485Agent.rxbuf[10] << 24u)) * 360.0f / 16384.0f);//多圈编码值
+        state.speed = -1 * static_cast<int16_t>(rs485Agent.rxbuf[11] | (rs485Agent.rxbuf[12] << 8u));
+        state.torque = 0; //电机应答不返回电流值
+        state.temperature = 0; //电机应答不返回温度参数
     }
 };
 #endif

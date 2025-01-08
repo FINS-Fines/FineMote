@@ -49,7 +49,7 @@ private:
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
-                volatile int16_t txTorque = Clamp(1 * controller->GetOutput(), -2000.f, 2000.f);
+                int16_t txTorque = Clamp(1 * controller->GetOutput(), -500.f, 500.f);
 
                 canAgent[0] = 0xA1;
                 canAgent[1] = 0x00;
@@ -63,7 +63,7 @@ private:
             }
             case Motor_Ctrl_Type_e::Position: {
                 constexpr uint16_t txSpeed = 0x800;
-                int32_t txAngle = 100 * controller->GetOutput() * -1; //统一正方向
+                int32_t txAngle = 100 * controller->GetOutput();
 
                 canAgent[0] = 0xA4;
                 canAgent[1] = 0x00;
@@ -80,10 +80,10 @@ private:
     }
 
     void Update() {
-        state.position = (canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
-        state.speed = (int16_t)(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
-        state.torque = (int16_t)(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
-        state.temperature = canAgent.rxbuf[1];
+        state.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
+        state.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
+        state.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
+        state.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
     }
 };
 
