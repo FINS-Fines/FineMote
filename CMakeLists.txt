@@ -34,7 +34,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib) # 对于静态库
 function(INCLUDE_SUB_DIR_INC root_dir)
         if(IS_DIRECTORY ${root_dir})
                 #找含有.h文件或含有.hpp文件，但该目录不一定是Inc或include目录,则将当前目录添加到头文件搜索路径
-                file(GLOB_RECURSE head_files ${root_dir}/*.h ${root_dir}/*.hpp)
+                file(GLOB_RECURSE head_files ${root_dir}/*.h ${root_dir}/*.h++ ${root_dir}/*.hpp)
                 if(head_files)
                 include_directories(${root_dir})
                 message(STATUS "Add head file search path: ${root_dir}")
