@@ -13,6 +13,7 @@
 #include "RMD_L_40xx_v3.h"
 #include "POV_Chassis.h++"
 #include "RadioMaster_Zorro.h"
+#include "FineSerial.h++"
 
 /*****  示例1 *****/
 /**
@@ -97,6 +98,7 @@ auto chassis = POV_ChassisBuilder( \
     );
 
 RadioMaster_Zorro remote;
+FineSerial fineSerial;
 
 void Task3() {
     constexpr float SPEED_LIMIT = 2.0f;
@@ -110,7 +112,7 @@ void Task3() {
         chassis.SetVelocity(std::move(targetV));
 
     } else if (remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::DOWN_POS) { //急停
-        chassis.SetVelocity(std::array<float, 3>{0, 0, 0});
+        chassis.SetVelocity(fineSerial.GetVelCmd());
     }
 }
 
@@ -133,6 +135,11 @@ void Setup() {
         remote.Decode(data, length);
     };
     UARTBaseLite<3>::GetInstance().Bind(remoteDecodeFunc);
+
+    std::function<void(uint8_t *, uint16_t)> fineSerialDecodeFunc = [](uint8_t* data, uint16_t length){
+        fineSerial.Decode(data, length);
+    };
+    UARTBaseLite<5>::GetInstance().Bind(fineSerialDecodeFunc);
 }
 
 /**
