@@ -24,12 +24,4 @@ protected:
     std::array<float, 3> estimatedV = {0};
 };
 
-using Swerve_t = struct Swerve_t {
-    MotorBase* steerMotor;
-    MotorBase* driveMotor;
-    float lx;
-    float ly;
-    float zeroPosition;
-};
-
 #endif //CHASSISBASE_H

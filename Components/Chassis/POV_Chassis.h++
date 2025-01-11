@@ -12,6 +12,14 @@
 
 #include "ChassisBase.h++"
 
+using Swerve_t = struct Swerve_t {
+    MotorBase* steerMotor;
+    MotorBase* driveMotor;
+    float lx;
+    float ly;
+    float zeroPosition;
+};
+
 template <size_t N>
 class POV_Chassis : public ChassisBase {
 public:
