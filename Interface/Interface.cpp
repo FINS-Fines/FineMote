@@ -14,10 +14,8 @@
 #include "RMD_L_40xx_v3.h"
 #include "Motor4010.h"
 #include "Motor4315.h"
-#include "Emm28.h"
 #include "HO3507.h"
 #include "Odrive.h"
-// #include "FZMotion.h"
 #include "Manipulator.h"
 #include "D28_5_485.h"
 #include "RadioMaster_Zorro.h"
@@ -106,61 +104,11 @@ Chassis chassis = Chassis::Build().
 /*****  机械臂部分  *****/
 
 RoutePlanning route_planning(0.5);//Kp为误差补偿系数
-
-// SingleCommandType currentTask = SingleCommandType::NONE;
-// ContinuousCommandType continuousTask = ContinuousCommandType::NONE;
-// uint8_t tmpData[37]{};
-// uint8_t crc8 = 0;
-// float path[3]{};
 bool isPathPointSet = false;
-// bool pathCommandFlag = false;
-// int pathPointCnt = 0;
-
-// float sm_userdata_path[22][4] = {
-//     {0.0, -0.155, 0.0, 3},
-//     {-0.65, -0.155, 0.0, 3},
-//     {-1.45, -0.115, 0.0, 3},//转盘
-//     {-1.06, -0.155, 0.0, 3},
-//     {-1.06, -0.155, PI-7./180.*PI, 3},
-//     {-1.23, -1.83, PI-7./180.*PI, 7},//第一次加工区
-//     {-2.04, -1.78, PI-7./180.*PI, 3},
-//     {-2.0, -1.78, PI/2-7./180.*PI, 3},
-//     {-2.0, -0.96, PI/2-7./180.*PI, 3},//第一次暂存区
-//     {-1.95, -0.05, PI/2-4./180.*PI, 5},
-//     {-1.95, -0.05, 0.0, 5},
-//     {-1.45, -0.06, 0.0, 3},//第二次转盘
-//     {-1.06, -0.06, 0.0, 3},
-//     {-1.06, -0.06, PI-7./180.*PI, 3},
-//     {-1.26, -1.79, PI-7./180.*PI, 7},//第二次加工区
-//     {-2.04, -1.79, PI-7./180.*PI, 3},
-//     {-2.0, -1.78, PI/2-7./180.*PI, 3},
-//     {-2.0, -0.96, PI/2-7./180.*PI, 3},//第二次暂存区
-//     {-1.95, -0.05, PI/2-4./180.*PI, 5},
-//     {-1.95, -0.05, 0.0, 5},
-//     {-0.1, -0.05, 0.0, 8},
-//     {-0.1, 0.0, 0.01, 5},//回起点
-// };
 
 void Task3() {
     route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
                       chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
-
-    // crc8 = FineSerial<5>::GetInstance().crc8;
-    // memcpy(tmpData, FineSerial<5>::GetInstance().rxData, 37);
-    // currentTask = FineSerial<5>::GetInstance().singleCommand;
-    // continuousTask = FineSerial<5>::GetInstance().continuousCommand;
-
-    // path[0] = FineSerial<5>::GetInstance().path_point.x;
-    // path[1] = FineSerial<5>::GetInstance().path_point.y;
-    // path[2] = FineSerial<5>::GetInstance().path_point.yaw;
-    // if(pathCommandFlag)
-    // {
-    //     if(pathPointCnt == 22){return;}
-    //     route_planning.AddTarget(sm_userdata_path[pathPointCnt][0], 0, sm_userdata_path[pathPointCnt][1], 0,
-    //                              sm_userdata_path[pathPointCnt][2], 0, sm_userdata_path[pathPointCnt][3]);
-    //     pathPointCnt++;
-    //     pathCommandFlag = false;
-    // }
 
     /*****  单次任务部分  *****/
     if (!FineSerial<5>::GetInstance().isCurrentTaskFinished){
@@ -177,6 +125,9 @@ void Task3() {
             break;
         case SingleCommandType::ODOMETRY_OFFSET:
             chassis.OffsetOdometry(FineSerial<5>::GetInstance().offset_data.x,FineSerial<5>::GetInstance().offset_data.y,FineSerial<5>::GetInstance().offset_data.yaw);
+            route_planning.AddTarget(chassis.x - FineSerial<5>::GetInstance().offset_data.x, 0,
+                                     chassis.y - FineSerial<5>::GetInstance().offset_data.y, 0,
+                                     chassis.yaw - FineSerial<5>::GetInstance().offset_data.yaw, 0,2);
             FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
             break;
         case SingleCommandType::CHASSIS_STOP:
@@ -184,8 +135,6 @@ void Task3() {
             FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
             break;
         case SingleCommandType::END_EFFECTOR:
-            // manipulator.SetEndEffectorAngle(FineSerial<5>::GetInstance().endEffectorState);
-            // FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
             break;
         }
     }
