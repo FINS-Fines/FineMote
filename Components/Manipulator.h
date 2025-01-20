@@ -74,11 +74,11 @@ private:
     float EncoderEAngle{0};
 
     const float CTargetAngle{224.1};
-    const float DTargetAngle{48.2};
-    const float ETargetAngle{70};
+    const float DTargetAngle{48.4};
+    const float ETargetAngle{67};
     const float CZeroPointAngle{222.3};//12
-    const float DZeroPointAngle{48.5};//7.2
-    const float EZeroPointAngle{70};//7.2//暂未测量
+    const float DZeroPointAngle{48.8};//7.2
+    const float EZeroPointAngle{71};//7.2//暂未测量
     const float CZP2Target = CTargetAngle - CZeroPointAngle;
     const float DZP2Target = DTargetAngle - DZeroPointAngle;
     const float EZP2Target = ETargetAngle - EZeroPointAngle;
@@ -149,8 +149,8 @@ private:
                 angleOffset[1] = 80.3;
                 // angleOffset[3] = -(DTargetAngle-initialDAngle);
                 // angleOffset[4] = -(ETargetAngle-initialEAngle);
-                angleOffset[3] = -(DZP2Target + 12.0f *std::roundf((DZeroPointAngle - initialDAngle)/12.0f));
-                angleOffset[4] = -(EZP2Target + 12.0f *std::roundf((EZeroPointAngle - initialEAngle)/12.0f));
+                angleOffset[3] = -(DZP2Target + 7.2f *std::roundf((DZeroPointAngle - initialDAngle)/7.2f));
+                angleOffset[4] = -(EZP2Target + 7.2f *std::roundf((EZeroPointAngle - initialEAngle)/7.2f));
                 angleOffset[5] = 195;
                 angleOffset[6] = endEffectorCloseAngle;
 
