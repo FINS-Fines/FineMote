@@ -80,7 +80,6 @@ D28_485<2> EEncoder(0x01);
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
 
 void Task3() {
-    manipulator.GetInitCommand = true;
     if(manipulator.isInitFinished)
     {
         manipulator.SetAngle(manipulator_angle.angleA / PI * 180.0f ,manipulator_angle.angleB / PI * 180.0f,manipulator_angle.angleC / PI * 180.0f,
@@ -103,20 +102,16 @@ extern "C" {
 
 void Setup() {
     std::function<void(uint8_t *, uint16_t)> DecodeFunc = [](uint8_t* data, uint16_t length){
-        if(length != 28){return;}
-        if(data[0] == 0xAA && data[27] == 0xBB)
+        if(length != 29){return;}
+        if(data[0] == 0xAA && data[28] == 0xBB)
         {
-            if(CRC8Calc(data+1,25) == data[26]){
+            if(CRC8Calc(data+1,26) == data[27]){
                 memcpy(&manipulator_angle,data+1,25);
+                manipulator.GetInitCommand = data[26] != 0;
             }
         }
     };
     UARTBaseLite<4>::GetInstance().Bind(DecodeFunc);
-
-    // std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
-    //     FineSerial<5>::GetInstance().Decode(data, length);
-    // };
-    // UARTBaseLite<5>::GetInstance().Bind(decodeFunc);
 
     RS485_Base<1>::GetInstance().SetDivisionFactor(4);
     RS485_Base<2>::GetInstance().SetDivisionFactor(100);
