@@ -75,6 +75,7 @@ void Loop();
   * @retval int
   */
 int main(void)
+
 {
   /* USER CODE BEGIN 1 */
   static uint8_t firstEnter = 1;

@@ -105,8 +105,15 @@ Chassis chassis = Chassis::Build().
 
 RoutePlanning route_planning(0.5);//Kp为误差补偿系数
 bool isPathPointSet = false;
+bool isMissionStart = false;
+
 
 void Task3() {
+    if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_RESET){
+        return;
+    }
+
+    isMissionStart = true;
     route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
                       chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
 
@@ -144,19 +151,21 @@ void Task3() {
 }
 
 
-uint8_t manipulatorCommand[28]{};
+
+uint8_t manipulatorCommand[29]{};
 int cnt{0};
+
 void Task4(){
     manipulatorCommand[0] = 0xAA;
-    manipulatorCommand[27] = 0xBB;
-    memcpy(manipulatorCommand+1,FineSerial<5>::GetInstance().manipulator_angle,24);
+    memcpy(manipulatorCommand + 1, FineSerial<5>::GetInstance().manipulator_angle, 24);
     manipulatorCommand[25] = static_cast<uint8_t>(FineSerial<5>::GetInstance().endEffectorState);
-    manipulatorCommand[26] = CRC8Calc(manipulatorCommand+1,25);
+    manipulatorCommand[26] = static_cast<uint8_t>(isMissionStart);
+    manipulatorCommand[27] = CRC8Calc(manipulatorCommand + 1, 26);
+    manipulatorCommand[28] = 0xBB;
 
     cnt++;
-    if(cnt>=5)
-    {
-        UARTBaseLite<4>::GetInstance().Transmit(manipulatorCommand,28);
+    if (cnt >= 5){
+        UARTBaseLite<4>::GetInstance().Transmit(manipulatorCommand, 29);
         cnt = 0;
     }
 }
