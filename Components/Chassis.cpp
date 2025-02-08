@@ -16,14 +16,6 @@ void Chassis::ChassisSetVelocity(float _fbV, float _lrV, float _rtV) {
 void Chassis::ChassisStop() {
 	ChassisStopFlag = true;
 
-	SFL.Stop();
-	SFR.Stop();
-	SBL.Stop();
-	SBR.Stop();
-	CFR.Stop();
-	CFL.Stop();
-	CBL.Stop();
-	CBR.Stop();
 }
 
 void Chassis::LSOdometry() {
@@ -148,6 +140,21 @@ void Chassis::ICFOdometry() {
 
 
 void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVelocity) {
+	if(ChassisStopFlag){
+		//设置底盘电机角度
+		SFR.SetTargetAngle(45);
+		SFL.SetTargetAngle(-45);
+		SBL.SetTargetAngle(-45);
+		SBR.SetTargetAngle(45);
+
+		//设置底盘电机转速
+		CFR.SetTargetSpeed(0);
+		CFL.SetTargetSpeed(0);
+		CBL.SetTargetSpeed(0);
+		CBR.SetTargetSpeed(0);
+
+		return;
+	}
 	float ChassisSpeed[4];
 	static float lastAngle[4]{};
 
@@ -255,9 +262,9 @@ void Chassis::OffsetOdometry(float _x = 0, float _y = 0, float _angle = 0) {
 	// y += _y;
 	// chassisPos[2][0] += _angle;
 	// yaw += _angle;
-	chassisPos[2][0] += _angle;
 	chassisPos[1][0] += _y * cosf(chassisPos[2][0]) + _x * sinf(chassisPos[2][0]);
 	chassisPos[0][0] += _y * -sinf(chassisPos[2][0]) + _x * cosf(chassisPos[2][0]);
+	chassisPos[2][0] += _angle;
 }
 
 

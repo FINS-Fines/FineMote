@@ -105,6 +105,10 @@ RoutePlanning route_planning(0.5);//Kp为误差补偿系数
 bool isPathPointSet = false;
 bool isMissionStart = false;
 
+float timeConsumed[22]{
+    0.6, 2, 2, 2, 5, 2.5, 2, 2.5, 2, 2, 2, 2, 5, 2.5, 2, 2.5, 2, 2, 2.5, 5, 0.6
+};
+uint16_t pathCounter{0};
 
 void Task3() {
     // if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_RESET){
@@ -115,30 +119,32 @@ void Task3() {
 
     /*****  单次任务部分  *****/
     if (!FineSerial<5>::GetInstance().isCurrentTaskFinished){
-        switch (FineSerial<5>::GetInstance().singleCommand){
-        case SingleCommandType::NONE:
-            break;
-        case SingleCommandType::MISSION_START:
-            // manipulator.GetInitCommand = true;
-            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-            break;
-        case SingleCommandType::SET_PATH_POINT:
-            route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, 5);
-            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-            break;
-        case SingleCommandType::ODOMETRY_OFFSET:
-            chassis.OffsetOdometry(FineSerial<5>::GetInstance().offset_data.x,FineSerial<5>::GetInstance().offset_data.y,FineSerial<5>::GetInstance().offset_data.yaw);
-            route_planning.AddTarget(chassis.x - FineSerial<5>::GetInstance().offset_data.x, 0,
-                                     chassis.y - FineSerial<5>::GetInstance().offset_data.y, 0,
-                                     chassis.yaw - FineSerial<5>::GetInstance().offset_data.yaw, 0,4);
-            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-            break;
-        case SingleCommandType::CHASSIS_STOP:
-            chassis.ChassisSetVelocity(0, 0, 0);
-            FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
-            break;
-        case SingleCommandType::END_EFFECTOR:
-            break;
+        switch (FineSerial<5>::GetInstance().singleCommand)
+        {
+            case SingleCommandType::NONE:
+                break;
+            case SingleCommandType::MISSION_START:
+                // manipulator.GetInitCommand = true;
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                break;
+            case SingleCommandType::SET_PATH_POINT:
+                route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, timeConsumed[pathCounter++]);
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                break;
+            case SingleCommandType::ODOMETRY_OFFSET:
+                float offsetX = FineSerial<5>::GetInstance().offset_data.y * cosf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * sinf(chassis.yaw);
+                float offsetY = FineSerial<5>::GetInstance().offset_data.y * -sinf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * cosf(chassis.yaw);
+                float offsetYaw = FineSerial<5>::GetInstance().offset_data.yaw;
+                route_planning.AddTarget(chassis.x, 0, chassis.y, 0, chassis.yaw, 0, 3);
+                chassis.OffsetOdometry(-offsetX, -offsetY, -offsetYaw);
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                break;
+            // case SingleCommandType::CHASSIS_STOP:
+            //     chassis.ChassisSetVelocity(0, 0, 0);
+            //     FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+            //     break;
+            // case SingleCommandType::END_EFFECTOR:
+            //     break;
         }
     }
 
