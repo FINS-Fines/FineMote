@@ -177,19 +177,19 @@ void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVeloci
 	motorAngleState[2] += motorAngleState[2]>180?-360:0;
 	motorAngleState[3] = fmodf(SBR.GetState().position,360);
 	motorAngleState[3] += motorAngleState[3]>180?-360:0;
-	if(fabsf(SFR.GetState().position-RFRAngle) < 270 && fabsf(SFR.GetState().position-RFRAngle)>90){
+	if(fabsf(SFR.GetState().position-RFRAngle) < 275 && fabsf(SFR.GetState().position-RFRAngle)>85){
 		ChassisSpeed[0]*=-1;
 		RFRAngle+=RFRAngle>0?-180:180;
 	}
-	if(fabsf(SFL.GetState().position-RFLAngle) < 270 && fabsf(SFL.GetState().position-RFLAngle)>90){
+	if(fabsf(SFL.GetState().position-RFLAngle) < 275 && fabsf(SFL.GetState().position-RFLAngle)>85){
 		ChassisSpeed[1]*=-1;
 		RFLAngle+=RFLAngle>0?-180:180;
 	}
-	if(fabsf(SBL.GetState().position-RBLAngle) < 270 && fabsf(SBL.GetState().position-RBLAngle)>90){
+	if(fabsf(SBL.GetState().position-RBLAngle) < 275 && fabsf(SBL.GetState().position-RBLAngle)>85){
 		ChassisSpeed[2]*=-1;
 		RBLAngle+=RBLAngle>0?-180:180;
 	}
-	if(fabsf(SBR.GetState().position-RBRAngle) < 270 && fabsf(SBR.GetState().position-RBRAngle)>90){
+	if(fabsf(SBR.GetState().position-RBRAngle) < 275 && fabsf(SBR.GetState().position-RBRAngle)>85){
 		ChassisSpeed[3]*=-1;
 		RBRAngle+=RBRAngle>0?-180:180;
 	}
@@ -249,12 +249,15 @@ void Chassis::ResetOdometry(float _x = 0, float _y = 0, float _angle = 0) {
 
 void Chassis::OffsetOdometry(float _x = 0, float _y = 0, float _angle = 0) {
 	// chassisPos = matrixf::zeros<3, 1>();
-	chassisPos[0][0] += _x;
-	x += _x;
-	chassisPos[1][0] += _y;
-	y += _y;
+	// chassisPos[0][0] += _x;
+	// x += _x;
+	// chassisPos[1][0] += _y;
+	// y += _y;
+	// chassisPos[2][0] += _angle;
+	// yaw += _angle;
 	chassisPos[2][0] += _angle;
-	yaw += _angle;
+	chassisPos[1][0] += _y * cosf(chassisPos[2][0]) + _x * sinf(chassisPos[2][0]);
+	chassisPos[0][0] += _y * -sinf(chassisPos[2][0]) + _x * cosf(chassisPos[2][0]);
 }
 
 
