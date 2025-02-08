@@ -80,6 +80,8 @@ D28_485<2> EEncoder(0x01);
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
 
 void Task3() {
+    manipulator.GetInitCommand = true;
+
     if(manipulator.isInitFinished)
     {
         manipulator.SetAngle(manipulator_angle.angleA / PI * 180.0f ,manipulator_angle.angleB / PI * 180.0f,manipulator_angle.angleC / PI * 180.0f,
@@ -101,13 +103,23 @@ extern "C" {
 #endif
 
 void Setup() {
+    // std::function<void(uint8_t *, uint16_t)> DecodeFunc = [](uint8_t* data, uint16_t length){
+    //     if(length != 29){return;}
+    //     if(data[0] == 0xAA && data[28] == 0xBB)
+    //     {
+    //         if(CRC8Calc(data+1,26) == data[27]){
+    //             memcpy(&manipulator_angle,data+1,25);
+    //             manipulator.GetInitCommand = data[26] != 0;
+    //         }
+    //     }
+    // };
     std::function<void(uint8_t *, uint16_t)> DecodeFunc = [](uint8_t* data, uint16_t length){
-        if(length != 29){return;}
-        if(data[0] == 0xAA && data[28] == 0xBB)
+        if(length != 28){return;}
+        if(data[0] == 0xAA && data[27] == 0xBB)
         {
-            if(CRC8Calc(data+1,26) == data[27]){
+            if(CRC8Calc(data+1,25) == data[26]){
                 memcpy(&manipulator_angle,data+1,25);
-                manipulator.GetInitCommand = data[26] != 0;
+                // manipulator.GetInitCommand = data[26] != 0;
             }
         }
     };
