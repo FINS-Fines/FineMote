@@ -184,19 +184,19 @@ void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVeloci
 	motorAngleState[2] += motorAngleState[2]>180?-360:0;
 	motorAngleState[3] = fmodf(SBR.GetState().position,360);
 	motorAngleState[3] += motorAngleState[3]>180?-360:0;
-	if(fabsf(SFR.GetState().position-RFRAngle) < 280 && fabsf(SFR.GetState().position-RFRAngle)>80){
+	if(fabsf(motorAngleState[0]-RFRAngle) < 275 && fabsf(SFR.GetState().position-RFRAngle)>85){
 		ChassisSpeed[0]*=-1;
 		RFRAngle+=RFRAngle>0?-180:180;
 	}
-	if(fabsf(SFL.GetState().position-RFLAngle) < 280 && fabsf(SFL.GetState().position-RFLAngle)>80){
+	if(fabsf(motorAngleState[1]-RFLAngle) < 275 && fabsf(SFL.GetState().position-RFLAngle)>85){
 		ChassisSpeed[1]*=-1;
 		RFLAngle+=RFLAngle>0?-180:180;
 	}
-	if(fabsf(SBL.GetState().position-RBLAngle) < 280 && fabsf(SBL.GetState().position-RBLAngle)>80){
+	if(fabsf(motorAngleState[2]-RBLAngle) < 275 && fabsf(SBL.GetState().position-RBLAngle)>85){
 		ChassisSpeed[2]*=-1;
 		RBLAngle+=RBLAngle>0?-180:180;
 	}
-	if(fabsf(SBR.GetState().position-RBRAngle) < 280 && fabsf(SBR.GetState().position-RBRAngle)>80){
+	if(fabsf(motorAngleState[3]-RBRAngle) < 275 && fabsf(SBR.GetState().position-RBRAngle)>85){
 		ChassisSpeed[3]*=-1;
 		RBRAngle+=RBRAngle>0?-180:180;
 	}

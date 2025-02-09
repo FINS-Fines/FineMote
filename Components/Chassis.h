@@ -160,14 +160,12 @@ public:
         initTick = HAL_GetTick();
     }
 
-    void suspendProcess()
-    {
-
+    void suspendProcess(){
+        isProcessActive = false;
     }
 
-    void resumeProcess()
-    {
-
+    void resumeProcess(){
+        isProcessActive = true;
     }
 
     void CalcuateVelAndPos() {
@@ -194,6 +192,9 @@ public:
     }
 
     void Handle() override {
+        if(!isProcessActive){
+            return;
+        }
         currentTick = HAL_GetTick();
         currentTime = (float)(currentTick - initTick) * 0.001f;
         CalcuateVelAndPos();
@@ -209,7 +210,7 @@ private:
     float currentTime{0.0f};
     float targetPos{0.0f};
     uint32_t initTick, currentTick;
-    bool isProcess = true;
+    bool isProcessActive = true;
 };
 
 
