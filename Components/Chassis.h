@@ -80,7 +80,6 @@ public:
     void ResetOdometry(float _x,float _y,float _angle);
     bool ChassisStopFlag = true;
     float FBVelocity{}, LRVelocity{}, RTVelocity{};
-    float epi = 0.2;
     float alpha = 0.8;
     float x{0},y{0},yaw{0};
     float FRX,FRY,FLX,FLY,BLX,BLY,BRX,BRY;
@@ -161,6 +160,16 @@ public:
         initTick = HAL_GetTick();
     }
 
+    void suspendProcess()
+    {
+
+    }
+
+    void resumeProcess()
+    {
+
+    }
+
     void CalcuateVelAndPos() {
         if (currentTime > targetTime) {
             output[0][0] = targetPos;
@@ -200,6 +209,7 @@ private:
     float currentTime{0.0f};
     float targetPos{0.0f};
     uint32_t initTick, currentTick;
+    bool isProcess = true;
 };
 
 
@@ -288,7 +298,7 @@ private:
         //     isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > target.time + 5;
         //     return;
         // }
-        isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > (target.time + 0.5);
+        isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > (target.time + 1);
     }
 };
 

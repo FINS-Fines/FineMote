@@ -102,15 +102,47 @@ Chassis chassis = Chassis::Build().
 
 
 RoutePlanning route_planning(0.5);//Kp为误差补偿系数
-bool isPathPointSet = false;
+bool nextPoint = false;
 bool isMissionStart = false;
-
-float timeConsumed[22]{
-    0.6, 2, 2, 2, 5, 2.5, 2, 2.5, 2, 2, 2, 2, 5, 2.5, 2, 2.5, 2, 2, 2.5, 5, 0.6
-};
+uint16_t pathCnt{0};
 uint16_t pathCounter{0};
 
+constexpr float timeConsumed[22]{
+    2, 3.5, 3.5, 3.5, 6, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 6, 4, 3.5, 4, 3.5, 3.5, 4, 6, 2
+};
+// constexpr float sm_userdata_path[22][4] = {
+//     {0.0, -0.155, 0.0, 3},
+//     {-0.65, -0.155, 0.0, 3},
+//     {-1.45, -0.115, 0.0, 3},//转盘
+//     {-1.06, -0.155, 0.0, 3},
+//     {-1.06, -0.155, PI-7./180.*PI, 3},
+//     {-1.23, -1.83, PI-7./180.*PI, 7},//第一次加工区
+//     {-2.04, -1.78, PI-7./180.*PI, 3},
+//     {-2.0, -1.78, PI/2-7./180.*PI, 3},
+//     {-2.0, -0.96, PI/2-7./180.*PI, 3},//第一次暂存区
+//     {-1.95, -0.05, PI/2-4./180.*PI, 5},
+//     {-1.95, -0.05, 0.0, 5},
+//     {-1.45, -0.06, 0.0, 3},//第二次转盘
+//     {-1.06, -0.06, 0.0, 3},
+//     {-1.06, -0.06, PI-7./180.*PI, 3},
+//     {-1.26, -1.79, PI-7./180.*PI, 7},//第二次加工区
+//     {-2.04, -1.79, PI-7./180.*PI, 3},
+//     {-2.0, -1.78, PI/2-7./180.*PI, 3},
+//     {-2.0, -0.96, PI/2-7./180.*PI, 3},//第二次暂存区
+//     {-1.95, -0.05, PI/2-4./180.*PI, 5},
+//     {-1.95, -0.05, 0.0, 5},
+//     {-0.1, -0.05, 0.0, 8},
+//     {-0.1, 0.0, 0.01, 5},//回起点
+// };
+
 void Task3() {
+    // if(nextPoint)
+    // {
+    //     nextPoint = false;
+    //     route_planning.AddTarget(sm_userdata_path[pathCnt++][0],0,sm_userdata_path[pathCnt++][1],0,sm_userdata_path[pathCnt++][2],0,timeConsumed[pathCounter++]);
+    // }
+
+
     // if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_RESET){
     //     return;
     // }

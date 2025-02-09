@@ -101,19 +101,19 @@ void Chassis::ICFOdometry() {
 	Matrixf<3, 3> V4 = 0.25 * J4 + H4.trans() * B * H4;
 	Matrixf<3, 1> v4 = 0.25 * J4 * x4 + H4.trans() * B * BR.vel;
 
-	Matrixf<3, 3> V1_t = (1 - 3 * epi) * V1 + epi * (V2 + V3 + V4);
-	Matrixf<3, 1> v1_t = (1 - 3 * epi) * v1 + epi * (v2 + v3 + v4);
-	Matrixf<3, 3> V2_t = (1 - 3 * epi) * V2 + epi * (V1 + V3 + V4);
-	Matrixf<3, 1> v2_t = (1 - 3 * epi) * v2 + epi * (v1 + v3 + v4);
-	Matrixf<3, 3> V3_t = (1 - 3 * epi) * V3 + epi * (V2 + V1 + V4);
-	Matrixf<3, 1> v3_t = (1 - 3 * epi) * v3 + epi * (v2 + v1 + v4);
-	Matrixf<3, 3> V4_t = (1 - 3 * epi) * V4 + epi * (V2 + V3 + V1);
-	Matrixf<3, 1> v4_t = (1 - 3 * epi) * v4 + epi * (v2 + v3 + v1);
+	Matrixf<3, 3> V1_t = 0.25 * (V1 + V2 + V3 + V4);
+	Matrixf<3, 1> v1_t = 0.25 * (v1 + v2 + v3 + v4);
+	// Matrixf<3, 3> V2_t = 0.25 * (V1 + V2 + V3 + V4);
+	// Matrixf<3, 1> v2_t = 0.25 * (v1 + v2 + v3 + v4);
+	// Matrixf<3, 3> V3_t = 0.25 * (V1 + V2 + V3 + V4);
+	// Matrixf<3, 1> v3_t = 0.25 * (v1 + v2 + v3 + v4);
+	// Matrixf<3, 3> V4_t = 0.25 * (V1 + V2 + V3 + V4);
+	// Matrixf<3, 1> v4_t = 0.25 * (v1 + v2 + v3 + v4);
 
 	V1 = V1_t, v1 = v1_t;
-	V2 = V2_t, v2 = v2_t;
-	V3 = V3_t, v3 = v3_t;
-	V4 = V4_t, v4 = v4_t;
+	V2 = V1_t, v2 = v1_t;
+	V3 = V1_t, v3 = v1_t;
+	V4 = V1_t, v4 = v1_t;
 
 	x1 = matrixf::inv(V1) * v1;
 	J1 = 4 * V1;
@@ -184,25 +184,25 @@ void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVeloci
 	motorAngleState[2] += motorAngleState[2]>180?-360:0;
 	motorAngleState[3] = fmodf(SBR.GetState().position,360);
 	motorAngleState[3] += motorAngleState[3]>180?-360:0;
-	if(fabsf(SFR.GetState().position-RFRAngle) < 275 && fabsf(SFR.GetState().position-RFRAngle)>85){
+	if(fabsf(SFR.GetState().position-RFRAngle) < 280 && fabsf(SFR.GetState().position-RFRAngle)>80){
 		ChassisSpeed[0]*=-1;
 		RFRAngle+=RFRAngle>0?-180:180;
 	}
-	if(fabsf(SFL.GetState().position-RFLAngle) < 275 && fabsf(SFL.GetState().position-RFLAngle)>85){
+	if(fabsf(SFL.GetState().position-RFLAngle) < 280 && fabsf(SFL.GetState().position-RFLAngle)>80){
 		ChassisSpeed[1]*=-1;
 		RFLAngle+=RFLAngle>0?-180:180;
 	}
-	if(fabsf(SBL.GetState().position-RBLAngle) < 275 && fabsf(SBL.GetState().position-RBLAngle)>85){
+	if(fabsf(SBL.GetState().position-RBLAngle) < 280 && fabsf(SBL.GetState().position-RBLAngle)>80){
 		ChassisSpeed[2]*=-1;
 		RBLAngle+=RBLAngle>0?-180:180;
 	}
-	if(fabsf(SBR.GetState().position-RBRAngle) < 275 && fabsf(SBR.GetState().position-RBRAngle)>85){
+	if(fabsf(SBR.GetState().position-RBRAngle) < 280 && fabsf(SBR.GetState().position-RBRAngle)>80){
 		ChassisSpeed[3]*=-1;
 		RBRAngle+=RBRAngle>0?-180:180;
 	}
 
 
-	if(fabsf(fbVelocity) < 0.003 && fabsf(lrVelocity) < 0.003 && fabsf(rtVelocity) < 0.002)
+	if(fabsf(fbVelocity) < 0.001 && fabsf(lrVelocity) < 0.001 && fabsf(rtVelocity) < 0.001)
 	{
 		ChassisSpeed[0] = 0;
 		ChassisSpeed[1] = 0;
@@ -262,9 +262,12 @@ void Chassis::OffsetOdometry(float _x = 0, float _y = 0, float _angle = 0) {
 	// y += _y;
 	// chassisPos[2][0] += _angle;
 	// yaw += _angle;
-	chassisPos[1][0] += _y * cosf(chassisPos[2][0]) + _x * sinf(chassisPos[2][0]);
-	chassisPos[0][0] += _y * -sinf(chassisPos[2][0]) + _x * cosf(chassisPos[2][0]);
 	chassisPos[2][0] += _angle;
+	chassisPos[0][0] += _y * -sinf(chassisPos[2][0]) + _x * cosf(chassisPos[2][0]);
+	chassisPos[1][0] += _y * cosf(chassisPos[2][0]) + _x * sinf(chassisPos[2][0]);
+	x = chassisPos[0][0];
+	y = chassisPos[1][0];
+	yaw = chassisPos[2][0];
 }
 
 
