@@ -104,6 +104,7 @@ public:
     MotorBase &CFL,&CFR,&CBL,&CBR;
     MotorBase &SFL,&SFR,&SBL,&SBR;
 
+
     static ChassisBuilder Build();
 };
 //TODO 实际上建造者应该只使用电机基类指针，底盘类使用的应该也是电机基类指针
@@ -157,7 +158,7 @@ public:
         result = Matrixf<4, 1>(resultData);
 
         constant = matrixf::inv(T) * result;
-        initTick = HAL_GetTick();
+        // initTick = HAL_GetTick();
     }
 
     void suspendProcess(){
@@ -192,12 +193,11 @@ public:
     }
 
     void Handle() override {
-        if(!isProcessActive){
-            return;
+        if(isProcessActive){
+            currentTick += 1;
+            currentTime = static_cast<float>(currentTick) * 0.001f;
+            CalcuateVelAndPos();
         }
-        currentTick = HAL_GetTick();
-        currentTime = (float)(currentTick - initTick) * 0.001f;
-        CalcuateVelAndPos();
     }
 
 private:
@@ -209,7 +209,8 @@ private:
     float targetTime{10.0f};
     float currentTime{0.0f};
     float targetPos{0.0f};
-    uint32_t initTick, currentTick;
+    // uint32_t initTick;
+    uint32_t currentTick;
     bool isProcessActive = true;
 };
 
@@ -251,6 +252,22 @@ public:
             _xVel = LRVel;
             _yVel = FBVel;
             _rtVel = RTVel;
+        }
+    }
+
+    void suspendProcess(){
+        if(XVelProfilePtr){
+            XVelProfilePtr->suspendProcess();
+            YVelProfilePtr->suspendProcess();
+            RTVelProfilePtr->suspendProcess();
+        }
+    }
+
+    void resumeProcess(){
+        if(XVelProfilePtr){
+            XVelProfilePtr->resumeProcess();
+            YVelProfilePtr->resumeProcess();
+            RTVelProfilePtr->resumeProcess();
         }
     }
 
