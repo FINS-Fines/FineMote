@@ -16,7 +16,7 @@
 
 #define LENGTH  0.2406f //车身长0.240225f
 #define WIDTH  0.24f //车身宽
-#define WHEEL_DIAMETER 0.0527//4010直径 m
+#define WHEEL_DIAMETER 0.05375//4010直径 m
 #define PI 3.1415926f
 
 class ChassisBuilder;
@@ -158,7 +158,7 @@ public:
         result = Matrixf<4, 1>(resultData);
 
         constant = matrixf::inv(T) * result;
-        // initTick = HAL_GetTick();
+        initTick = HAL_GetTick();
     }
 
     void suspendProcess(){
@@ -193,11 +193,14 @@ public:
     }
 
     void Handle() override {
-        if(isProcessActive){
-            currentTick += 1;
-            currentTime = static_cast<float>(currentTick) * 0.001f;
-            CalcuateVelAndPos();
-        }
+        // if(isProcessActive){
+        //     currentTick += 1;
+        //     currentTime = static_cast<float>(currentTick) * 0.001f;
+        //     CalcuateVelAndPos();
+        // }
+        currentTick = HAL_GetTick();
+        currentTime = static_cast<float>(currentTick - initTick) * 0.001f;
+        CalcuateVelAndPos();
     }
 
 private:
@@ -209,7 +212,7 @@ private:
     float targetTime{10.0f};
     float currentTime{0.0f};
     float targetPos{0.0f};
-    // uint32_t initTick;
+    uint32_t initTick;
     uint32_t currentTick;
     bool isProcessActive = true;
 };
@@ -235,6 +238,15 @@ public:
 
     void AddTarget(float x, float xVel, float y, float yVel, float angle, float angleVel, float time) {
         targetList.emplace(x, xVel, y, yVel, angle, angleVel, time);
+        isFinished = false;
+    }
+
+    void AddTarget(float* data,const uint16_t leng)
+    {
+        for(int i = 0;i<leng;i++)
+        {
+            targetList.emplace(*(data+i*7+0),*(data+i*7+1),*(data+i*7+2),*(data+i*7+3),*(data+i*7+4),*(data+i*7+5),*(data+i*7+6));
+        }
         isFinished = false;
     }
 
@@ -312,11 +324,11 @@ private:
         LRVel = sinf(currentAngle) * wcs_vel_y + cosf(currentAngle) * wcs_vel_x;
         RTVel = wcs_vel_rt;
 
-        // if(targetList.empty()) {
-        //     isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > target.time + 5;
-        //     return;
-        // }
-        isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > (target.time + 1);
+        if(targetList.empty()) {
+            isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > target.time + 1;
+            return;
+        }
+        isArrived = (fabsf(target.angle - currentAngle) < 0.04 && fabsf(target.x - currentX) < 0.04 && fabsf(target.y - currentY) < 0.04) || XVelProfilePtr->GetCurrentTime() > target.time + 2;
     }
 };
 

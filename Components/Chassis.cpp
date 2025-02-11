@@ -184,25 +184,32 @@ void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVeloci
 	motorAngleState[2] += motorAngleState[2]>180?-360:0;
 	motorAngleState[3] = fmodf(SBR.GetState().position,360);
 	motorAngleState[3] += motorAngleState[3]>180?-360:0;
-	if(fabsf(motorAngleState[0]-RFRAngle) < 275 && fabsf(SFR.GetState().position-RFRAngle)>85){
+
+	float FRerror = fabsf(motorAngleState[0]-RFRAngle);
+	float FLerror = fabsf(motorAngleState[1]-RFLAngle);
+	float BLerror = fabsf(motorAngleState[2]-RBLAngle);
+	float BRerror = fabsf(motorAngleState[3]-RBRAngle);
+
+
+	if(FRerror < 275 && FRerror>85){
 		ChassisSpeed[0]*=-1;
 		RFRAngle+=RFRAngle>0?-180:180;
 	}
-	if(fabsf(motorAngleState[1]-RFLAngle) < 275 && fabsf(SFL.GetState().position-RFLAngle)>85){
+	if(FLerror < 275 && FLerror>85){
 		ChassisSpeed[1]*=-1;
 		RFLAngle+=RFLAngle>0?-180:180;
 	}
-	if(fabsf(motorAngleState[2]-RBLAngle) < 275 && fabsf(SBL.GetState().position-RBLAngle)>85){
+	if(BLerror < 275 && BLerror>85){
 		ChassisSpeed[2]*=-1;
 		RBLAngle+=RBLAngle>0?-180:180;
 	}
-	if(fabsf(motorAngleState[3]-RBRAngle) < 275 && fabsf(SBR.GetState().position-RBRAngle)>85){
+	if(BRerror < 275 && BRerror>85){
 		ChassisSpeed[3]*=-1;
 		RBRAngle+=RBRAngle>0?-180:180;
 	}
 
 
-	if(fabsf(fbVelocity) < 0.001 && fabsf(lrVelocity) < 0.001 && fabsf(rtVelocity) < 0.001)
+	if (fabsf(fbVelocity) < 0.0001 && fabsf(lrVelocity) < 0.0001 && fabsf(rtVelocity) < 0.0001)
 	{
 		ChassisSpeed[0] = 0;
 		ChassisSpeed[1] = 0;
@@ -213,6 +220,14 @@ void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVeloci
 		RBLAngle = lastAngle[2];
 		RBRAngle = lastAngle[3];
 	}
+	// else if (FRerror > 5 || fabsf(FRerror - 180) > 5 || FLerror > 5 || fabsf(FLerror - 180) > 5 || BLerror > 5 ||
+	// 	fabsf(BLerror - 180) > 5 || BRerror > 5 || fabsf(BRerror - 180) > 5)
+	// {
+	// 	ChassisSpeed[0] = 0;
+	// 	ChassisSpeed[1] = 0;
+	// 	ChassisSpeed[2] = 0;
+	// 	ChassisSpeed[3] = 0;
+	// }
 
 	//设置底盘电机角度
 	SFR.SetTargetAngle(RFRAngle);

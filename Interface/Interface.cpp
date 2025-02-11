@@ -20,7 +20,7 @@
 #include "D28_5_485.h"
 #include "RadioMaster_Zorro.h"
 #include "FineSerial.h"
-
+// #include "BMI088.h"
 /**
  * @brief LED闪烁
  */
@@ -69,25 +69,6 @@ Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02);
 Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 
 
-// constexpr PID_Param_t speedPID = {0.1f, 0.003f, 0.1f, 2000, 2000};
-//
-// auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-// auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
-//
-// #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
-// #define TORQUE_2_POSITION {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Position}
-// #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
-//
-// RMD_L_40xx_v3<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x242);
-// RMD_L_40xx_v3<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x244);
-// RMD_L_40xx_v3<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x246);
-// RMD_L_40xx_v3<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x248);
-//
-// RMD_L_40xx_v3<1> SFRMotor(DIRECT_POSITION, swerveControllers[0], 0x241);
-// RMD_L_40xx_v3<1> SFLMotor(DIRECT_POSITION, swerveControllers[1], 0x243);
-// RMD_L_40xx_v3<1> SBLMotor(DIRECT_POSITION, swerveControllers[2], 0x245);
-// RMD_L_40xx_v3<1> SBRMotor(DIRECT_POSITION, swerveControllers[3], 0x247);
-
 // 首先调取底盘类的构建器，然后使用提供的电机添加函数，将上文构建的电机指针传入构建器，最后由构建器返回构建好的底盘类对象
 Chassis chassis = Chassis::Build().
                   AddCFLMotor(CFLMotor).
@@ -101,51 +82,139 @@ Chassis chassis = Chassis::Build().
                   Build();
 
 
+// constexpr float timeConsumed[22]{
+//     2, 3.5, 3.5, 3.5, 6, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 6, 4, 3.5, 4, 3.5, 3.5, 4, 6, 2
+// };
+
+float pathTask1[2][7] = {
+    {-0.5, -0.2, -0.15, 0, 0, 0, 3},
+    {-1.49, 0, -0.15, 0, 0, 0, 3}
+};
+float pathTask2[4][7] = {
+    {-1.29, 0.2, -0.15, 0, 0, 0, 2},
+    {-1.12, 0, -0.35, -0.2, 0, 0, 2},
+    {-1.1, 0, -1.9, 0, 0, 0, 5},
+    {-1.1, 0, -1.9, 0, PI, 0, 4}
+};
+float pathTask3[3][7] = {
+    {-2, 0, -1.9, 0, PI, 0, 3},
+    {-2, 0, -1.9, 0, PI / 2, 0, 3},
+    {-2, 0, -0.96, 0, PI / 2, 0, 3},
+};
+float pathTask4[3][7] = {
+    {-2, 0, -0.15, 0, PI / 2, 0, 3},
+    {-2, 0, -0.15, 0, 0, 0, 3},
+    {-1.49, 0, -0.15, 0, 0, 0, 3}, //第二次转盘
+};
+float pathTask5[4][7] = {
+    {-1.29, 0.2, -0.15, 0, 0, 0, 2},
+    {-1.12, 0, -0.35, -0.2, 0, 0, 2},
+    {-1.1, 0, -1.9, 0, 0, 0, 5},
+    {-1.1, 0, -1.9, 0, PI, 0, 4}
+};
+float pathTask6[3][7] = {
+    {-2, 0, -1.9, 0, PI, 0, 3},
+    {-2, 0, -1.9, 0, PI / 2, 0, 3},
+    {-2, 0, -0.96, 0, PI / 2, 0, 3},
+};
+float pathTask7[4][7] = {
+    {-2, 0, -0.15, 0, PI / 2, 0, 3},
+    {-2, 0, -0.15, 0, 0, 0, 3},
+    {-0.5, -0.2, -0.15, 0, 0, 0, 3},
+    {0, 0, 0, 0, 0, 0, 6},
+};
+float* path[7] = {&pathTask1[0][0],&pathTask2[0][0],&pathTask3[0][0],&pathTask4[0][0],&pathTask5[0][0],&pathTask6[0][0],&pathTask7[0][0]};
+
+
+enum class ChassisTask{
+    TO_PLATE_1 = 0X00,
+    TO_PROCESSING_AREA_1 = 0X01,
+    TO_STORAGE_1 = 0X02,
+    TO_PLATE_2 = 0X03,
+    TO_PROCESSING_AREA_2 = 0X04,
+    TO_STORAGE_2 = 0X05,
+    BACK = 0X06,
+    NONE = 0X07
+}chassisTask = ChassisTask::NONE;
+
+uint8_t upLoadCommand[3]{0xAA,0x01,0xBB};
 RoutePlanning route_planning(0.5);//Kp为误差补偿系数
 bool nextPoint = false;
 bool isMissionStart = false;
-uint16_t pathCnt{0};
-uint16_t pathCounter{0};
-
-constexpr float timeConsumed[22]{
-    2, 3.5, 3.5, 3.5, 6, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 6, 4, 3.5, 4, 3.5, 3.5, 4, 6, 2
-};
-// constexpr float sm_userdata_path[22][4] = {
-//     {0.0, -0.155, 0.0, 3},
-//     {-0.65, -0.155, 0.0, 3},
-//     {-1.45, -0.115, 0.0, 3},//转盘
-//     {-1.06, -0.155, 0.0, 3},
-//     {-1.06, -0.155, PI-7./180.*PI, 3},
-//     {-1.23, -1.83, PI-7./180.*PI, 7},//第一次加工区
-//     {-2.04, -1.78, PI-7./180.*PI, 3},
-//     {-2.0, -1.78, PI/2-7./180.*PI, 3},
-//     {-2.0, -0.96, PI/2-7./180.*PI, 3},//第一次暂存区
-//     {-1.95, -0.05, PI/2-4./180.*PI, 5},
-//     {-1.95, -0.05, 0.0, 5},
-//     {-1.45, -0.06, 0.0, 3},//第二次转盘
-//     {-1.06, -0.06, 0.0, 3},
-//     {-1.06, -0.06, PI-7./180.*PI, 3},
-//     {-1.26, -1.79, PI-7./180.*PI, 7},//第二次加工区
-//     {-2.04, -1.79, PI-7./180.*PI, 3},
-//     {-2.0, -1.78, PI/2-7./180.*PI, 3},
-//     {-2.0, -0.96, PI/2-7./180.*PI, 3},//第二次暂存区
-//     {-1.95, -0.05, PI/2-4./180.*PI, 5},
-//     {-1.95, -0.05, 0.0, 5},
-//     {-0.1, -0.05, 0.0, 8},
-//     {-0.1, 0.0, 0.01, 5},//回起点
-// };
+bool isTaskPub = true;
+uint8_t pathCnt{0};
 
 void Task3() {
-    // if(nextPoint)
-    // {
-    //     nextPoint = false;
-    //     route_planning.AddTarget(sm_userdata_path[pathCnt++][0],0,sm_userdata_path[pathCnt++][1],0,sm_userdata_path[pathCnt++][2],0,timeConsumed[pathCounter++]);
-    // }
+    if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_RESET){
+        return;
+    }
 
+    if(nextPoint)
+    {
+        nextPoint = false;
+        switch (pathCnt)
+        {
+        case 0:
+            route_planning.AddTarget(path[pathCnt], 2);
+            break;
+        case 1: route_planning.AddTarget(path[pathCnt], 4);
+            break;
+        case 2: route_planning.AddTarget(path[pathCnt], 3);
+            break;
+        case 3: route_planning.AddTarget(path[pathCnt], 3);
+            break;
+        case 4: route_planning.AddTarget(path[pathCnt], 4);
+            break;
+        case 5: route_planning.AddTarget(path[pathCnt], 3);
+            break;
+        case 6: route_planning.AddTarget(path[pathCnt], 4);
+            break;
+        }
+        pathCnt++;
+    }
+    switch (chassisTask)
+    {
+        case ChassisTask::TO_PLATE_1:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
+                isTaskPub = true;
+            }
 
-    // if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_RESET){
-    //     return;
-    // }
+            if(route_planning.isFinished)
+            {
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_PROCESSING_AREA_1;
+            }
+            break;
+        case ChassisTask::TO_PROCESSING_AREA_1:
+            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+            chassisTask = ChassisTask::TO_STORAGE_1;
+            break;
+        case ChassisTask::TO_STORAGE_1:
+            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+            chassisTask = ChassisTask::TO_PLATE_2;
+            break;
+        case ChassisTask::TO_PLATE_2:
+            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+            chassisTask = ChassisTask::TO_PROCESSING_AREA_2;
+            break;
+        case ChassisTask::TO_PROCESSING_AREA_2:
+            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+            chassisTask = ChassisTask::TO_STORAGE_2;
+            break;
+        case ChassisTask::TO_STORAGE_2:
+            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+            chassisTask = ChassisTask::BACK;
+            break;
+        case ChassisTask::BACK:
+            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+            chassisTask = ChassisTask::NONE;
+            break;
+        case ChassisTask::NONE:break;
+        default: break;
+    }
+
 
     isMissionStart = true;
 
@@ -160,8 +229,8 @@ void Task3() {
                 FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
                 break;
             case SingleCommandType::SET_PATH_POINT:
-                route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, timeConsumed[pathCounter++]);
-                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                // route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, timeConsumed[pathCounter++]);
+                // FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
                 break;
             case SingleCommandType::ODOMETRY_OFFSET:
                 float offsetX = FineSerial<5>::GetInstance().offset_data.y * cosf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * sinf(chassis.yaw);
@@ -219,6 +288,15 @@ void Task4(){
     }
 }
 
+void Task5(){
+    // cnt++;
+    // if (cnt >= 20){
+    //     UARTBaseLite<4>::GetInstance().Transmit(upLoadCommand, 3);
+    //     cnt = 0;
+    // }
+
+}
+
 /**
  * @brief 用户初始化
  */
@@ -268,6 +346,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         Task2();
         Task3();
         Task4();
+        Task5();
 
         CAN_Bus<1>::TxLoader();
         CAN_Bus<2>::TxLoader();

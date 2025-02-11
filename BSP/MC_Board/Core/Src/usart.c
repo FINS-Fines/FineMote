@@ -361,16 +361,16 @@ void Enable_DoubleMemBuff(DMA_HandleTypeDef *hdma, volatile uint32_t buffer0, vo
         __HAL_DMA_DISABLE(hdma);
     }
     hdma->Instance->PAR = (uint32_t) &(USART3->DR);
-    /* memory buffer å†…å­˜ç¼“å†²ï¿??? 0 */
+    /* memory buffer ÄÚ´æ»º³å???? 0 */
     hdma->Instance->M0AR = buffer0;
-    /* memory buffer 2 å†…å­˜ç¼“å†²ï¿??? 1 */
+    /* memory buffer 2 ÄÚ´æ»º³å???? 1 */
     hdma->Instance->M1AR = buffer1;
-    /* data length æ•°æ®é•¿åº¦ */
+    /* data length Êý¾Ý³¤¶È */
     hdma->Instance->NDTR = buffer_size;
-    /* enable double memory buffer ä½¿èƒ½åŒç¼“å†²åŒº */
+    /* enable double memory buffer Ê¹ÄÜË«»º³åÇø */
     CLEAR_BIT(hdma->Instance->CR, DMA_SxCR_DBM);
     SET_BIT(hdma->Instance->CR, DMA_SxCR_CIRC);
-    /* enable DMAä½¿èƒ½ DMA */
+    /* enable DMAÊ¹ÄÜ DMA */
     __HAL_DMA_ENABLE(hdma);
 }
 /* USER CODE END 1 */
