@@ -258,7 +258,17 @@ void Task3() {
 
 
 uint8_t manipulatorCommand[28]{};
-int cnt{0};
+uint8_t cnt{0};
+
+struct ManipulatorAngle{
+    float angleA{0};
+    float angleB{0};
+    float angleC{0};
+    float angleD{0};
+    float angleE{0};
+    float angleF{0};
+    uint8_t endEffecctor{0};
+}__packed manipulator_angle;
 
 // void Task4(){
 //     manipulatorCommand[0] = 0xAA;
@@ -285,6 +295,7 @@ void Task4(){
         manipulatorCommand[27] = 0xBB;
         UARTBaseLite<4>::GetInstance().Transmit(manipulatorCommand, 28);
         cnt = 0;
+
     }
 }
 
