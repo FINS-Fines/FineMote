@@ -167,31 +167,16 @@ void Task3() {
     if(!isMissionStart){return;}
 
     uploadCnt = FineSerial<5>::GetInstance().cnt;
-    // if(nextPoint)
-    // {
-    //     nextPoint = false;
-    //     switch (pathCnt)
-    //     {
-    //     case 0:
-    //         route_planning.AddTarget(path[pathCnt], 2);
-    //         break;
-    //     case 1: route_planning.AddTarget(path[pathCnt], 4);
-    //         break;
-    //     case 2: route_planning.AddTarget(path[pathCnt], 3);
-    //         break;
-    //     case 3: route_planning.AddTarget(path[pathCnt], 3);
-    //         break;
-    //     case 4: route_planning.AddTarget(path[pathCnt], 4);
-    //         break;
-    //     case 5: route_planning.AddTarget(path[pathCnt], 3);
-    //         break;
-    //     case 6: route_planning.AddTarget(path[pathCnt], 4);
-    //         break;
-    //     }
-    //     pathCnt++;
-    // }
 
+    // backForceCounter++;
 
+    if(route_planning.isFinished)
+    {
+        chassis.ChassisStop();
+    }else
+    {
+        chassis.ChassisActive();
+    }
 
 
     static uint8_t lastBFCounter{0};

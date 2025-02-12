@@ -7,7 +7,6 @@
 #include "Chassis.h"
 
 void Chassis::ChassisSetVelocity(float _fbV, float _lrV, float _rtV) {
-	ChassisStopFlag = false;
 	FBVelocity = _fbV;
 	LRVelocity = _lrV;
 	RTVelocity = _rtV;
@@ -15,7 +14,10 @@ void Chassis::ChassisSetVelocity(float _fbV, float _lrV, float _rtV) {
 
 void Chassis::ChassisStop() {
 	ChassisStopFlag = true;
+}
 
+void Chassis::ChassisActive() {
+	ChassisStopFlag = false;
 }
 
 void Chassis::LSOdometry() {
@@ -144,8 +146,8 @@ void Chassis::WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVeloci
 		//设置底盘电机角度
 		SFR.SetTargetAngle(45);
 		SFL.SetTargetAngle(-45);
-		SBL.SetTargetAngle(-45);
-		SBR.SetTargetAngle(45);
+		SBL.SetTargetAngle(45);
+		SBR.SetTargetAngle(-45);
 
 		//设置底盘电机转速
 		CFR.SetTargetSpeed(0);

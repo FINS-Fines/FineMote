@@ -75,10 +75,11 @@ public:
     void WheelsSpeedCalc(float fbVelocity, float lrVelocity, float rtVelocity);
     void Handle() override;
     void LSOdometry();
+    void ChassisActive();
     void ICFOdometry();
     void OffsetOdometry(float _x, float _y, float _angle);
     void ResetOdometry(float _x,float _y,float _angle);
-    bool ChassisStopFlag = true;
+    bool ChassisStopFlag = false;
     float FBVelocity{}, LRVelocity{}, RTVelocity{};
     float alpha = 0.8;
     float x{0},y{0},yaw{0};
