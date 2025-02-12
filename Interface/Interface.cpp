@@ -73,7 +73,7 @@ Odrive<2> AMotor(DIRECT_POSITION,manipulatorControllers[0],0x02);
 Odrive<2> BMotor(DIRECT_POSITION,manipulatorControllers[1],0x03);
 Odrive<2> CMotor(DIRECT_POSITION,manipulatorControllers[2],0x04);
 
-D28_485<2> CEncoder(0x03);
+D28_485<2> CEncoder(0x01);
 D28_485<2> DEncoder(0x04);
 D28_485<2> EEncoder(0x05);
 
