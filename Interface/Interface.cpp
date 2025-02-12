@@ -156,7 +156,7 @@ void Task3() {
     if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_SET && !isMissionStart){
         static uint32_t pinCnt{0};
         pinCnt++;
-        if(pinCnt > 1000)
+        if(pinCnt > 100)
         {
             isMissionStart = true;
             FineSerial<5>::GetInstance().AvtivateUpload();
@@ -493,7 +493,7 @@ extern "C" {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if(htim == &TIM_Control) {
-        // HAL_IWDG_Refresh(&hiwdg);
+        HAL_IWDG_Refresh(&hiwdg);
         DeviceBase::DevicesHandle();
         Task1();
         Task2();
