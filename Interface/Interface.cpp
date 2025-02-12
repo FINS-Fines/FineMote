@@ -20,7 +20,7 @@
 #include "D28_5_485.h"
 #include "RadioMaster_Zorro.h"
 #include "FineSerial.h"
-// #include "BMI088.h"
+
 /**
  * @brief LED闪烁
  */
@@ -86,21 +86,22 @@ Chassis chassis = Chassis::Build().
 //     2, 3.5, 3.5, 3.5, 6, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 6, 4, 3.5, 4, 3.5, 3.5, 4, 6, 2
 // };
 
-float pathTask1[2][7] = {
-    {-0.5, -0.2, -0.15, 0, 0, 0, 3},
-    {-1.49, 0, -0.15, 0, 0, 0, 3}
+float pathTask1[3][7] = {
+    {-0.4, -0.2, -0.15, 0, 0, 0, 2},
+    {-0.8, 0, -0.15, 0, 0, 0, 4},
+    {-1.49, 0, -0.15, 0, 0, 0, 4}
 };
 float pathTask2[4][7] = {
     {-1.29, 0.2, -0.15, 0, 0, 0, 2},
-    {-1.12, 0, -0.35, -0.2, 0, 0, 2},
-    {-1.1, 0, -1.9, 0, 0, 0, 5},
-    {-1.1, 0, -1.9, 0, PI, 0, 4}
+    {-1.12, 0, -0.35, -0.2, 0, 0, 1.5},
+    {-1.05, 0, -1.9, 0, 0, 0, 5},
+    // {-1.05, 0, -1.9, 0, PI*1.03, 0, 4}
+    {-1.05, 0, -1.9, 0, PI*1.03, 0, 4}
 };
 float pathTask3[3][7] = {
-    {-2, 0, -1.9, 0, PI, 0, 3},
-    {-2, 0, -1.9, 0, PI / 2, 0, 3},
-    {-2, 0, -0.96, 0, PI / 2, 0, 3},
-};
+    {-1.75, -0.2, -2.0, 0, PI*1.03, 0, 2},
+    {-1.9, 0, -1.8, 0.2, PI*0.53, 0, 2},
+    {-1.9, 0, -1.1, 0, PI*0.534, 0, 2},};
 float pathTask4[3][7] = {
     {-2, 0, -0.15, 0, PI / 2, 0, 3},
     {-2, 0, -0.15, 0, 0, 0, 3},
@@ -126,6 +127,7 @@ float pathTask7[4][7] = {
 float* path[7] = {&pathTask1[0][0],&pathTask2[0][0],&pathTask3[0][0],&pathTask4[0][0],&pathTask5[0][0],&pathTask6[0][0],&pathTask7[0][0]};
 
 
+
 enum class ChassisTask{
     TO_PLATE_1 = 0X00,
     TO_PROCESSING_AREA_1 = 0X01,
@@ -137,86 +139,214 @@ enum class ChassisTask{
     NONE = 0X07
 }chassisTask = ChassisTask::NONE;
 
-uint8_t upLoadCommand[3]{0xAA,0x01,0xBB};
 RoutePlanning route_planning(0.5);//Kp为误差补偿系数
 bool nextPoint = false;
 bool isMissionStart = false;
-bool isTaskPub = true;
+bool isTaskPub = false;
+bool isTargetReachedMsgPub = false;
 uint8_t pathCnt{0};
+uint8_t backForceCounter{0};
+uint8_t uploadCnt{0};
+
+
+
+
 
 void Task3() {
-    if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_RESET){
-        return;
+    if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_SET && !isMissionStart){
+        static uint32_t pinCnt{0};
+        pinCnt++;
+        if(pinCnt > 1000)
+        {
+            isMissionStart = true;
+            FineSerial<5>::GetInstance().AvtivateUpload();
+            chassisTask = ChassisTask::TO_PLATE_1;
+        }
     }
 
-    if(nextPoint)
-    {
-        nextPoint = false;
-        switch (pathCnt)
-        {
-        case 0:
-            route_planning.AddTarget(path[pathCnt], 2);
-            break;
-        case 1: route_planning.AddTarget(path[pathCnt], 4);
-            break;
-        case 2: route_planning.AddTarget(path[pathCnt], 3);
-            break;
-        case 3: route_planning.AddTarget(path[pathCnt], 3);
-            break;
-        case 4: route_planning.AddTarget(path[pathCnt], 4);
-            break;
-        case 5: route_planning.AddTarget(path[pathCnt], 3);
-            break;
-        case 6: route_planning.AddTarget(path[pathCnt], 4);
-            break;
-        }
-        pathCnt++;
-    }
+    if(!isMissionStart){return;}
+
+    uploadCnt = FineSerial<5>::GetInstance().cnt;
+    // if(nextPoint)
+    // {
+    //     nextPoint = false;
+    //     switch (pathCnt)
+    //     {
+    //     case 0:
+    //         route_planning.AddTarget(path[pathCnt], 2);
+    //         break;
+    //     case 1: route_planning.AddTarget(path[pathCnt], 4);
+    //         break;
+    //     case 2: route_planning.AddTarget(path[pathCnt], 3);
+    //         break;
+    //     case 3: route_planning.AddTarget(path[pathCnt], 3);
+    //         break;
+    //     case 4: route_planning.AddTarget(path[pathCnt], 4);
+    //         break;
+    //     case 5: route_planning.AddTarget(path[pathCnt], 3);
+    //         break;
+    //     case 6: route_planning.AddTarget(path[pathCnt], 4);
+    //         break;
+    //     }
+    //     pathCnt++;
+    // }
+
+
+
+
+    static uint8_t lastBFCounter{0};
     switch (chassisTask)
     {
         case ChassisTask::TO_PLATE_1:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
                 isTaskPub = true;
             }
-
-            if(route_planning.isFinished)
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+            }
+            if(backForceCounter > lastBFCounter && backForceCounter < 3)
+            {
+                lastBFCounter = backForceCounter;
+                FineSerial<5>::GetInstance().AvtivateUpload();
+            }
+            // backForceCounter = 6;
+            if(backForceCounter >= 3)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
                 chassisTask = ChassisTask::TO_PROCESSING_AREA_1;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
             }
             break;
         case ChassisTask::TO_PROCESSING_AREA_1:
-            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
-            chassisTask = ChassisTask::TO_STORAGE_1;
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                isTaskPub = true;
+                backForceCounter = 0;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+            }
+            // backForceCounter = 6;
+            if(backForceCounter >= 6 && route_planning.isFinished)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_STORAGE_1;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+            }
             break;
         case ChassisTask::TO_STORAGE_1:
-            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
-            chassisTask = ChassisTask::TO_PLATE_2;
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+            }
+            if(backForceCounter >= 3 && route_planning.isFinished && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.4)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_PLATE_2;
+                backForceCounter = 0;
+                lastBFCounter = 0;
+                isTargetReachedMsgPub = false;
+            }
             break;
         case ChassisTask::TO_PLATE_2:
-            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
-            chassisTask = ChassisTask::TO_PROCESSING_AREA_2;
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+            }
+            if(backForceCounter > lastBFCounter && backForceCounter < 3)
+            {
+                lastBFCounter = backForceCounter;
+                FineSerial<5>::GetInstance().AvtivateUpload();
+            }
+            if(backForceCounter >= 3 && route_planning.isFinished)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_PROCESSING_AREA_2;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+            }
             break;
         case ChassisTask::TO_PROCESSING_AREA_2:
-            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
-            chassisTask = ChassisTask::TO_STORAGE_2;
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+            }
+            if(backForceCounter >= 6 && route_planning.isFinished)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_STORAGE_2;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+            }
             break;
         case ChassisTask::TO_STORAGE_2:
-            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
-            chassisTask = ChassisTask::BACK;
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+            }
+            if(backForceCounter >= 3 && route_planning.isFinished && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.4)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::BACK;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+            }
             break;
         case ChassisTask::BACK:
-            route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
-            chassisTask = ChassisTask::NONE;
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                chassisTask = ChassisTask::NONE;
+            }
             break;
         case ChassisTask::NONE:break;
         default: break;
     }
 
-
-    isMissionStart = true;
 
     /*****  单次任务部分  *****/
     if (!FineSerial<5>::GetInstance().isCurrentTaskFinished){
@@ -230,7 +360,7 @@ void Task3() {
                 break;
             case SingleCommandType::SET_PATH_POINT:
                 // route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, timeConsumed[pathCounter++]);
-                // FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
                 break;
             case SingleCommandType::ODOMETRY_OFFSET:
                 float offsetX = FineSerial<5>::GetInstance().offset_data.y * cosf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * sinf(chassis.yaw);
@@ -248,11 +378,6 @@ void Task3() {
             //     break;
         }
     }
-
-    /*****  循环任务部分  *****/
-    chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
-    route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
-                  chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
 }
 
 
@@ -270,6 +395,20 @@ struct ManipulatorAngle{
     uint8_t endEffecctor{0};
 }__packed manipulator_angle;
 
+void ManipulatorBackForceCounter()
+{
+    static bool isForward = false;
+    if(manipulator_angle.angleA < - 2.2)//FORCE
+    {
+        isForward = true;
+    }
+    if(manipulator_angle.angleA > - 2 && isForward)//BACK
+    {
+        backForceCounter++;
+        isForward = false;
+    }
+}
+
 // void Task4(){
 //     manipulatorCommand[0] = 0xAA;
 //     memcpy(manipulatorCommand + 1, FineSerial<5>::GetInstance().manipulator_angle, 24);
@@ -286,6 +425,13 @@ struct ManipulatorAngle{
 // }
 
 void Task4(){
+
+    /*****  循环任务部分  *****/
+    chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
+    route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
+                  chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
+
+
     cnt++;
     if (cnt >= 4){
         manipulatorCommand[0] = 0xAA;
@@ -296,17 +442,13 @@ void Task4(){
         UARTBaseLite<4>::GetInstance().Transmit(manipulatorCommand, 28);
         cnt = 0;
 
+        memcpy(&manipulator_angle,manipulatorCommand+1,25);
     }
 }
 
-void Task5(){
-    // cnt++;
-    // if (cnt >= 20){
-    //     UARTBaseLite<4>::GetInstance().Transmit(upLoadCommand, 3);
-    //     cnt = 0;
-    // }
 
-}
+
+
 
 /**
  * @brief 用户初始化
@@ -357,7 +499,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         Task2();
         Task3();
         Task4();
-        Task5();
+        ManipulatorBackForceCounter();
 
         CAN_Bus<1>::TxLoader();
         CAN_Bus<2>::TxLoader();

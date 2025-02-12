@@ -34,10 +34,12 @@ template <uint8_t busID>
 class FineSerial : public DeviceBase{
 public:
     uint8_t rxData[37]{};
+    uint8_t cnt{0};
     uint8_t crc8{0};
     uint16_t datasize{0};
     uint8_t command[32]{};
     uint32_t dataLength{0};
+    float timeMsgNotReceived{0};
     bool isCurrentTaskFinished = false;
     bool endEffectorState = true;//false关，true开
     bool isMissionStart = false;
@@ -54,8 +56,22 @@ public:
     FineSerial(const FineSerial&) = delete;
     FineSerial& operator=(const FineSerial&) = delete;
 
+    void AvtivateUpload(){
+        isUploadActive = true;
+        cnt++;
+    }
+
+    void UploadMsg(){
+        static uint8_t cnt{0};
+        cnt++;
+        if (cnt >= 20){
+            UARTBaseLite<5>::GetInstance().Transmit(upLoadCommand, 3);
+            cnt = 0;
+        }
+    }
 
     void Decode(uint8_t* data, uint16_t size){
+        lastMsgReceivedTick = HAL_GetTick();
         // memcpy(&rxData,data,size);
         // memcpy(&command,data+3,commandLength);
         // dataLength = size;
@@ -142,8 +158,10 @@ public:
 
 
 private:
-    uint32_t last_tick{0};
-
+    uint8_t upLoadCommand[3]{0xAA,0x01,0xBB};
+    uint32_t initTick{0};
+    uint32_t lastMsgReceivedTick{0};
+    bool isUploadActive = false;
     void Upload(){
         if(singleCommand == SingleCommandType::NONE){
             return;
@@ -171,9 +189,17 @@ private:
     }
 
     void Handle() override{
-        if(isCurrentTaskFinished)
-        {
-            Upload();
+        // if(isCurrentTaskFinished)
+        // {
+        //     Upload();
+        // }
+        timeMsgNotReceived = 0.001f*(HAL_GetTick()-lastMsgReceivedTick);
+        if(isUploadActive){
+            UploadMsg();
+            isUploadActive = HAL_GetTick() - initTick < 1000;
+        }
+        else if(!isUploadActive){
+            initTick = HAL_GetTick();
         }
     }
 };
