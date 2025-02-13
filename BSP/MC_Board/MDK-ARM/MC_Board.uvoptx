@@ -195,6 +195,11 @@
           <WinNumber>1</WinNumber>
           <ItemText>uploadCnt</ItemText>
         </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>manipulator_angle</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>

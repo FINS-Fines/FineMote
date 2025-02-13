@@ -82,47 +82,56 @@ Chassis chassis = Chassis::Build().
                   Build();
 
 
+struct ManipulatorAngle{
+    float angleA{0};
+    float angleB{0};
+    float angleC{0};
+    float angleD{0};
+    float angleE{0};
+    float angleF{0};
+    uint8_t endEffecctor{0};
+}__packed manipulator_angle;
+
 // constexpr float timeConsumed[22]{
 //     2, 3.5, 3.5, 3.5, 6, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 6, 4, 3.5, 4, 3.5, 3.5, 4, 6, 2
 // };
 
-float pathTask1[3][7] = {
-    {-0.4, -0.2, -0.15, 0, 0, 0, 2},
-    {-0.8, 0, -0.15, 0, 0, 0, 4},
+float pathTask1[2][7] = {
+    {-0.4, -0.2, -0.15, 0, 0, 0, 1.6},
     {-1.49, 0, -0.15, 0, 0, 0, 4}
 };
 float pathTask2[4][7] = {
-    {-1.29, 0.2, -0.15, 0, 0, 0, 2},
+    {-1.29, 0.2, -0.15, 0, 0, 0, 1.5},
     {-1.12, 0, -0.35, -0.2, 0, 0, 1.5},
     {-1.05, 0, -1.9, 0, 0, 0, 5},
-    // {-1.05, 0, -1.9, 0, PI*1.03, 0, 4}
-    {-1.05, 0, -1.9, 0, PI*1.03, 0, 4}
+    {-1.05, 0, -1.9, 0, PI, 0, 3}
 };
 float pathTask3[3][7] = {
-    {-1.75, -0.2, -2.0, 0, PI*1.03, 0, 2},
-    {-1.9, 0, -1.8, 0.2, PI*0.53, 0, 2},
-    {-1.9, 0, -1.1, 0, PI*0.534, 0, 2},};
+    {-1.70, -0.2, -1.9, 0, PI, 0, 2},
+    {-1.90, 0, -1.7, 0.2, PI * 0.5f, 0, 2},
+    {-1.90, 0, -1.1, 0, PI * 0.5f, 0, 2}
+};
 float pathTask4[3][7] = {
-    {-2, 0, -0.15, 0, PI / 2, 0, 3},
-    {-2, 0, -0.15, 0, 0, 0, 3},
-    {-1.49, 0, -0.15, 0, 0, 0, 3}, //第二次转盘
+    {-1.90, 0, -0.35, 0.2, PI * 0.5f, 0, 2},
+    {-1.70, 0.2, -0.15, 0, 0, 0, 2},
+    {-1.49, 0, -0.15, 0, 0, 0, 2}, //第二次转盘
 };
 float pathTask5[4][7] = {
-    {-1.29, 0.2, -0.15, 0, 0, 0, 2},
-    {-1.12, 0, -0.35, -0.2, 0, 0, 2},
-    {-1.1, 0, -1.9, 0, 0, 0, 5},
-    {-1.1, 0, -1.9, 0, PI, 0, 4}
+    {-1.29, 0.2, -0.15, 0, 0, 0, 1.5},
+    {-1.12, 0, -0.35, -0.2, 0, 0, 1.5},
+    {-1.05, 0, -1.9, 0, 0, 0, 5},
+    {-1.05, 0, -1.9, 0, PI, 0, 3}
 };
 float pathTask6[3][7] = {
-    {-2, 0, -1.9, 0, PI, 0, 3},
-    {-2, 0, -1.9, 0, PI / 2, 0, 3},
-    {-2, 0, -0.96, 0, PI / 2, 0, 3},
+    {-1.70, -0.2, -1.9, 0, PI, 0, 2},
+    {-1.90, 0, -1.7, 0.2, PI * 0.5f, 0, 2},
+    {-1.90, 0, -1.1, 0, PI * 0.5f, 0, 2}
 };
 float pathTask7[4][7] = {
-    {-2, 0, -0.15, 0, PI / 2, 0, 3},
-    {-2, 0, -0.15, 0, 0, 0, 3},
+    {-1.9, 0, -0.35, 0.2, PI * 0.5f, 0, 2},
+    {-1.7, 0.2, -0.15, 0, 0, 0, 2},
     {-0.5, -0.2, -0.15, 0, 0, 0, 3},
-    {0, 0, 0, 0, 0, 0, 6},
+    {0, 0, 0, 0, 0, 0, 2},
 };
 float* path[7] = {&pathTask1[0][0],&pathTask2[0][0],&pathTask3[0][0],&pathTask4[0][0],&pathTask5[0][0],&pathTask6[0][0],&pathTask7[0][0]};
 
@@ -185,7 +194,7 @@ void Task3() {
         case ChassisTask::TO_PLATE_1:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
                 isTaskPub = true;
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
@@ -241,7 +250,7 @@ void Task3() {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTargetReachedMsgPub = true;
             }
-            if(backForceCounter >= 3 && route_planning.isFinished && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.4)
+            if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5)
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
@@ -307,7 +316,7 @@ void Task3() {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTargetReachedMsgPub = true;
             }
-            if(backForceCounter >= 3 && route_planning.isFinished && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.4)
+            if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5)
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
@@ -370,16 +379,6 @@ void Task3() {
 uint8_t manipulatorCommand[28]{};
 uint8_t cnt{0};
 
-struct ManipulatorAngle{
-    float angleA{0};
-    float angleB{0};
-    float angleC{0};
-    float angleD{0};
-    float angleE{0};
-    float angleF{0};
-    uint8_t endEffecctor{0};
-}__packed manipulator_angle;
-
 void ManipulatorBackForceCounter()
 {
     static bool isForward = false;
@@ -409,13 +408,12 @@ void ManipulatorBackForceCounter()
 //     }
 // }
 
-void Task4(){
+/*****  循环任务部分  *****/
 
-    /*****  循环任务部分  *****/
+void Task4(){
     chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
     route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
                   chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
-
 
     cnt++;
     if (cnt >= 4){
