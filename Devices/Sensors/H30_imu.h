@@ -66,7 +66,16 @@ public:
             {
                 euler_.pitch = (float)(data[35] | data[36] << 8 | data[37] << 16 | data[38] << 24) * 0.000001 / 180.f * PI;
                 euler_.roll = (float)(data[39] | data[40] << 8 | data[41] << 16 | data[42] << 24) * 0.000001 / 180.f * PI;
-                euler_.yaw = (float)(data[43] | data[44] << 8 | data[45] << 16 | data[46] << 24) * 0.000001 / 180.f * PI;
+                float yaw = (float)(data[43] | data[44] << 8 | data[45] << 16 | data[46] << 24) * 0.000001 / 180.f * PI;
+                while (euler_.yaw - yaw > 1.9 * PI)
+                {
+                    yaw += 2*PI;
+                }
+                while (euler_.yaw - yaw < -1.9 * PI)
+                {
+                    yaw -= 2*PI;
+                }
+                euler_.yaw = yaw;
             }
         }
     }

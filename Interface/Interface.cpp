@@ -98,40 +98,40 @@ struct ManipulatorAngle{
 
 float pathTask1[2][7] = {
     {-0.4, -0.2, -0.15, 0, 0, 0, 1.6},
-    {-1.49, 0, -0.15, 0, 0, 0, 4}
+    {-1.49, 0, -0.15, 0, 0, 0, 3}
 };
 float pathTask2[4][7] = {
-    {-1.29, 0.2, -0.15, 0, 0, 0, 1.5},
-    {-1.12, 0, -0.35, -0.2, 0, 0, 1.5},
-    {-1.05, 0, -1.9, 0, 0, 0, 5},
-    {-1.05, 0, -1.9, 0, PI, 0, 3}
+    {-1.35, 0.15, -0.15, 0, 0, 0, 1.5},
+    {-1.15, 0, -0.35, -0.15, 0, 0, 1.5},
+    {-1.15, 0, -1.92, 0, 0, 0, 4.5},
+    {-1.15, 0, -1.92, 0, PI, 0, 3}
 };
 float pathTask3[3][7] = {
-    {-1.70, -0.2, -1.9, 0, PI, 0, 2},
-    {-1.90, 0, -1.7, 0.2, PI * 0.5f, 0, 2},
-    {-1.90, 0, -1.1, 0, PI * 0.5f, 0, 2}
+    {-1.72, -0.15, -1.92, 0, PI, 0, 2},
+    {-1.92, 0, -1.72, 0.15, PI * 0.5f, 0, 2},
+    {-1.92, 0, -1.1, 0, PI * 0.5f, 0, 2}
 };
 float pathTask4[3][7] = {
-    {-1.90, 0, -0.35, 0.2, PI * 0.5f, 0, 2},
-    {-1.70, 0.2, -0.15, 0, 0, 0, 2},
+    {-1.92, 0, -0.35, 0.15, PI * 0.5f, 0, 2},
+    {-1.72, 0.15, -0.15, 0, 0, 0, 2},
     {-1.49, 0, -0.15, 0, 0, 0, 2}, //第二次转盘
 };
 float pathTask5[4][7] = {
-    {-1.29, 0.2, -0.15, 0, 0, 0, 1.5},
-    {-1.12, 0, -0.35, -0.2, 0, 0, 1.5},
-    {-1.05, 0, -1.9, 0, 0, 0, 5},
-    {-1.05, 0, -1.9, 0, PI, 0, 3}
+    {-1.35, 0.15, -0.15, 0, 0, 0, 1.5},
+    {-1.15, 0, -0.35, -0.15, 0, 0, 1.5},
+    {-1.15, 0, -1.92, 0, 0, 0, 5},
+    {-1.15, 0, -1.92, 0, PI, 0, 3}
 };
 float pathTask6[3][7] = {
-    {-1.70, -0.2, -1.9, 0, PI, 0, 2},
-    {-1.90, 0, -1.7, 0.2, PI * 0.5f, 0, 2},
-    {-1.90, 0, -1.1, 0, PI * 0.5f, 0, 2}
+    {-1.72, -0.15, -1.92, 0, PI, 0, 2},
+    {-1.92, 0, -1.72, 0.15, PI * 0.5f, 0, 2},
+    {-1.92, 0, -1.1, 0, PI * 0.5f, 0, 2}
 };
-float pathTask7[4][7] = {
-    {-1.9, 0, -0.35, 0.2, PI * 0.5f, 0, 2},
-    {-1.7, 0.2, -0.15, 0, 0, 0, 2},
-    {-0.5, -0.2, -0.15, 0, 0, 0, 3},
-    {0, 0, 0, 0, 0, 0, 2},
+float pathTask7[3][7] = {
+    {-1.92, 0, -0.35, 0.15, PI * 0.5f, 0, 2},
+    {-1.72, 0.15, -0.15, 0, 0, 0, 2},
+    // {-0.5, -0.15, -0.15, 0, 0, 0, 3},
+    {0, 0, 0, 0, 0, 0, 5},
 };
 float* path[7] = {&pathTask1[0][0],&pathTask2[0][0],&pathTask3[0][0],&pathTask4[0][0],&pathTask5[0][0],&pathTask6[0][0],&pathTask7[0][0]};
 
@@ -148,7 +148,7 @@ enum class ChassisTask{
     NONE = 0X07
 }chassisTask = ChassisTask::NONE;
 
-RoutePlanning route_planning(0.5);//Kp为误差补偿系数
+RoutePlanning route_planning(0.25);//Kp为误差补偿系数
 bool nextPoint = false;
 bool isMissionStart = false;
 bool isTaskPub = false;
@@ -334,7 +334,7 @@ void Task3() {
         case ChassisTask::BACK:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
                 isTaskPub = true;
             }
             if(route_planning.isFinished)
@@ -363,11 +363,11 @@ void Task3() {
                 FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
                 break;
             case SingleCommandType::ODOMETRY_OFFSET:
-                float offsetX = FineSerial<5>::GetInstance().offset_data.y * cosf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * sinf(chassis.yaw);
-                float offsetY = FineSerial<5>::GetInstance().offset_data.y * -sinf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * cosf(chassis.yaw);
-                float offsetYaw = FineSerial<5>::GetInstance().offset_data.yaw;
-                route_planning.AddTarget(chassis.x, 0, chassis.y, 0, chassis.yaw, 0, 3);
-                chassis.OffsetOdometry(-offsetX, -offsetY, -offsetYaw);
+                // float offsetX = FineSerial<5>::GetInstance().offset_data.y * cosf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * sinf(chassis.yaw);
+                // float offsetY = FineSerial<5>::GetInstance().offset_data.y * -sinf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * cosf(chassis.yaw);
+                // float offsetYaw = FineSerial<5>::GetInstance().offset_data.yaw;
+                // route_planning.AddTarget(chassis.x, 0, chassis.y, 0, chassis.yaw, 0, 3);
+                // chassis.OffsetOdometry(-offsetX, -offsetY, -offsetYaw);
                 FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
                 break;
             // case SingleCommandType::CHASSIS_STOP:
