@@ -20,6 +20,13 @@ void Chassis::ChassisActive() {
 	ChassisStopFlag = false;
 }
 
+void Chassis::UpdataImuYaw(float _yaw)
+{
+	yaw = _yaw;
+	chassisPos[2][0] = _yaw;
+}
+
+
 void Chassis::LSOdometry() {
 	struct WheelSet {
 		WheelSet(const float _angle, const float _vel) {
@@ -48,6 +55,9 @@ void Chassis::LSOdometry() {
 	};
 	WCSVelocity = Matrixf<3, 1>(WCSVeldata);
 	chassisPos += WCSVelocity * 0.001;
+
+	//暂时用IMUyaw直接顶替
+	chassisPos[2][0] = yaw;
 
 	FRX = FR.vel[0][0], FRY = FR.vel[1][0];
 	FLX = FL.vel[0][0], FLY = FL.vel[1][0];
@@ -134,6 +144,9 @@ void Chassis::ICFOdometry() {
 	};
 	WCSVelocity = Matrixf<3, 1>(WCSVeldata);
 	chassisPos += WCSVelocity * 0.001;
+
+	//暂时用IMUyaw直接顶替
+	chassisPos[2][0] = yaw;
 
 	x = chassisPos[0][0];
 	y = chassisPos[1][0];

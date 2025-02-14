@@ -77,6 +77,7 @@ public:
     void LSOdometry();
     void ChassisActive();
     void ICFOdometry();
+    void UpdataImuYaw(float _yaw);
     void OffsetOdometry(float _x, float _y, float _angle);
     void ResetOdometry(float _x,float _y,float _angle);
     bool ChassisStopFlag = false;

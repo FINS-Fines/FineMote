@@ -20,7 +20,7 @@
 #include "D28_5_485.h"
 #include "RadioMaster_Zorro.h"
 #include "FineSerial.h"
-
+#include "H30_imu.h"
 /**
  * @brief LED闪烁
  */
@@ -157,9 +157,7 @@ uint8_t pathCnt{0};
 uint8_t backForceCounter{0};
 uint8_t uploadCnt{0};
 
-
-
-
+H30_imu imu;
 
 void Task3() {
     if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_SET && !isMissionStart){
@@ -228,6 +226,7 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
             // backForceCounter = 6;
             if(backForceCounter >= 6 && route_planning.isFinished)
@@ -237,6 +236,7 @@ void Task3() {
                 chassisTask = ChassisTask::TO_STORAGE_1;
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
             }
             break;
         case ChassisTask::TO_STORAGE_1:
@@ -249,6 +249,7 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
             if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5)
             {
@@ -258,6 +259,7 @@ void Task3() {
                 backForceCounter = 0;
                 lastBFCounter = 0;
                 isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
             }
             break;
         case ChassisTask::TO_PLATE_2:
@@ -295,6 +297,7 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
             if(backForceCounter >= 6 && route_planning.isFinished)
             {
@@ -303,6 +306,7 @@ void Task3() {
                 chassisTask = ChassisTask::TO_STORAGE_2;
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
             }
             break;
         case ChassisTask::TO_STORAGE_2:
@@ -315,6 +319,7 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
             if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5)
             {
@@ -323,6 +328,7 @@ void Task3() {
                 chassisTask = ChassisTask::BACK;
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
             }
             break;
         case ChassisTask::BACK:
@@ -411,6 +417,7 @@ void ManipulatorBackForceCounter()
 /*****  循环任务部分  *****/
 
 void Task4(){
+    chassis.UpdataImuYaw(imu.GetYaw());
     chassis.ChassisSetVelocity(route_planning.FBVel, route_planning.LRVel, route_planning.RTVel);
     route_planning.Update(chassis.chassisPos[0][0], chassis.WCSVelocity[0][0], chassis.chassisPos[1][0],
                   chassis.WCSVelocity[1][0], chassis.chassisPos[2][0], chassis.WCSVelocity[2][0]);
@@ -430,9 +437,6 @@ void Task4(){
 }
 
 
-
-
-
 /**
  * @brief 用户初始化
  */
@@ -442,10 +446,10 @@ extern "C" {
 #endif
 
 void Setup() {
-    // std::function<void(uint8_t *, uint16_t)> maniDecodeFunc = [](uint8_t* data, uint16_t length){
-    //     remote.Decode(data, length);
-    // };
-    // UARTBaseLite<4>::GetInstance().Bind(maniDecodeFunc);
+    std::function<void(uint8_t *, uint16_t)> IMUDecodeFunc = [](uint8_t* data, uint16_t length){
+        imu.Decode(data,length);
+    };
+    UARTBaseLite<4>::GetInstance().Bind(IMUDecodeFunc);
 
     // std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
     //     FineSerial<5>::GetInstance().Decode(data, length);
