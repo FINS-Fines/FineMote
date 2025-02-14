@@ -73,9 +73,9 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{221.4};
+    const float CTargetAngle{220.4};
     const float DTargetAngle{48.4};
-    const float ETargetAngle{70};
+    const float ETargetAngle{71};
     const float CZeroPointAngle{214.5};//12
     const float DZeroPointAngle{44.7};//7.2
     const float EZeroPointAngle{47.9};//7.2
