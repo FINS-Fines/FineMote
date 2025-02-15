@@ -50,10 +50,16 @@ private:
 
     uint8_t rxBUffer[80]{};
 
+    std::function<void(float)> decodeFunc = nullptr;
+
 public:
     float GetYaw()
     {
         return euler_.yaw;
+    }
+
+    void Bind(std::function<void(float)>& _decodeFunc) {
+        decodeFunc = _decodeFunc;
     }
 
     void Decode(uint8_t* data, uint16_t length)
@@ -76,6 +82,10 @@ public:
                     yaw -= 2*PI;
                 }
                 euler_.yaw = yaw;
+                if(decodeFunc)
+                {
+                    decodeFunc(euler_.yaw);
+                }
             }
         }
     }

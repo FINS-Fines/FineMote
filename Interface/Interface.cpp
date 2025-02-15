@@ -97,41 +97,39 @@ struct ManipulatorAngle{
 // };
 
 float pathTask1[2][7] = {
-    {-0.4, -0.2, -0.15, 0, 0, 0, 1.6},
-    {-1.49, 0, -0.15, 0, 0, 0, 3}
+    {-0.4, -0.3, -0.15, 0, 0, 0, 1.4},
+    {-1.49, 0, -0.15, 0, 0, 0, 2.3}
 };
 float pathTask2[4][7] = {
-    {-1.35, 0.15, -0.15, 0, 0, 0, 1.5},
-    {-1.15, 0, -0.35, -0.15, 0, 0, 1.5},
-    {-1.15, 0, -1.92, 0, 0, 0, 4.5},
-    {-1.15, 0, -1.92, 0, PI, 0, 3}
+    {-1.15, 0, -0.3, -0.25, PI, 0, 3},
+    {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
+    {-1.1, 0, -1.88, 0, PI, 0, 0.4}//加工区
 };
 float pathTask3[3][7] = {
-    {-1.72, -0.15, -1.92, 0, PI, 0, 2},
-    {-1.92, 0, -1.72, 0.15, PI * 0.5f, 0, 2},
-    {-1.92, 0, -1.1, 0, PI * 0.5f, 0, 2}
+    {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
+    {-1.92, 0, -1.75, 0.3, PI * 0.5f, 0, 1},
+    {-1.92, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//暂存区
 };
 float pathTask4[3][7] = {
-    {-1.92, 0, -0.35, 0.15, PI * 0.5f, 0, 2},
-    {-1.72, 0.15, -0.15, 0, 0, 0, 2},
-    {-1.49, 0, -0.15, 0, 0, 0, 2}, //第二次转盘
+    {-1.92, 0, -0.32, 0.3, PI * 0.5f, 0, 1.5},
+    {-1.75, 0.3, -0.15, 0, 0, 0, 1},
+    {-1.49, 0, -0.15, 0, 0, 0, 1.5}, //转盘
 };
 float pathTask5[4][7] = {
-    {-1.35, 0.15, -0.15, 0, 0, 0, 1.5},
-    {-1.15, 0, -0.35, -0.15, 0, 0, 1.5},
-    {-1.15, 0, -1.92, 0, 0, 0, 5},
-    {-1.15, 0, -1.92, 0, PI, 0, 3}
+    {-1.15, 0, -0.3, -0.25, PI, 0, 3},
+    {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
+    {-1.1, 0, -1.88, 0, PI, 0, 0.4}//加工区
 };
 float pathTask6[3][7] = {
-    {-1.72, -0.15, -1.92, 0, PI, 0, 2},
-    {-1.92, 0, -1.72, 0.15, PI * 0.5f, 0, 2},
-    {-1.92, 0, -1.1, 0, PI * 0.5f, 0, 2}
+    {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
+    {-1.92, 0, -1.75, 0.3, PI * 0.5f, 0, 1},
+    {-1.92, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//暂存区
 };
 float pathTask7[3][7] = {
-    {-1.92, 0, -0.35, 0.15, PI * 0.5f, 0, 2},
-    {-1.72, 0.15, -0.15, 0, 0, 0, 2},
+    {-1.92, 0, -0.32, 0.3, PI * 0.5f, 0, 1.5},
+    {-1.75, 0.3, -0.15, 0, 0, 0, 1},
     // {-0.5, -0.15, -0.15, 0, 0, 0, 3},
-    {0, 0, 0, 0, 0, 0, 5},
+    {0, 0, 0, 0, 0, 0, 3},
 };
 float* path[7] = {&pathTask1[0][0],&pathTask2[0][0],&pathTask3[0][0],&pathTask4[0][0],&pathTask5[0][0],&pathTask6[0][0],&pathTask7[0][0]};
 
@@ -148,7 +146,7 @@ enum class ChassisTask{
     NONE = 0X07
 }chassisTask = ChassisTask::NONE;
 
-RoutePlanning route_planning(0.25);//Kp为误差补偿系数
+RoutePlanning route_planning(0.2);//Kp为误差补偿系数
 bool nextPoint = false;
 bool isMissionStart = false;
 bool isTaskPub = false;
@@ -175,15 +173,15 @@ void Task3() {
 
     uploadCnt = FineSerial<5>::GetInstance().cnt;
 
-    // backForceCounter++;
+    backForceCounter++;
 
-    if(route_planning.isFinished)
-    {
-        chassis.ChassisStop();
-    }else
-    {
-        chassis.ChassisActive();
-    }
+    // if(route_planning.isFinished)
+    // {
+    //     chassis.ChassisStop();
+    // }else
+    // {
+    //     chassis.ChassisActive();
+    // }
 
 
     static uint8_t lastBFCounter{0};
@@ -218,7 +216,7 @@ void Task3() {
         case ChassisTask::TO_PROCESSING_AREA_1:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
                 isTaskPub = true;
                 backForceCounter = 0;
             }
@@ -290,7 +288,7 @@ void Task3() {
         case ChassisTask::TO_PROCESSING_AREA_2:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
                 isTaskPub = true;
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
@@ -450,6 +448,11 @@ void Setup() {
         imu.Decode(data,length);
     };
     UARTBaseLite<4>::GetInstance().Bind(IMUDecodeFunc);
+
+    std::function<void(float)> UpdataYawFunc = [](float yaw){
+        chassis.UpdataImuYaw(yaw);
+    };
+    imu.Bind(UpdataYawFunc);
 
     // std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
     //     FineSerial<5>::GetInstance().Decode(data, length);

@@ -13,6 +13,7 @@
 #include "MotorBase.h"
 #include <queue>
 #include <cmath>
+#include "H30_imu.h"
 
 #define LENGTH  0.2406f //车身长0.240225f
 #define WIDTH  0.24f //车身宽
@@ -327,10 +328,11 @@ private:
         RTVel = wcs_vel_rt;
 
         if(targetList.empty()) {
-            isArrived = (fabsf(target.angle - currentAngle) < 0.002 && fabsf(target.x - currentX) < 0.005 && fabsf(target.y - currentY) < 0.005) || XVelProfilePtr->GetCurrentTime() > target.time + 1;
+            isArrived = (fabsf(target.angle - currentAngle) < 0.015 && fabsf(target.x - currentX) < 0.015 && fabsf(target.y - currentY) < 0.015) || XVelProfilePtr->GetCurrentTime() > target.time + 1;
             return;
         }
-        isArrived = (fabsf(target.angle - currentAngle) < 0.04 && fabsf(target.x - currentX) < 0.04 && fabsf(target.y - currentY) < 0.04) || XVelProfilePtr->GetCurrentTime() > target.time + 2;
+        isArrived = (fabsf(target.angle - currentAngle) < 0.06 && fabsf(target.x - currentX) < 0.04 && fabsf(target.y - currentY) < 0.04) || XVelProfilePtr->GetCurrentTime() > target.time;
+        // isArrived = XVelProfilePtr->GetCurrentTime() > target.time;
     }
 };
 
