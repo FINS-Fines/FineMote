@@ -141,7 +141,7 @@ private:
                 motorC->Enable();
 
                 counter++;
-                if(counter>5000)
+                if(counter>2000)
                 {
                     state = InitOtherJoint;
                     counter = 0;
