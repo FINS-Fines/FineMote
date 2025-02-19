@@ -99,18 +99,19 @@ struct ManipulatorAngle{
 float pathTask1[2][7] = {
     // {-0.4, -0.3, -0.15, 0, 0, 0, 1.4},
     // {-1.52, 0, -0.13, 0, 0, 0, 2.3}
-    {-0.4, -0.15, -0.15, 0, 0, 0, 2},
-    {-1.52, 0, -0.11, 0, 0, 0, 4}
+    {-0.5, -0.15, -0.15, 0, 0, 0, 1.5},
+    {-1.52, 0, -0.11, 0, 0, 0, 3}
 };
 float pathTask2[4][7] = {
-    {-1.15, 0, -0.3, -0.25, PI, 0, 3},
+    {-1.23, 0.15, -0.2, -0.15, PI * 0.3, 1, 1.5},
+    {-1.15, 0, -0.3, -0.25, PI, 0, 1.5},
     {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
     {-1.1, 0, -1.88, 0, PI, 0, 0.7}//加工区
 };
 float pathTask3[3][7] = {
     {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
-    {-1.9, 0, -1.75, 0.3, PI * 0.5f, 0, 1.5},
-    {-1.9, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//暂存区
+    {-1.91, 0, -1.75, 0.3, PI * 0.5f, 0, 1.5},
+    {-1.91, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//暂存区
 };
 float pathTask4[3][7] = {
     // {-1.92, 0, -0.32, 0.3, PI * 0.5f, 0, 1.5},
@@ -121,14 +122,18 @@ float pathTask4[3][7] = {
     {-1.51, 0, -0.13, 0, 0, 0, 1.5}, //转盘
 };
 float pathTask5[4][7] = {
-    {-1.15, 0, -0.32, -0.25, PI, 0, 3},
+    {-1.23, 0.15, -0.22, -0.15, PI * 0.3, 1, 1.5},
+    {-1.15, 0, -0.32, -0.25, PI, 0, 1.5},
     {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
     {-1.1, 0, -1.90, 0, PI, 0, 0.7}//加工区
+    // {-1.15, 0, -0.32, -0.25, PI, 0, 3},
+    // {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
+    // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//加工区
 };
 float pathTask6[3][7] = {
     {-1.75, -0.3, -1.94, 0, PI, 0, 1.5},
-    {-1.9, 0, -1.77, 0.3, PI * 0.5f, 0, 1.5},
-    {-1.9, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//暂存区
+    {-1.91, 0, -1.77, 0.3, PI * 0.5f, 0, 1.5},
+    {-1.91, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//暂存区
 };
 float pathTask7[3][7] = {
     {-1.92, 0, -0.32, 0.3, PI * 0.5f, 0, 1.5},
@@ -220,7 +225,7 @@ void Task3() {
         case ChassisTask::TO_PROCESSING_AREA_1:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
                 isTaskPub = true;
                 backForceCounter = 0;
             }
@@ -292,7 +297,7 @@ void Task3() {
         case ChassisTask::TO_PROCESSING_AREA_2:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
                 isTaskPub = true;
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
