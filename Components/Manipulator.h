@@ -73,7 +73,7 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{224.7};
+    const float CTargetAngle{224};
     const float DTargetAngle{48.4};
     const float ETargetAngle{67.8};
     const float CZeroPointAngle{229.7};//12
@@ -149,7 +149,7 @@ private:
                 break;
             case InitOtherJoint:
                 angleOffset[0] = -4.6;
-                angleOffset[1] = 80.6;
+                angleOffset[1] = 86.5;
                 // angleOffset[3] = -(DTargetAngle-initialDAngle);
                 // angleOffset[4] = -(ETargetAngle-initialEAngle);
                 angleOffset[3] = -(DZP2Target + 7.2f *std::roundf((DZeroPointAngle - initialDAngle)/7.2f));
