@@ -51,8 +51,8 @@ public:
 
 private:
     bool endEffectorState = true;
-    const float endEffectorCloseAngle = 298;
-    const float endEffectorOpenAngle = 359;
+    const float endEffectorCloseAngle = 208;
+    const float endEffectorOpenAngle = 288;
 
     MotorBase* motorA;
     MotorBase* motorB;
@@ -73,9 +73,9 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{222.7};
+    const float CTargetAngle{224.7};
     const float DTargetAngle{48.4};
-    const float ETargetAngle{70.8};
+    const float ETargetAngle{74};
     const float CZeroPointAngle{229.7};//12
     const float DZeroPointAngle{44.7};//7.2
     const float EZeroPointAngle{69.7};//7.2
