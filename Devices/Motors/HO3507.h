@@ -148,11 +148,11 @@ private:
                 uint16_t torque = (1/4) * 0x800 + 0x800;//100为设置速度，200为最大速度
                 canAgent[0] = (txPositionCode >> 8) & 0xFF;
                 canAgent[1] = txPositionCode & 0xFF;
-                canAgent[2] = 0xAA;
+                canAgent[2] = 0xB8;
                 canAgent[3] = 0x00; //kp
                 canAgent[4] = 0x50;
                 canAgent[5] = 0x60; //kd
-                canAgent[6] = 0x0A;
+                canAgent[6] = 0x0B;
                 canAgent[7] = 0x00;
                 break;
             }

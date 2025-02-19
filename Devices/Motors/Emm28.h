@@ -53,7 +53,7 @@ private:
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Position: {
-                const uint16_t vel = 0x0480; //转动速度(RPM)
+                const uint16_t vel = 0x0500; //转动速度(RPM)
                 float target = controller->GetOutput();
                 const uint32_t clk = std::abs(std::round(target * 3200.f / 360.f)); //16 细分下发送 3200 个脉冲电机旋转一圈
 
