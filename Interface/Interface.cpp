@@ -178,7 +178,7 @@ void Task3() {
             chassisTask = ChassisTask::TO_PLATE_1;
         }
     }
-    chassis.ChassisStop();
+    // chassis.ChassisStop();
 
     if(!isMissionStart){return;}
 
