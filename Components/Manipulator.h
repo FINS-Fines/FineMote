@@ -51,7 +51,7 @@ public:
 
 private:
     bool endEffectorState = true;
-    const float endEffectorCloseAngle = 208;
+    const float endEffectorCloseAngle = 205;
     const float endEffectorOpenAngle = 288;
 
     MotorBase* motorA;
