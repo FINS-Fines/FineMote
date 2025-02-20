@@ -178,12 +178,14 @@ void Task3() {
             chassisTask = ChassisTask::TO_PLATE_1;
         }
     }
+    chassis.ChassisStop();
 
     if(!isMissionStart){return;}
 
     uploadCnt = FineSerial<5>::GetInstance().cnt;
 
     // backForceCounter++;
+
 
     if(route_planning.isFinished)
     {
