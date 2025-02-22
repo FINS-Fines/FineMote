@@ -73,12 +73,12 @@ private:
     float EncoderDAngle{0};
     float EncoderEAngle{0};
 
-    const float CTargetAngle{222.25};
+    const float CTargetAngle{223.65};
     const float DTargetAngle{48.9};
-    const float ETargetAngle{70.6};
-    const float CZeroPointAngle{215.29};//12
+    const float ETargetAngle{68.4};
+    const float CZeroPointAngle{205.2};//12
     const float DZeroPointAngle{44.7};//7.2
-    const float EZeroPointAngle{66.6};//7.2
+    const float EZeroPointAngle{72};//7.2
     const float CZP2Target = CTargetAngle - CZeroPointAngle;
     const float DZP2Target = DTargetAngle - DZeroPointAngle;
     const float EZP2Target = ETargetAngle - EZeroPointAngle;
