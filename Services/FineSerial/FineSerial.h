@@ -64,7 +64,7 @@ public:
     void UploadMsg(){
         static uint8_t cnt{0};
         cnt++;
-        if (cnt >= 20){
+        if (cnt >= 5){
             UARTBaseLite<5>::GetInstance().Transmit(upLoadCommand, 3);
             cnt = 0;
         }
@@ -196,7 +196,7 @@ private:
         timeMsgNotReceived = 0.001f*(HAL_GetTick()-lastMsgReceivedTick);
         if(isUploadActive){
             UploadMsg();
-            isUploadActive = HAL_GetTick() - initTick < 1000;
+            isUploadActive = HAL_GetTick() - initTick < 500;
         }
         else if(!isUploadActive){
             initTick = HAL_GetTick();
