@@ -237,7 +237,6 @@ void Task3() {
                 isTargetReachedMsgPub = true;
                 HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
-            // backForceCounter = 6;
             if(backForceCounter >= 6 && route_planning.isFinished)
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
@@ -444,6 +443,234 @@ void Task4(){
         memcpy(&manipulator_angle,manipulatorCommand+1,25);
     }
 }
+
+
+
+void FinalTask() {
+    if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_SET && !isMissionStart){
+        static uint32_t pinCnt{0};
+        pinCnt++;
+        if(pinCnt > 100)
+        {
+            isMissionStart = true;
+            FineSerial<5>::GetInstance().AvtivateUpload();
+            chassisTask = ChassisTask::TO_PLATE_1;
+        }
+    }
+    // chassis.ChassisStop();
+
+    if(!isMissionStart){return;}
+
+    uploadCnt = FineSerial<5>::GetInstance().cnt;
+
+    // backForceCounter++;
+
+
+    if(route_planning.isFinished)
+    {
+        chassis.ChassisStop();
+    }else
+    {
+        chassis.ChassisActive();
+    }
+
+
+    static uint8_t lastBFCounter{0};
+    switch (chassisTask)
+    {
+        case ChassisTask::TO_PLATE_1:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
+            }
+            if(backForceCounter >= 3)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_PROCESSING_AREA_1;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
+            }
+            break;
+        case ChassisTask::TO_PROCESSING_AREA_1:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                isTaskPub = true;
+                backForceCounter = 0;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
+            }
+            if(backForceCounter >= 6 && route_planning.isFinished)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_STORAGE_1;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
+            }
+            break;
+        case ChassisTask::TO_STORAGE_1:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
+            }
+            if(backForceCounter > lastBFCounter && backForceCounter < 3)
+            {
+                lastBFCounter = backForceCounter;
+                FineSerial<5>::GetInstance().AvtivateUpload();
+            }
+            if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_PLATE_2;
+                backForceCounter = 0;
+                lastBFCounter = 0;
+                isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
+            }
+            break;
+        case ChassisTask::TO_PLATE_2:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
+            }
+            if(backForceCounter >= 3 && route_planning.isFinished)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_PROCESSING_AREA_2;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
+            }
+            break;
+        case ChassisTask::TO_PROCESSING_AREA_2:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
+            }
+            if(backForceCounter >= 6 && route_planning.isFinished)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_STORAGE_2;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
+            }
+            break;
+        case ChassisTask::TO_STORAGE_2:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished && !isTargetReachedMsgPub)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTargetReachedMsgPub = true;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
+            }
+            if(backForceCounter > lastBFCounter && backForceCounter < 3)
+            {
+                lastBFCounter = backForceCounter;
+                FineSerial<5>::GetInstance().AvtivateUpload();
+            }
+            if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                isTaskPub = false;
+                chassisTask = ChassisTask::BACK;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+                HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
+            }
+            break;
+        case ChassisTask::BACK:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 3);
+                isTaskPub = true;
+            }
+            if(route_planning.isFinished)
+            {
+                FineSerial<5>::GetInstance().AvtivateUpload();
+                chassisTask = ChassisTask::NONE;
+            }
+            break;
+        case ChassisTask::NONE:break;
+        default: break;
+    }
+
+
+    /*****  单次任务部分  *****/
+    if (!FineSerial<5>::GetInstance().isCurrentTaskFinished){
+        switch (FineSerial<5>::GetInstance().singleCommand)
+        {
+            case SingleCommandType::NONE:
+                break;
+            case SingleCommandType::MISSION_START:
+                // manipulator.GetInitCommand = true;
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                break;
+            case SingleCommandType::SET_PATH_POINT:
+                // route_planning.AddTarget(FineSerial<5>::GetInstance().path_point.x, 0,FineSerial<5>::GetInstance().path_point.y, 0,FineSerial<5>::GetInstance().path_point.yaw, 0, timeConsumed[pathCounter++]);
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                break;
+            case SingleCommandType::ODOMETRY_OFFSET:
+                // float offsetX = FineSerial<5>::GetInstance().offset_data.y * cosf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * sinf(chassis.yaw);
+                // float offsetY = FineSerial<5>::GetInstance().offset_data.y * -sinf(chassis.yaw) + FineSerial<5>::GetInstance().offset_data.x * cosf(chassis.yaw);
+                // float offsetYaw = FineSerial<5>::GetInstance().offset_data.yaw;
+                // route_planning.AddTarget(chassis.x, 0, chassis.y, 0, chassis.yaw, 0, 3);
+                // chassis.OffsetOdometry(-offsetX, -offsetY, -offsetYaw);
+                FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+                break;
+            // case SingleCommandType::CHASSIS_STOP:
+            //     chassis.ChassisSetVelocity(0, 0, 0);
+            //     FineSerial<5>::GetInstance().isCurrentTaskFinished = true;
+            //     break;
+            // case SingleCommandType::END_EFFECTOR:
+            //     break;
+        }
+    }
+}
+
 
 
 /**
