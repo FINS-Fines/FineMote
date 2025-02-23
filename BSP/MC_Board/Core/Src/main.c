@@ -187,7 +187,7 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 /**
- * @brief 灏嗘椂閽熸簮閫夋嫨涓哄唴閮ㄦ椂閽燂紝閬垮厤Clion鐨凞ebug妯″紡鏃犳硶浣胯兘閿佺浉锟?????
+ * @brief 将时钟源选择为内部时钟，避免Clion的Debug模式无法使能锁相??????
  */
 void SystemClock_PreConfig(void) {
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
