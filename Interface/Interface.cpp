@@ -80,7 +80,7 @@ D28_485<2> EEncoder(0x05);
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
 
 void Task3() {
-    // manipulator.GetInitCommand = true;
+    manipulator.GetInitCommand = true;
 
     if(manipulator.isInitFinished)
     {
@@ -91,12 +91,12 @@ void Task3() {
 }
 
 void Task4(){
-    static uint32_t initTick = HAL_GetTick();
-    if(HAL_GetTick() - initTick > 10000)
-    {
-        initTick = HAL_GetTick();
-        manipulator_angle.endEffecctor = !manipulator_angle.endEffecctor;
-    }
+    // static uint32_t initTick = HAL_GetTick();
+    // if(HAL_GetTick() - initTick > 8000)
+    // {
+    //     initTick = HAL_GetTick();
+    //     manipulator_angle.endEffecctor = !manipulator_angle.endEffecctor;
+    // }
 }
 
 /**
