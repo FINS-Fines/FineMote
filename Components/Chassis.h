@@ -328,7 +328,7 @@ private:
         RTVel = wcs_vel_rt;
 
         if(targetList.empty()) {
-            isArrived = (fabsf(target.angle - currentAngle) < 0.015 && fabsf(target.x - currentX) < 0.015 && fabsf(target.y - currentY) < 0.015) || XVelProfilePtr->GetCurrentTime() > target.time + 1;
+            isArrived = (fabsf(target.angle - currentAngle) < 0.015 && fabsf(target.x - currentX) < 0.015 && fabsf(target.y - currentY) < 0.015) || XVelProfilePtr->GetCurrentTime() > target.time + 2;
             return;
         }
         isArrived = (fabsf(target.angle - currentAngle) < 0.06 && fabsf(target.x - currentX) < 0.04 && fabsf(target.y - currentY) < 0.04) || XVelProfilePtr->GetCurrentTime() > target.time;

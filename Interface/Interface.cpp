@@ -108,7 +108,7 @@ float pathTask2[4][7] = {
 float pathTask3[3][7] = {
     {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
     {-1.91, 0, -1.75, 0.3, PI * 0.5f, 0, 1.5},
-    {-1.91, 0, -1.07, 0, PI * 0.5f, 0, 1.5}//暂存区
+    {-1.91, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//暂存区
 };
 float pathTask4[3][7] = {
     // {-1.92, 0, -0.32, 0.3, PI * 0.5f, 0, 1.5},
@@ -207,7 +207,7 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTargetReachedMsgPub = true;
-            }
+            }2
             if(backForceCounter > lastBFCounter && backForceCounter < 3)
             {
                 lastBFCounter = backForceCounter;
