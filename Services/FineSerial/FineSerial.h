@@ -39,6 +39,7 @@ public:
     uint16_t datasize{0};
     uint8_t command[32]{};
     uint32_t dataLength{0};
+    uint32_t delayTime{0};
     float timeMsgNotReceived{0};
     bool isCurrentTaskFinished = false;
     bool endEffectorState = true;//false关，true开
@@ -56,7 +57,8 @@ public:
     FineSerial(const FineSerial&) = delete;
     FineSerial& operator=(const FineSerial&) = delete;
 
-    void AvtivateUpload(){
+    void AvtivateUpload(float _delayTime = 0){
+        delayTime = static_cast<uint32_t>(_delayTime * 1000);
         isUploadActive = true;
         cnt++;
     }
@@ -195,8 +197,15 @@ private:
         // }
         timeMsgNotReceived = 0.001f*(HAL_GetTick()-lastMsgReceivedTick);
         if(isUploadActive){
-            UploadMsg();
-            isUploadActive = HAL_GetTick() - initTick < 500;
+            if(delayTime > 0)
+            {
+                delayTime--;
+                initTick = HAL_GetTick();
+            }else
+            {
+                UploadMsg();
+                isUploadActive = HAL_GetTick() - initTick < 500;
+            }
         }
         else if(!isUploadActive){
             initTick = HAL_GetTick();

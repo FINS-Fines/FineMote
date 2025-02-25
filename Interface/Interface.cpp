@@ -470,8 +470,12 @@ float pathTaskFinal3[3][7] = {
     {-1.51, 0, -0.17, 0, 0, 0, 1.5}, //转盘暂存
 };
 float pathTaskFinal4[4][7] = {
-    {-1.23, 0.15, -0.22, -0.15, PI * 0.3, 1, 1.5},
-    {-1.15, 0, -0.32, -0.25, PI * 0.95, 0, 1.5},
+    // {-1.23, 0.15, -0.22, -0.15, PI * 0.3, 1, 1.5},
+    // {-1.15, 0, -0.32, -0.25, PI * 0.95, 0, 1.5},
+    // {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
+    // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//原料
+    {-1.22, 0.15, -0.22, -0.15, PI * 0.3, 1, 1.5},
+    {-1.1, 0, -0.32, -0.25, PI * 0.95, 0, 1.5},
     {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
     {-1.1, 0, -1.90, 0, PI, 0, 0.7}//原料
 };
@@ -532,7 +536,7 @@ void FinalTask() {
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
-                FineSerial<5>::GetInstance().AvtivateUpload();
+                FineSerial<5>::GetInstance().AvtivateUpload(0.5);
                 isTargetReachedMsgPub = true;
                 HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
@@ -581,12 +585,12 @@ void FinalTask() {
                 isTargetReachedMsgPub = true;
                 HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
-            if(backForceCounter > lastBFCounter && backForceCounter < 3)
+            if(backForceCounter > lastBFCounter && backForceCounter <= 3)
             {
                 lastBFCounter = backForceCounter;
                 FineSerial<5>::GetInstance().AvtivateUpload();
             }
-            if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5)
+            if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5 && manipulator_angle.endEffecctor == 0x01)
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
@@ -605,7 +609,7 @@ void FinalTask() {
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
-                FineSerial<5>::GetInstance().AvtivateUpload();
+                FineSerial<5>::GetInstance().AvtivateUpload(0.5);
                 isTargetReachedMsgPub = true;
                 HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
@@ -653,12 +657,12 @@ void FinalTask() {
                 isTargetReachedMsgPub = true;
                 HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_SET);
             }
-            if(backForceCounter > lastBFCounter && backForceCounter < 3)
+            if(backForceCounter > lastBFCounter && backForceCounter <= 3)
             {
                 lastBFCounter = backForceCounter;
                 FineSerial<5>::GetInstance().AvtivateUpload();
             }
-            if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5)
+            if(backForceCounter >= 3 && route_planning.isFinished && manipulator_angle.angleB < 0.4 && FineSerial<5>::GetInstance().timeMsgNotReceived > 0.5 && manipulator_angle.endEffecctor == 0x01)
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
