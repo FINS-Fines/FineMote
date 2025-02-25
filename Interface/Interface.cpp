@@ -80,7 +80,7 @@ D28_485<2> EEncoder(0x05);
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
 
 void Task3() {
-    manipulator.GetInitCommand = true;
+    // manipulator.GetInitCommand = true;
 
     if(manipulator.isInitFinished)
     {
@@ -91,7 +91,12 @@ void Task3() {
 }
 
 void Task4(){
-
+    static uint32_t initTick = HAL_GetTick();
+    if(HAL_GetTick() - initTick > 10000)
+    {
+        initTick = HAL_GetTick();
+        manipulator_angle.endEffecctor = !manipulator_angle.endEffecctor;
+    }
 }
 
 /**
@@ -103,26 +108,29 @@ extern "C" {
 #endif
 
 void Setup() {
-    // std::function<void(uint8_t *, uint16_t)> DecodeFunc = [](uint8_t* data, uint16_t length){
-    //     if(length != 29){return;}
-    //     if(data[0] == 0xAA && data[28] == 0xBB)
-    //     {
-    //         if(CRC8Calc(data+1,26) == data[27]){
-    //             memcpy(&manipulator_angle,data+1,25);
-    //             manipulator.GetInitCommand = data[26] != 0;
-    //         }
-    //     }
-    // };
     std::function<void(uint8_t *, uint16_t)> DecodeFunc = [](uint8_t* data, uint16_t length){
-        if(length != 28){return;}
-        if(data[0] == 0xAA && data[27] == 0xBB)
+        if(length != 29){return;}
+        if(data[0] == 0xAA && data[28] == 0xBB)
         {
-            if(CRC8Calc(data+1,25) == data[26]){
+            if(CRC8Calc(data+1,26) == data[27]){
                 memcpy(&manipulator_angle,data+1,25);
-                // manipulator.GetInitCommand = data[26] != 0;
+                if(!manipulator.GetInitCommand)
+                {
+                    manipulator.GetInitCommand = static_cast<bool>(data[26]);
+                }
             }
         }
     };
+    // std::function<void(uint8_t *, uint16_t)> DecodeFunc = [](uint8_t* data, uint16_t length){
+    //     if(length != 28){return;}
+    //     if(data[0] == 0xAA && data[27] == 0xBB)
+    //     {
+    //         if(CRC8Calc(data+1,25) == data[26]){
+    //             memcpy(&manipulator_angle,data+1,25);
+    //             // manipulator.GetInitCommand = data[26] != 0;
+    //         }
+    //     }
+    // };
     UARTBaseLite<4>::GetInstance().Bind(DecodeFunc);
 
     RS485_Base<1>::GetInstance().SetDivisionFactor(4);

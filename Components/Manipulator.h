@@ -51,7 +51,7 @@ public:
 
 private:
     bool endEffectorState = true;
-    const float endEffectorCloseAngle = 205;
+    const float endEffectorCloseAngle = 215;
     const float endEffectorOpenAngle = 288;
 
     MotorBase* motorA;
@@ -78,7 +78,7 @@ private:
     const float ETargetAngle{68.4};
     const float CZeroPointAngle{193.8};//12
     const float DZeroPointAngle{44.7};//7.2
-    const float EZeroPointAngle{68.0};//7.2
+    const float EZeroPointAngle{70.7};//7.2
     const float CZP2Target = CTargetAngle - CZeroPointAngle;
     const float DZP2Target = DTargetAngle - DZeroPointAngle;
     const float EZP2Target = ETargetAngle - EZeroPointAngle;
@@ -141,7 +141,7 @@ private:
                 motorC->Enable();
 
                 counter++;
-                if(counter>2000)
+                if(counter>1000)
                 {
                     state = InitOtherJoint;
                     counter = 0;

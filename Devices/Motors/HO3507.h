@@ -152,7 +152,7 @@ private:
                 canAgent[3] = 0x00; //kp
                 canAgent[4] = 0x50;
                 canAgent[5] = 0x60; //kd
-                canAgent[6] = 0x0A;
+                canAgent[6] = 0x0B;
                 canAgent[7] = 0x00;
                 break;
             }
