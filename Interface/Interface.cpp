@@ -775,8 +775,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         DeviceBase::DevicesHandle();
         Task1();
         Task2();
-        // Task3();
-        FinalTask();
+        Task3();
+        // FinalTask();
         Task4();
         ManipulatorBackForceCounter();
 
