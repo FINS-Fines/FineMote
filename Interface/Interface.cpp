@@ -101,7 +101,7 @@ float pathTask1[2][7] = {
 };
 float pathTask2[4][7] = {
     {-1.25, 0.3, -0.16, 0, PI * 0.5, 0, 1.5},
-    {-1.1, 0, -0.31, -0.3, PI, 0, 1.5},
+    {-1.13, 0, -0.31, -0.3, PI, 0, 2},
     {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
     {-1.1, 0, -1.88, 0, PI, 0, 0.7}//加工区
 };
@@ -124,7 +124,7 @@ float pathTask5[4][7] = {
     // {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
     // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//加工区
     {-1.25, 0.3, -0.18, 0, PI * 0.5, 0, 1.5},
-    {-1.1, 0, -0.33, -0.3, PI, 0, 1.5},
+    {-1.13, 0, -0.33, -0.3, PI, 0, 2},
     {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
     {-1.1, 0, -1.90, 0, PI, 0, 0.7}//加工区
 };
@@ -205,7 +205,7 @@ void Task3() {
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
-                FineSerial<5>::GetInstance().AvtivateUpload();
+                FineSerial<5>::GetInstance().AvtivateUpload(0.5);
                 isTargetReachedMsgPub = true;
             }
             if(backForceCounter > lastBFCounter && backForceCounter < 3)
@@ -276,7 +276,7 @@ void Task3() {
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
-                FineSerial<5>::GetInstance().AvtivateUpload();
+                FineSerial<5>::GetInstance().AvtivateUpload(0.5);
                 isTargetReachedMsgPub = true;
             }
             if(backForceCounter > lastBFCounter && backForceCounter < 3)
@@ -775,8 +775,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         DeviceBase::DevicesHandle();
         Task1();
         Task2();
-        Task3();
-        // FinalTask();
+        // Task3();
+        FinalTask();
         Task4();
         ManipulatorBackForceCounter();
 
