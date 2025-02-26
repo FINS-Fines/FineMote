@@ -77,8 +77,8 @@ private:
     const float DTargetAngle{49.2};
     const float ETargetAngle{69.6};
     const float CZeroPointAngle{192.8};//12
-    const float DZeroPointAngle{44.7};//7.2
-    const float EZeroPointAngle{70.5};//7.2
+    const float DZeroPointAngle{43.3};//7.2
+    const float EZeroPointAngle{67.4};//7.2
     const float CZP2Target = CTargetAngle - CZeroPointAngle;
     const float DZP2Target = DTargetAngle - DZeroPointAngle;
     const float EZP2Target = ETargetAngle - EZeroPointAngle;
