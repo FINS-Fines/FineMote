@@ -321,7 +321,7 @@ private:
         }
         float wcs_vel_x = XVelProfilePtr->GetOutput()[1][0] + (XVelProfilePtr->GetOutput()[0][0] - currentX) * Kp;
         float wcs_vel_y = YVelProfilePtr->GetOutput()[1][0] + (YVelProfilePtr->GetOutput()[0][0] - currentY) * Kp;
-        float wcs_vel_rt = RTVelProfilePtr->GetOutput()[1][0] + (RTVelProfilePtr->GetOutput()[0][0] - currentAngle) * Kp * 0.2f;
+        float wcs_vel_rt = RTVelProfilePtr->GetOutput()[1][0] + (RTVelProfilePtr->GetOutput()[0][0] - currentAngle) * Kp * 0.5f;
 
         FBVel = cosf(currentAngle) * wcs_vel_y - sinf(currentAngle) * wcs_vel_x;
         LRVel = sinf(currentAngle) * wcs_vel_y + cosf(currentAngle) * wcs_vel_x;

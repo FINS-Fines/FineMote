@@ -139,7 +139,13 @@ float pathTask7[3][7] = {
     // {-0.5, -0.15, -0.15, 0, 0, 0, 3},
     {0, 0, -0.06, 0, PI * 0.5f, 0, 3},
 };
-float* path[7] = {&pathTask1[0][0],&pathTask2[0][0],&pathTask3[0][0],&pathTask4[0][0],&pathTask5[0][0],&pathTask6[0][0],&pathTask7[0][0]};
+float pathTask8[2][7] = {
+
+};
+float pathTask9[2][7] = {
+
+};
+float* path[9] = {&pathTask1[0][0],&pathTask2[0][0],&pathTask3[0][0],&pathTask4[0][0],&pathTask5[0][0],&pathTask6[0][0],&pathTask7[0][0],&pathTask8[0][0],&pathTask9[0][0]};
 
 
 
@@ -151,7 +157,9 @@ enum class ChassisTask{
     TO_PROCESSING_AREA_2 = 0X04,
     TO_STORAGE_2 = 0X05,
     BACK = 0X06,
-    NONE = 0X07
+    TO_CORNER_1 = 0X07,
+    TO_CORNER_2 = 0X08,
+    NONE = 0X09,
 }chassisTask = ChassisTask::NONE;
 
 RoutePlanning route_planning(0.15);//Kp为误差补偿系数
@@ -166,6 +174,8 @@ uint8_t uploadCnt{0};
 H30_imu imu;
 
 void Task3() {
+    static bool chassisStopFlag = true;
+
     if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_SET && !isMissionStart){
         static uint32_t pinCnt{0};
         pinCnt++;
@@ -185,7 +195,7 @@ void Task3() {
     // backForceCounter++;
 
 
-    if(route_planning.isFinished)
+    if(route_planning.isFinished && chassisStopFlag)
     {
         chassis.ChassisStop();
     }else
@@ -217,6 +227,21 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
+                chassisTask = ChassisTask::TO_CORNER_1;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+            }
+            break;
+        case ChassisTask::TO_CORNER_1:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
+                isTaskPub = true;
+                chassisStopFlag = false;
+            }
+            if(route_planning.isFinished)
+            {
+                isTaskPub = false;
                 chassisTask = ChassisTask::TO_PROCESSING_AREA_1;
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
@@ -228,6 +253,7 @@ void Task3() {
                 route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
                 isTaskPub = true;
                 backForceCounter = 0;
+                chassisStopFlag = true;
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
@@ -288,6 +314,21 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
+                chassisTask = ChassisTask::TO_CORNER_2;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
+            }
+            break;
+        case ChassisTask::TO_CORNER_2:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
+                isTaskPub = true;
+                chassisStopFlag = false;
+            }
+            if(route_planning.isFinished)
+            {
+                isTaskPub = false;
                 chassisTask = ChassisTask::TO_PROCESSING_AREA_2;
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
@@ -298,6 +339,7 @@ void Task3() {
             {
                 route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
                 isTaskPub = true;
+                chassisStopFlag = true;
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
@@ -450,14 +492,54 @@ void Task4(){
 //     }
 // }
 
+// float pathTaskFinal1[4][7] = {
+//     {-0.5, -0.15, -0.15, 0, 0, 0, 1.5},
+//     {-1.75, -0.3, -0.17, 0, 0, 0, 2.5},
+//     {-1.91, 0, -0.34, -0.3, PI * 0.5, 0, 1.5},
+//     {-1.91, 0, -1.09, 0, PI * 0.5f, 0, 1.5}//原料
+// };
+// float pathTaskFinal2[3][7] = {
+//     {-1.91, 0, -1.75, -0.3, PI * 0.5f, 0, 1.5},
+//     {-1.75, 0.3, -1.91, 0, PI, 0, 1.5},
+//     {-1.1, 0, -1.88, 0, PI, 0, 1.5},//加工区
+// };
+// float pathTaskFinal3[4][7] = {
+//     {-1.1, 0, -1.88, 0, 0, 0, 2},
+//     {-1.1, 0, -0.26, 0.3, 0, 0, 3},
+//     {-1.25, -0.3, -0.11, 0, 0, 0, 1.5},
+//     {-1.52, 0, -0.11, 0, 0, 0, 1.5}, //转盘暂存
+// };
+// float pathTaskFinal4[3][7] = {
+//     {-1.75, -0.3, -0.17, 0, 0, 0, 1.5},
+//     {-1.91, 0, -0.34, -0.3, PI * 0.5, 0, 1.5},
+//     {-1.91, 0, -1.09, 0, PI * 0.5f, 0, 1.5}//原料
+// };
+// float pathTaskFinal5[3][7] = {
+//     {-1.91, 0, -1.75, -0.3, PI * 0.5f, 0, 1.5},
+//     {-1.75, 0.3, -1.91, 0, PI, 0, 1.5},
+//     {-1.1, 0, -1.88, 0, PI, 0, 1.5},//加工区
+// };
+// float pathTaskFinal6[4][7] = {
+//     {-1.1, 0, -1.88, 0, 0, 0, 1.5},
+//     {-1.1, 0, -0.26, 0.3, 0, 0, 3},
+//     {-1.25, -0.3, -0.11, 0, 0, 0, 1.5},
+//     {-1.52, 0, -0.11, 0, 0, 0, 1.5}, //转盘暂存
+// };
+// float pathTaskFinal7[1][7] = {
+//     {0, 0, -0.06, 0, 0, 0, 2.5},
+// };
+
+
 
 
 float pathTaskFinal1[5][7] = {
-    {-0.5, -0.15, -0.15, 0, 0, 0, 1.5},
-    {-1, 0, -0.2, 0, 0, 0, 1.5},
-    {-1.1, 0, -0.3, -0.1, PI, 0, 2.5},
+    // {-0.5, -0.15, -0.15, 0, 0, 0, 1.5},
+    // {-1, 0, -0.2, 0, 0, 0, 1.5},
+    // {-1.1, 0, -0.3, -0.1, PI, 0, 2.5},
+    // {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
+    // {-1.1, 0, -1.88, 0, PI, 0, 1}//原料
     {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
-    {-1.1, 0, -1.88, 0, PI, 0, 1}//原料
+    {-1.1, 0, -1.88, 0, PI, 0, 0.7}//原料
 };
 float pathTaskFinal2[3][7] = {
     {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
@@ -470,10 +552,12 @@ float pathTaskFinal3[3][7] = {
     {-1.51, 0, -0.17, 0, 0, 0, 1.5}, //转盘暂存
 };
 float pathTaskFinal4[4][7] = {
-    {-1.22, 0.15, -0.22, -0.15, PI * 0.3, 1, 1.5},
-    {-1.1, 0, -0.32, -0.25, PI * 0.95, 0, 1.5},
+    // {-1.22, 0.15, -0.22, -0.1, 0, 0, 1.5},
+    // {-1.1, 0, -0.3, 0, PI, 0, 2},
+    // {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
+    // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//原料
     {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
-    {-1.1, 0, -1.90, 0, PI, 0, 0.7}//原料
+    {-1.1, 0, -1.89, 0, PI, 0, 0.7}//原料
 };
 float pathTaskFinal5[3][7] = {
     {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
@@ -488,11 +572,25 @@ float pathTaskFinal6[3][7] = {
 float pathTaskFinal7[1][7] = {
     {0, 0, -0.06, 0, 0, 0, 2.5},
 };
-float* pathFinal[7] = {&pathTaskFinal1[0][0],&pathTaskFinal2[0][0],&pathTaskFinal3[0][0],&pathTaskFinal4[0][0],&pathTaskFinal5[0][0],&pathTaskFinal6[0][0],&pathTaskFinal7[0][0]};
+float pathTaskFinal8[3][7] = {
+    // {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
+    // {-1.1, 0, -1.88, 0, PI, 0, 0.7}//原料
+    {-0.5, -0.15, -0.15, 0, 0, 0, 1.5},
+    {-1, 0, -0.2, 0, 0, 0, 1.5},
+    {-1.1, 0, -0.3, -0.1, PI, 0, 2.5},
+};
+float pathTaskFinal9[2][7] = {
+    // {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
+    // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//原料
+    {-1.2, 0.15, -0.2, -0.1, 0, 0, 1.5},
+    {-1.1, 0, -0.3, 0, PI, 0, 2},
+};
+float* pathFinal[9] = {&pathTaskFinal1[0][0],&pathTaskFinal2[0][0],&pathTaskFinal3[0][0],&pathTaskFinal4[0][0],&pathTaskFinal5[0][0],&pathTaskFinal6[0][0],&pathTaskFinal7[0][0],&pathTaskFinal8[0][0],&pathTaskFinal9[0][0]};
 
 
 
 void FinalTask() {
+    bool chassisStopFlag = true;
     if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_6) == GPIO_PIN_SET && !isMissionStart){
         static uint32_t pinCnt{0};
         pinCnt++;
@@ -500,7 +598,7 @@ void FinalTask() {
         {
             isMissionStart = true;
             FineSerial<5>::GetInstance().AvtivateUpload();
-            chassisTask = ChassisTask::TO_PLATE_1;
+            chassisTask = ChassisTask::TO_CORNER_1;
         }
     }
     // chassis.ChassisStop();
@@ -512,7 +610,7 @@ void FinalTask() {
     // backForceCounter++;
 
 
-    if(route_planning.isFinished)
+    if(route_planning.isFinished && chassisStopFlag)
     {
         chassis.ChassisStop();
     }else
@@ -527,8 +625,9 @@ void FinalTask() {
         case ChassisTask::TO_PLATE_1:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 5);
+                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 2);
                 isTaskPub = true;
+                chassisStopFlag = true;
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
@@ -544,6 +643,21 @@ void FinalTask() {
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
                 HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
+            }
+            break;
+        case ChassisTask::TO_CORNER_1:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 3);
+                isTaskPub = true;
+                chassisStopFlag = false;
+            }
+            if(route_planning.isFinished)
+            {
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_PLATE_1;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
             }
             break;
         case ChassisTask::TO_PROCESSING_AREA_1:
@@ -590,7 +704,7 @@ void FinalTask() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
-                chassisTask = ChassisTask::TO_PLATE_2;
+                chassisTask = ChassisTask::TO_CORNER_2;
                 backForceCounter = 0;
                 lastBFCounter = 0;
                 isTargetReachedMsgPub = false;
@@ -600,8 +714,9 @@ void FinalTask() {
         case ChassisTask::TO_PLATE_2:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 4);
+                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 2);
                 isTaskPub = true;
+                chassisStopFlag = true;
             }
             if(route_planning.isFinished && !isTargetReachedMsgPub)
             {
@@ -617,6 +732,21 @@ void FinalTask() {
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
                 HAL_GPIO_WritePin(LIGHT_PIN_GPIO_Port,LIGHT_PIN_Pin,GPIO_PIN_RESET);
+            }
+            break;
+        case ChassisTask::TO_CORNER_2:
+            if(!isTaskPub)
+            {
+                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 2);
+                isTaskPub = true;
+                chassisStopFlag = false;
+            }
+            if(route_planning.isFinished)
+            {
+                isTaskPub = false;
+                chassisTask = ChassisTask::TO_PLATE_2;
+                backForceCounter = 0;
+                isTargetReachedMsgPub = false;
             }
             break;
         case ChassisTask::TO_PROCESSING_AREA_2:
