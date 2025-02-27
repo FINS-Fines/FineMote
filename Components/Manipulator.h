@@ -76,9 +76,9 @@ private:
     const float CTargetAngle{223.65};
     const float DTargetAngle{49.2};
     const float ETargetAngle{69.6};
-    const float CZeroPointAngle{192.8};//12
-    const float DZeroPointAngle{43.3};//7.2
-    const float EZeroPointAngle{67.4};//7.2
+    const float CZeroPointAngle{192.2};//12
+    const float DZeroPointAngle{42.9};//7.2
+    const float EZeroPointAngle{67.6};//7.2
     const float CZP2Target = CTargetAngle - CZeroPointAngle;
     const float DZP2Target = DTargetAngle - DZeroPointAngle;
     const float EZP2Target = ETargetAngle - EZeroPointAngle;
@@ -149,7 +149,7 @@ private:
                 break;
             case InitOtherJoint:
                 angleOffset[0] = -4.6;
-                angleOffset[1] = 90;
+                angleOffset[1] = 90.3;
                 // angleOffset[3] = -(DTargetAngle-initialDAngle);
                 // angleOffset[4] = -(ETargetAngle-initialEAngle);
                 angleOffset[3] = -(DZP2Target + 7.2f *std::roundf((DZeroPointAngle - initialDAngle)/7.2f));
