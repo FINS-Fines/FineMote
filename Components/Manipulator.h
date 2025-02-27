@@ -51,7 +51,8 @@ public:
 
 private:
     bool endEffectorState = true;
-    const float endEffectorCloseAngle = 213;
+    // const float endEffectorCloseAngle = 213;//决赛角度
+    const float endEffectorCloseAngle = 208;//初赛角度
     const float endEffectorOpenAngle = 288;
 
     MotorBase* motorA;
