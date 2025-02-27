@@ -100,9 +100,9 @@ float pathTask1[2][7] = {
     {-1.52, 0, -0.11, 0, 0, 0, 3}
 };
 float pathTask2[4][7] = {
-    {-1.25, 0.3, -0.16, 0, PI * 0.5, 0, 1.5},
-    {-1.13, 0, -0.31, -0.3, PI, 0, 2},
-    {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
+    // {-1.25, 0.3, -0.16, 0, PI * 0.5, 0, 1.5},
+    // {-1.13, 0, -0.31, -0.3, PI, 0, 2},
+    {-1.1, 0, -1.83, -0.2, PI, 0, 3.5},
     {-1.1, 0, -1.88, 0, PI, 0, 0.7}//加工区
 };
 float pathTask3[3][7] = {
@@ -123,9 +123,9 @@ float pathTask5[4][7] = {
     // {-1.15, 0, -0.32, -0.25, PI * 0.95, 0, 1.5},
     // {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
     // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//加工区
-    {-1.25, 0.3, -0.18, 0, PI * 0.5, 0, 1.5},
-    {-1.13, 0, -0.33, -0.3, PI, 0, 2},
-    {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
+    // {-1.25, 0.3, -0.18, 0, PI * 0.5, 0, 1.5},
+    // {-1.13, 0, -0.33, -0.3, PI, 0, 2},
+    {-1.1, 0, -1.85, -0.2, PI, 0, 3.5},
     {-1.1, 0, -1.90, 0, PI, 0, 0.7}//加工区
 };
 float pathTask6[3][7] = {
@@ -140,10 +140,12 @@ float pathTask7[3][7] = {
     {0, 0, -0.06, 0, PI * 0.5f, 0, 3},
 };
 float pathTask8[2][7] = {
-
+    {-1.2, 0.15, -0.18, -0.1, 0, 0, 1.5},
+    {-1.1, 0, -0.25, 0, PI, 0, 2},
 };
 float pathTask9[2][7] = {
-
+    {-1.2, 0.15, -0.2, -0.1, 0, 0, 1.5},
+    {-1.1, 0, -0.24, 0, PI, 0, 2},
 };
 float* path[9] = {&pathTask1[0][0],&pathTask2[0][0],&pathTask3[0][0],&pathTask4[0][0],&pathTask5[0][0],&pathTask6[0][0],&pathTask7[0][0],&pathTask8[0][0],&pathTask9[0][0]};
 
@@ -250,7 +252,7 @@ void Task3() {
         case ChassisTask::TO_PROCESSING_AREA_1:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
                 isTaskPub = true;
                 backForceCounter = 0;
                 chassisStopFlag = true;
@@ -337,7 +339,7 @@ void Task3() {
         case ChassisTask::TO_PROCESSING_AREA_2:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
                 isTaskPub = true;
                 chassisStopFlag = true;
             }
@@ -576,14 +578,14 @@ float pathTaskFinal8[3][7] = {
     // {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
     // {-1.1, 0, -1.88, 0, PI, 0, 0.7}//原料
     {-0.5, -0.15, -0.15, 0, 0, 0, 1.5},
-    {-1, 0, -0.2, 0, 0, 0, 1.5},
-    {-1.1, 0, -0.3, -0.1, PI, 0, 2.5},
+    {-1, -0.1, -0.2, -0.1, 0, 0, 1.5},
+    {-1.1, 0, -0.28, -0.1, PI, 0, 2.5},
 };
 float pathTaskFinal9[2][7] = {
     // {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
     // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//原料
     {-1.2, 0.15, -0.2, -0.1, 0, 0, 1.5},
-    {-1.1, 0, -0.3, 0, PI, 0, 2},
+    {-1.1, 0, -0.28, 0, PI, 0, 2},
 };
 float* pathFinal[9] = {&pathTaskFinal1[0][0],&pathTaskFinal2[0][0],&pathTaskFinal3[0][0],&pathTaskFinal4[0][0],&pathTaskFinal5[0][0],&pathTaskFinal6[0][0],&pathTaskFinal7[0][0],&pathTaskFinal8[0][0],&pathTaskFinal9[0][0]};
 
@@ -744,7 +746,7 @@ void FinalTask() {
             if(route_planning.isFinished)
             {
                 isTaskPub = false;
-                chassisTask = ChassisTask::TO_PLATE_2;
+                chassisTask = ChassisTask::TO_PROCESSING_AREA_2;
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
             }
@@ -901,8 +903,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         DeviceBase::DevicesHandle();
         Task1();
         Task2();
-        // Task3();
-        FinalTask();
+        Task3();
+        // FinalTask();
         Task4();
         ManipulatorBackForceCounter();
 
