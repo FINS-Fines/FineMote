@@ -97,18 +97,20 @@ float pathTask1[2][7] = {
     // {-0.4, -0.3, -0.15, 0, 0, 0, 1.4},
     // {-1.52, 0, -0.13, 0, 0, 0, 2.3}
     {-0.5, -0.15, -0.15, 0, 0, 0, 1.5},
-    {-1.52, 0, -0.11, 0, 0, 0, 3}
+    {-1.52, 0, -0.13, 0, 0, 0, 3}
 };
 float pathTask2[4][7] = {
     // {-1.25, 0.3, -0.16, 0, PI * 0.5, 0, 1.5},
     // {-1.13, 0, -0.31, -0.3, PI, 0, 2},
+    {-1.2, 0.15, -0.18, -0.1, 0, 0, 1.5},
+    {-1.11, 0, -0.25, -0.1, PI, 0, 2},
     {-1.1, 0, -1.83, -0.2, PI, 0, 3.5},
     {-1.1, 0, -1.88, 0, PI, 0, 0.7}//加工区
 };
 float pathTask3[3][7] = {
     {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
     {-1.91, 0, -1.75, 0.3, PI * 0.5f, 0, 1.5},
-    {-1.91, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//暂存区
+    {-1.91, 0, -1.1, 0, PI * 0.5f, 0, 1.8}//暂存区
 };
 float pathTask4[3][7] = {
     // {-1.92, 0, -0.32, 0.3, PI * 0.5f, 0, 1.5},
@@ -116,7 +118,7 @@ float pathTask4[3][7] = {
     // {-1.49, 0, -0.15, 0, 0, 0, 1.5}, //转盘
     {-1.92, 0, -0.34, 0.3, PI * 0.5f, 0, 1.5},
     {-1.75, 0.3, -0.17, 0, 0, 0, 1.5},
-    {-1.51, 0, -0.13, 0, 0, 0, 1.5}, //转盘
+    {-1.51, 0, -0.145, 0, 0, 0, 1.5}, //转盘
 };
 float pathTask5[4][7] = {
     // {-1.23, 0.15, -0.22, -0.15, PI * 0.3, 1, 1.5},
@@ -125,13 +127,15 @@ float pathTask5[4][7] = {
     // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//加工区
     // {-1.25, 0.3, -0.18, 0, PI * 0.5, 0, 1.5},
     // {-1.13, 0, -0.33, -0.3, PI, 0, 2},
+    {-1.2, 0.15, -0.2, -0.1, 0, 0, 1.5},
+    {-1.11, 0, -0.24, -0.1, PI, 0, 2},
     {-1.1, 0, -1.85, -0.2, PI, 0, 3.5},
     {-1.1, 0, -1.90, 0, PI, 0, 0.7}//加工区
 };
 float pathTask6[3][7] = {
     {-1.75, -0.3, -1.94, 0, PI, 0, 1.5},
     {-1.91, 0, -1.77, 0.3, PI * 0.5f, 0, 1.5},
-    {-1.91, 0, -1.08, 0, PI * 0.5f, 0, 1.5}//暂存区
+    {-1.91, 0, -1.08, 0, PI * 0.5f, 0, 1.8}//暂存区
 };
 float pathTask7[3][7] = {
     {-1.92, 0, -0.32, 0.3, PI * 0.5f, 0, 1.5},
@@ -229,7 +233,7 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
-                chassisTask = ChassisTask::TO_CORNER_1;
+                chassisTask = ChassisTask::TO_PROCESSING_AREA_1;
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
             }
@@ -252,7 +256,7 @@ void Task3() {
         case ChassisTask::TO_PROCESSING_AREA_1:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
                 isTaskPub = true;
                 backForceCounter = 0;
                 chassisStopFlag = true;
@@ -316,7 +320,7 @@ void Task3() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
-                chassisTask = ChassisTask::TO_CORNER_2;
+                chassisTask = ChassisTask::TO_PROCESSING_AREA_2;
                 backForceCounter = 0;
                 isTargetReachedMsgPub = false;
             }
@@ -339,7 +343,7 @@ void Task3() {
         case ChassisTask::TO_PROCESSING_AREA_2:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 2);
+                route_planning.AddTarget(path[static_cast<uint8_t>(chassisTask)], 4);
                 isTaskPub = true;
                 chassisStopFlag = true;
             }
@@ -461,7 +465,7 @@ void Task4(){
     cnt++;
     if (cnt >= 4){
         manipulatorCommand[0] = 0xAA;
-        memcpy(manipulatorCommand + 1, FineSerial<5>::GetInstance().manipulator_angle, 24);
+        memcpy(manipulatorCommand + 1, &FineSerial<5>::GetInstance().offsetAngle, 24);
         manipulatorCommand[25] = static_cast<uint8_t>(FineSerial<5>::GetInstance().endEffectorState);
         manipulatorCommand[26] = static_cast<uint8_t>(isMissionStart);
         manipulatorCommand[27] = CRC8Calc(manipulatorCommand + 1, 26);
@@ -507,8 +511,8 @@ void Task4(){
 // };
 // float pathTaskFinal3[4][7] = {
 //     {-1.1, 0, -1.88, 0, 0, 0, 2},
-//     {-1.1, 0, -0.26, 0.3, 0, 0, 3},
-//     {-1.25, -0.3, -0.11, 0, 0, 0, 1.5},
+//     {-1.1, 0, -0.25, 0.2, 0, 0, 3},
+//     {-1.25, -0.2, -0.11, 0, 0, 0, 1.5},
 //     {-1.52, 0, -0.11, 0, 0, 0, 1.5}, //转盘暂存
 // };
 // float pathTaskFinal4[3][7] = {
@@ -522,9 +526,9 @@ void Task4(){
 //     {-1.1, 0, -1.88, 0, PI, 0, 1.5},//加工区
 // };
 // float pathTaskFinal6[4][7] = {
-//     {-1.1, 0, -1.88, 0, 0, 0, 1.5},
-//     {-1.1, 0, -0.26, 0.3, 0, 0, 3},
-//     {-1.25, -0.3, -0.11, 0, 0, 0, 1.5},
+//     {-1.1, 0, -1.88, 0, 0, 0, 2},
+//     {-1.1, 0, -0.25, 0.2, 0, 0, 3},
+//     {-1.25, -0.2, -0.11, 0, 0, 0, 1.5},
 //     {-1.52, 0, -0.11, 0, 0, 0, 1.5}, //转盘暂存
 // };
 // float pathTaskFinal7[1][7] = {
@@ -540,13 +544,16 @@ float pathTaskFinal1[5][7] = {
     // {-1.1, 0, -0.3, -0.1, PI, 0, 2.5},
     // {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
     // {-1.1, 0, -1.88, 0, PI, 0, 1}//原料
+    {-0.5, -0.15, -0.15, 0, 0, 0, 1.5},
+    {-1, -0.1, -0.2, -0.1, 0, 0, 1.5},
+    {-1.09, 0, -0.28, -0.1, PI, 0, 2.5},
     {-1.1, 0, -1.83, -0.2, PI, 0, 2.6},
     {-1.1, 0, -1.88, 0, PI, 0, 0.7}//原料
 };
 float pathTaskFinal2[3][7] = {
     {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
     {-1.91, 0, -1.75, 0.3, PI * 0.5f, 0, 1.5},
-    {-1.91, 0, -1.09, 0, PI * 0.5f, 0, 1.5}//加工区
+    {-1.91, 0, -1.1, 0, PI * 0.5f, 0, 1.5}//加工区
 };
 float pathTaskFinal3[3][7] = {
     {-1.92, 0, -0.34, 0.3, PI * 0.5f, 0, 1.5},
@@ -558,13 +565,15 @@ float pathTaskFinal4[4][7] = {
     // {-1.1, 0, -0.3, 0, PI, 0, 2},
     // {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
     // {-1.1, 0, -1.90, 0, PI, 0, 0.7}//原料
-    {-1.1, 0, -1.85, -0.2, PI, 0, 2.6},
-    {-1.1, 0, -1.89, 0, PI, 0, 0.7}//原料
+    {-1.2, 0.15, -0.2, -0.1, 0, 0, 1.5},
+    {-1.115, 0, -0.28, -0.1, PI, 0, 2},
+    {-1.105, 0, -1.85, -0.2, PI, 0, 2.6},
+    {-1.105, 0, -1.89, 0, PI, 0, 0.7}//原料
 };
 float pathTaskFinal5[3][7] = {
     {-1.75, -0.3, -1.92, 0, PI, 0, 1.5},
     {-1.91, 0, -1.75, 0.3, PI * 0.5f, 0, 1.5},
-    {-1.91, 0, -1.09, 0, PI * 0.5f, 0, 1.5}//加工区
+    {-1.91, 0, -1.11, 0, PI * 0.5f, 0, 1.5}//加工区
 };
 float pathTaskFinal6[3][7] = {
     {-1.92, 0, -0.34, 0.3, PI * 0.5f, 0, 1.5},
@@ -600,7 +609,7 @@ void FinalTask() {
         {
             isMissionStart = true;
             FineSerial<5>::GetInstance().AvtivateUpload();
-            chassisTask = ChassisTask::TO_CORNER_1;
+            chassisTask = ChassisTask::TO_PLATE_1;
         }
     }
     // chassis.ChassisStop();
@@ -627,7 +636,7 @@ void FinalTask() {
         case ChassisTask::TO_PLATE_1:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 2);
+                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 5);
                 isTaskPub = true;
                 chassisStopFlag = true;
             }
@@ -706,7 +715,7 @@ void FinalTask() {
             {
                 FineSerial<5>::GetInstance().AvtivateUpload();
                 isTaskPub = false;
-                chassisTask = ChassisTask::TO_CORNER_2;
+                chassisTask = ChassisTask::TO_PLATE_2;
                 backForceCounter = 0;
                 lastBFCounter = 0;
                 isTargetReachedMsgPub = false;
@@ -716,7 +725,7 @@ void FinalTask() {
         case ChassisTask::TO_PLATE_2:
             if(!isTaskPub)
             {
-                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 2);
+                route_planning.AddTarget(pathFinal[static_cast<uint8_t>(chassisTask)], 4);
                 isTaskPub = true;
                 chassisStopFlag = true;
             }

@@ -117,6 +117,7 @@ public:
                 case ContinuousCommandType::MOVE_MANIPULATOR:
                     if(size != 29){return;}
                     memcpy(&manipulator_angle,data+3,24);
+
                     break;
                 }
             }
@@ -141,16 +142,16 @@ public:
         // float time{0};
     }__packed path_point;
 
-    // struct ManipulatorAngle{
-    //     float angleA{0};
-    //     float angleB{0};
-    //     float angleC{0};
-    //     float angleD{0};
-    //     float angleE{0};
-    //     float angleF{0};
-    // }__packed manipulator_angle;
+    struct ManipulatorAngle{
+        float angleA{0};
+        float angleB{0};
+        float angleC{0};
+        float angleD{0};
+        float angleE{0};
+        float angleF{0};
+    }__packed manipulator_angle;
 
-    uint8_t manipulator_angle[24]{};
+    ManipulatorAngle __packed offsetAngle;
 
     struct OffsetData{
         float x{0};
@@ -163,6 +164,7 @@ private:
     uint8_t upLoadCommand[3]{0xAA,0x01,0xBB};
     uint32_t initTick{0};
     uint32_t lastMsgReceivedTick{0};
+    float angleOffset[6]{0,0,-0.3,0,0.1,0};
     bool isUploadActive = false;
     void Upload(){
         if(singleCommand == SingleCommandType::NONE){
@@ -195,6 +197,12 @@ private:
         // {
         //     Upload();
         // }
+        offsetAngle.angleA = manipulator_angle.angleA + angleOffset[0]*PI/180.f;
+        offsetAngle.angleB = manipulator_angle.angleB + angleOffset[1]*PI/180.f;
+        offsetAngle.angleC = manipulator_angle.angleC + angleOffset[2]*PI/180.f;
+        offsetAngle.angleD = manipulator_angle.angleD + angleOffset[3]*PI/180.f;
+        offsetAngle.angleE = manipulator_angle.angleE + angleOffset[4]*PI/180.f;
+        offsetAngle.angleF = manipulator_angle.angleF + angleOffset[5]*PI/180.f;
         timeMsgNotReceived = 0.001f*(HAL_GetTick()-lastMsgReceivedTick);
         if(isUploadActive){
             if(delayTime > 0)
