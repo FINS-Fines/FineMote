@@ -164,7 +164,7 @@ private:
     uint8_t upLoadCommand[3]{0xAA,0x01,0xBB};
     uint32_t initTick{0};
     uint32_t lastMsgReceivedTick{0};
-    float angleOffset[6]{0,0,-0.3,0,0.1,0};
+    float angleOffset[6]{0,0.05,-0.24,0,0.1,0};
     bool isUploadActive = false;
     void Upload(){
         if(singleCommand == SingleCommandType::NONE){
