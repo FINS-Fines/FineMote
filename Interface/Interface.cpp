@@ -80,7 +80,7 @@ D28_485<2> EEncoder(0x05);
 Manipulator manipulator(&AMotor,&BMotor,&CMotor,&DMotor,&EMotor,&FMotor,&GMotor,&CEncoder,&DEncoder,&EEncoder);
 
 void Task3() {
-    manipulator.GetInitCommand = true;
+    // manipulator.GetInitCommand = true;
 
     if(manipulator.isInitFinished)
     {
