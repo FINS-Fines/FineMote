@@ -76,6 +76,7 @@ set(CMAKE_EXE_LINKER_FLAGS " \
 
 #*******************************************************************************************#
 # 生成可执行文件
+list(FILTER SOURCES EXCLUDE REGEX ".*CompilerIdCXX.*")
 add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT})
 
 set(HEX_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.hex)
