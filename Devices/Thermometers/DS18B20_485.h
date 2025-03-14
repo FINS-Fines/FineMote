@@ -11,7 +11,6 @@
 #include "ProjectConfig.h"
 #include "DeviceBase.h"
 #include "Bus/RS485_Base.h"
-#include "Communication/Verify.h"
 #include "cmath"
 
 /**
@@ -46,15 +45,15 @@ private:
     /// 地址码(1), 功能码(1), 寄存器地址(2), 读取数量(2), CRC16(2)
     void Require() {
         rs485Agent.txbuf[0] = rs485Agent.addr;                      // 地址码
-        rs485Agent.txbuf[1] = DS18B20_485_READ;                     // 功能码 03 读 06 写
+        rs485Agent.txbuf[1] = 0x03;                     // 功能码 03 读 06 写
         rs485Agent.txbuf[2] = 0x00;                                 // 寄存器启始地址[高]
-        rs485Agent.txbuf[3] = DS18B20_485_ADDR;                     // 寄存器启始地址[低] =0
+        rs485Agent.txbuf[3] = 0x00;                     // 寄存器启始地址[低] =0
         rs485Agent.txbuf[4] = 0x00;                                 // 寄存器数量[高]
-        rs485Agent.txbuf[5] = DS18B20_485_NUM;                      // 寄存器数量[低] *8
-        uint16_t crc16 = CRC16Calc(rs485Agent.txbuf, 6);     // CRC16
-        rs485Agent.txbuf[6] = crc16;                                // CRC16[低]
-        rs485Agent.txbuf[7] = crc16 >> 8;                           // CRC16[高]
-        rs485Agent.SendMsg(8);                                 // 发送
+        rs485Agent.txbuf[5] = 0x08;                      // 寄存器数量[低] *8
+        uint16_t crc16 = CRC16Calc(rs485Agent.txbuf, 6);            // CRC16
+        rs485Agent.txbuf[6] = crc16 & 0x00FF;                         // CRC16[低]
+        rs485Agent.txbuf[7] = (crc16 & 0xFF00) >> 8;                  // CRC16[高]
+        rs485Agent.SendMsg(8);                                  // 发送
     }
 
     /// 地址码(1), 功能码(1), 长度(1), 数据(n), CRC16(2)

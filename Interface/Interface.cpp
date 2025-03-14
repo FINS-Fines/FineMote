@@ -49,7 +49,7 @@ float temp_max = 0;
 float temp_mean = 0;
 float temp_min = 0;
 #define NTC_NUM (8)
-DS18B20_485<0> thermometer(0x01);
+DS18B20_485<2> thermometer(0x01);
 void Task3() {
     // 将数据从温度计从取出并写至全局
     auto temp_arr = thermometer.GetTemperature();
@@ -112,6 +112,7 @@ void Setup() {
     UARTBaseLite<5>::GetInstance().Bind(fineSerialDecodeFunc);
 
     RS485_Base<1>::GetInstance().SetDivisionFactor(4);
+    RS485_Base<2>::GetInstance().SetDivisionFactor(20);
 }
 
 /**
