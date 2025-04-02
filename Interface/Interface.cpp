@@ -1,126 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2023.
+* Copyright (c) 2023.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
 
 #include "ProjectConfig.h"
-
-#include "LED.h"
-#include "BeepMusic.h"
-#include "Motor4010.h"
-#include "Motor4315.h"
-#include "RMD_L_40xx_v3.h"
-#include "POV_Chassis.h++"
-#include "RadioMaster_Zorro.h"
-#include "FineSerial.h++"
-
-/*****  示例1 *****/
-/**
- * @brief LED闪烁
- */
-void Task1() {
-    static uint16_t cnt = 0;
-    cnt++;
-    if(cnt > 1000) {
-        cnt = 0;
-        LED::Toggle();
-    }
-}
-
-/*****  示例2 *****/
-/**
- * @brief 音乐播放与切换
- */
-void Task2() {
-    if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15)) {
-        static int index = 1;
-        BeepMusic::MusicChannels[0].Play(index++);
-        index %= 3;
-    }
-    BeepMusic::MusicChannels[0].BeepService();
-}
-
-/*****  示例3 *****/
-/**
- * @brief 底盘根据遥控器数据运动
- */
-
-/*constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
-
-auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
-
-//构建组成底盘的各个电机
-#define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
-Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
-Motor4010<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143);
-Motor4010<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
-Motor4010<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
-
-#define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
-Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04);
-Motor4315<1> SBLMotor(DIRECT_POSITION, swerveControllers[1], 0x03);
-Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02);
-Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);*/
-
-
-constexpr PID_Param_t speedPID = {0.15f, 0.03f, 0.8f, 2000, 2000};
-constexpr PID_Param_t positionInnerPID = {0.32f, 0.0f, 0.2f, 2000, 2000};
-constexpr PID_Param_t potisionOuterPID = {22.0f, 0.003f, 0.5f, 2000, 2000};
-
-auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-auto swerveControllers = CreateControllers<CascadePID, 4>(potisionOuterPID, positionInnerPID);
-
-#define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
-#define TORQUE_2_POSITION {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Position, true}
-
-RMD_L_40xx_v3<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x242);
-RMD_L_40xx_v3<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x244);
-RMD_L_40xx_v3<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x246);
-RMD_L_40xx_v3<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x248);
-
-RMD_L_40xx_v3<1> SFRMotor(TORQUE_2_POSITION, swerveControllers[0], 0x241);
-RMD_L_40xx_v3<1> SFLMotor(TORQUE_2_POSITION, swerveControllers[1], 0x243);
-RMD_L_40xx_v3<1> SBLMotor(TORQUE_2_POSITION, swerveControllers[2], 0x245);
-RMD_L_40xx_v3<1> SBRMotor(TORQUE_2_POSITION, swerveControllers[3], 0x247);
-
-constexpr float ROBOT_LENGTH = 0.2406f; //车身长0.240225f
-constexpr float ROBOT_WIDTH = 0.24f; //车身宽
-constexpr float WHEEL_DIAMETER = 0.05229; //4010直径
-
-auto chassis = POV_ChassisBuilder( \
-    WHEEL_DIAMETER, \
-    Swerve_t{&SFRMotor, &CFRMotor,  ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180},
-    Swerve_t{&SFLMotor, &CFLMotor,  ROBOT_LENGTH / 2,  ROBOT_WIDTH / 2},
-    Swerve_t{&SBLMotor, &CBLMotor, -ROBOT_LENGTH / 2,  ROBOT_WIDTH / 2},
-    Swerve_t{&SBRMotor, &CBRMotor, -ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180}
-    );
-
-RadioMaster_Zorro remote;
-FineSerial fineSerial;
-
-void Task3() {
-    constexpr float SPEED_LIMIT = 2.0f;
-
-    if(remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::UP_POS) { //遥控模式
-        std::array<float, 3> targetV = {
-            remote.GetInfo().rightCol * SPEED_LIMIT,
-            -remote.GetInfo().rightRol * SPEED_LIMIT,
-            -remote.GetInfo().leftRol * PI };
-
-        chassis.SetVelocity(std::move(targetV));
-
-    } else if (remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::DOWN_POS) { //急停
-        chassis.SetVelocity(fineSerial.GetVelCmd());
-    }
-}
-
-/*****  示例4 *****/
-
-void Task4() {
-
-}
+#include "Tasks.hpp"
 
 /**
  * @brief 用户初始化
@@ -130,24 +15,25 @@ void Task4() {
 extern "C" {
 #endif
 
-void Setup() {
-    std::function<void(uint8_t *, uint16_t)> remoteDecodeFunc = [](uint8_t* data, uint16_t length){
-        remote.Decode(data, length);
-    };
-    UARTBaseLite<3>::GetInstance().Bind(remoteDecodeFunc);
+    void Setup() {
+        std::function<void(uint8_t *, uint16_t)> remoteDecodeFunc = [](uint8_t* data, uint16_t length){
+            remote.Decode(data, length);
+        };
+        UARTBaseLite<3>::GetInstance().Bind(remoteDecodeFunc);
 
-    std::function<void(uint8_t *, uint16_t)> fineSerialDecodeFunc = [](uint8_t* data, uint16_t length){
-        fineSerial.Decode(data, length);
-    };
-    UARTBaseLite<5>::GetInstance().Bind(fineSerialDecodeFunc);
-}
+        std::function<void(uint8_t *, uint16_t)> fineSerialDecodeFunc = [](uint8_t* data, uint16_t length){
+            fineSerial.Decode(data, length);
+        };
+        UARTBaseLite<5>::GetInstance().Bind(fineSerialDecodeFunc);
+    }
 
-/**
- * @brief 主循环，优先级低于定时器中断，不确定执行频率
- */
-void Loop() {
+    /**
+     * @brief 主循环，优先级低于定时器中断，不确定执行频率
+     */
 
-}
+    void Loop() {
+
+    }
 
 #ifdef __cplusplus
 }
@@ -159,16 +45,14 @@ void Loop() {
 extern "C" {
 #endif
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if(htim == &TIM_Control) {
-        HAL_IWDG_Refresh(&hiwdg);
-        DeviceBase::DevicesHandle();
-        Task1();
-        Task2();
-        Task3();
-        Task4();
+    void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+        if(htim == &TIM_Control) {
+            HAL_IWDG_Refresh(&hiwdg);
+            DeviceBase::DevicesHandle();
+
+            RunAllTask();
+        }
     }
-}
 
 #ifdef __cplusplus
 }
