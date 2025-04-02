@@ -28,6 +28,9 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
     else if (huart == &huart3) {
         UARTBaseLite<3>::GetInstance().RxHandle(Size);
     }
+    else if (huart == &huart2){
+        UARTBaseLite<2>::GetInstance().RxHandle(Size);
+    }
     else if (huart == &huart1){
         UARTBaseLite<1>::GetInstance().RxHandle(Size);
     }

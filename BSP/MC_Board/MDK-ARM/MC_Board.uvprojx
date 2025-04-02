@@ -816,6 +816,16 @@
               <FileType>8</FileType>
               <FilePath>..\..\..\Services\Bus\UARTBaseLite.cpp</FilePath>
             </File>
+            <File>
+              <FileName>RS485_Base.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Services\Bus\RS485_Base.h</FilePath>
+            </File>
+            <File>
+              <FileName>UART_Base.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Services\Bus\UART_Base.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -890,13 +900,6 @@
         </Group>
         <Group>
           <GroupName>Components</GroupName>
-          <Files>
-            <File>
-              <FileName>Chassis.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Components\Chassis.cpp</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>

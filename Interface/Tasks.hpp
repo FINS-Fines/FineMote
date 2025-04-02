@@ -13,11 +13,11 @@
 #include "LED.h"
 #include "BeepMusic.h"
 #include "Motor4315.h"
+#include "Motor4010.h"
 #include "RMD_L_40xx_v3.h"
 #include "Chassis/POV_Chassis.hpp"
 #include "RadioMaster_Zorro.h"
 #include "FineWarden/FineSerial.hpp"
-#include "HermiteCurve.hpp"
 
 /**
  * @brief ����̬����
@@ -57,7 +57,7 @@ void Task2() {
  * @brief ���̸���ң���������˶�
  */
 
-/*constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
+constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
 
 auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
@@ -73,27 +73,27 @@ Motor4010<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
 Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04);
 Motor4315<1> SBLMotor(DIRECT_POSITION, swerveControllers[1], 0x03);
 Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02);
-Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);*/
+Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 
-constexpr PID_Param_t speedPID = {0.15f, 0.00145f, 0.0016f, 8000, 500};
-constexpr PID_Param_t positionInnerPID = {0.5f, 0.0f, 0.02f, 500, 500};
-constexpr PID_Param_t potisionOuterPID = {35.0f, 0.15f, 0.01f, 800, 800};
-
-auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-auto swerveControllers = CreateControllers<CascadePID, 4>(potisionOuterPID, positionInnerPID);
-
-#define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
-#define TORQUE_2_POSITION {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Position, true}
-
-RMD_L_40xx_v3<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x242);
-RMD_L_40xx_v3<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x244);
-RMD_L_40xx_v3<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x246);
-RMD_L_40xx_v3<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x248);
-
-RMD_L_40xx_v3<1> SFRMotor(TORQUE_2_POSITION, swerveControllers[0], 0x241);
-RMD_L_40xx_v3<1> SFLMotor(TORQUE_2_POSITION, swerveControllers[1], 0x243);
-RMD_L_40xx_v3<1> SBLMotor(TORQUE_2_POSITION, swerveControllers[2], 0x245);
-RMD_L_40xx_v3<1> SBRMotor(TORQUE_2_POSITION, swerveControllers[3], 0x247);
+// constexpr PID_Param_t speedPID = {0.15f, 0.00145f, 0.0016f, 8000, 500};
+// constexpr PID_Param_t positionInnerPID = {0.5f, 0.0f, 0.02f, 500, 500};
+// constexpr PID_Param_t potisionOuterPID = {35.0f, 0.15f, 0.01f, 800, 800};
+//
+// auto wheelControllers = CreateControllers<PID, 4>(speedPID);
+// auto swerveControllers = CreateControllers<CascadePID, 4>(potisionOuterPID, positionInnerPID);
+//
+// #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
+// #define TORQUE_2_POSITION {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Position, true}
+//
+// RMD_L_40xx_v3<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x242);
+// RMD_L_40xx_v3<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x244);
+// RMD_L_40xx_v3<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x246);
+// RMD_L_40xx_v3<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x248);
+//
+// RMD_L_40xx_v3<1> SFRMotor(TORQUE_2_POSITION, swerveControllers[0], 0x241);
+// RMD_L_40xx_v3<1> SFLMotor(TORQUE_2_POSITION, swerveControllers[1], 0x243);
+// RMD_L_40xx_v3<1> SBLMotor(TORQUE_2_POSITION, swerveControllers[2], 0x245);
+// RMD_L_40xx_v3<1> SBRMotor(TORQUE_2_POSITION, swerveControllers[3], 0x247);
 
 constexpr float ROBOT_LENGTH = 0.2406f; //����0.240225f
 constexpr float ROBOT_WIDTH = 0.24f; //�����

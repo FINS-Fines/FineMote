@@ -7,6 +7,9 @@
 #include "ProjectConfig.h"
 #include "Tasks.hpp"
 
+float motorAngle[4];
+
+
 /**
  * @brief 用户初始化
  */
@@ -51,6 +54,10 @@ extern "C" {
             DeviceBase::DevicesHandle();
 
             RunAllTask();
+            motorAngle[0] = SFRMotor.GetState().position;
+            motorAngle[1] = SFLMotor.GetState().position;
+            motorAngle[2] = SBLMotor.GetState().position;
+            motorAngle[3] = SBRMotor.GetState().position;
         }
     }
 

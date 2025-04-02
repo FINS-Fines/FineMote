@@ -50,7 +50,7 @@ private:
 
                 canAgent.SetDLC(8);
                 canAgent[0] = 0xFD;
-                canAgent[1] = std::signbit(target) ? 0x01 : 0x00; //方向，01 表示旋转方向为 CCW（ 00 表示 CW）
+                canAgent[1] = std::signbit(target) ? 0x00 : 0x01; // 0x01表示旋转方向为 CCW,0x00表示CW）
                 canAgent[2] = (uint8_t)(vel >> 8);
                 canAgent[3] = (uint8_t)(vel >> 0);
                 canAgent[4] = 0x00; //加速度，为0时不使用加速度
@@ -79,9 +79,8 @@ private:
 
     void Update() {
         if (canAgent.rxbuf[2] != 0xEE) {
-            float tmp = ((canAgent.rxbuf[2] << 24u) | (canAgent.rxbuf[3] << 16u) | (canAgent.rxbuf[4] << 8u) | (canAgent
-                .rxbuf[5])) * 360.0f / 65536.0f;
-            tmp *= canAgent.rxbuf[1] == 0x00 ? 1 : -1;
+            float tmp = ((canAgent.rxbuf[2] << 24u) | (canAgent.rxbuf[3] << 16u) | (canAgent.rxbuf[4] << 8u) | (canAgent.rxbuf[5])) * 360.0f / 65536.0f;
+            tmp *= canAgent.rxbuf[1] == 0x00 ? -1 : 1;
             state.position = fmod(tmp, 360.);
         }
     }

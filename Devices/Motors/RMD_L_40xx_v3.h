@@ -23,7 +23,7 @@ public:
 
     template<typename T>
     RMD_L_40xx_v3(const Motor_Param_t&& params, T& _controller, uint32_t addr) : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
-        SetDivisionFactor(2);
+        SetDivisionFactor(3);
         ResetController(_controller);
     }
 
@@ -50,7 +50,7 @@ private:
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
-                int16_t txTorque = Clamp(1 * controller->GetOutput(), -500.f, 500.f);
+                int16_t txTorque = Clamp(1 * controller->GetOutput(), -1000.f, 1000.f);
 
                 canAgent[0] = 0xA1;
                 canAgent[1] = 0x00;
