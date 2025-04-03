@@ -68,6 +68,79 @@ void Loop();
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+#if __ARMCC_VERSION >= 6000000
+    __asm(".global __use_no_semihosting");
+#elif __ARMCC_VERSION >= 5000000
+    #pragma import(__use_no_semihosting)
+#else
+    #error Unsupported compiler
+#endif
+
+#include <rt_sys.h>
+#include <rt_misc.h>
+#include <time.h>
+
+const char __stdin_name[] =  ":tt";
+const char __stdout_name[] =  ":tt";
+const char __stderr_name[] =  ":tt";
+
+FILEHANDLE _sys_open(const char *name, int openmode){
+    return 1;
+}
+
+int _sys_close(FILEHANDLE fh){
+    return 0;
+}
+
+char *_sys_command_string(char *cmd, int len){
+    return NULL;
+}
+
+int _sys_write(FILEHANDLE fh, const unsigned char *buf, unsigned len, int mode){
+    return 0;
+}
+
+int _sys_read(FILEHANDLE fh, unsigned char *buf, unsigned len, int mode){
+    return -1;
+}
+
+void _ttywrch(int ch){
+}
+
+int _sys_istty(FILEHANDLE fh){
+    return 0;
+}
+
+int _sys_seek(FILEHANDLE fh, long pos){
+    return -1;
+}
+
+long _sys_flen(FILEHANDLE fh){
+    return -1;
+}
+
+void _sys_exit(int return_code) {
+    while (1)
+        ;
+}
+
+clock_t clock(void){
+    clock_t tmp;
+    return tmp;
+}
+
+void _clock_init(void){
+}
+
+time_t time(time_t *timer){
+    time_t tmp;
+    return tmp;
+}
+
+int system(const char *string){
+    return 0;
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -76,47 +149,48 @@ void Loop();
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
   static uint8_t firstEnter = 1;
   if(firstEnter) {
-      /* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-      /* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-      /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-      HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-      /* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
       SystemClock_PreConfig();
-      /* USER CODE END Init */
+  /* USER CODE END Init */
 
-      /* Configure the system clock */
-      SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-      /* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
       SystemClock_PostConfig();
-      /* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-      /* Initialize all configured peripherals */
-      MX_GPIO_Init();
-      MX_DMA_Init();
-      MX_CAN1_Init();
-      MX_CAN2_Init();
-      MX_SPI1_Init();
-      MX_UART5_Init();
-      MX_USART1_UART_Init();
-      MX_ADC1_Init();
-      MX_I2C1_Init();
-      MX_TIM8_Init();
-      MX_I2C3_Init();
-      MX_SPI2_Init();
-      MX_USART2_UART_Init();
-      MX_TIM3_Init();
-      MX_TIM2_Init();
-      MX_TIM7_Init();
-      MX_USART3_UART_Init();
-      //MX_IWDG_Init();
-      /* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_CAN1_Init();
+  MX_CAN2_Init();
+  MX_SPI1_Init();
+  MX_UART5_Init();
+  MX_USART1_UART_Init();
+  MX_ADC1_Init();
+  MX_I2C1_Init();
+  MX_TIM8_Init();
+  MX_I2C3_Init();
+  MX_SPI2_Init();
+  MX_USART2_UART_Init();
+  MX_TIM3_Init();
+  MX_TIM2_Init();
+  MX_TIM7_Init();
+  MX_USART3_UART_Init();
+  MX_IWDG_Init();
+  /* USER CODE BEGIN 2 */
       HAL_GPIO_WritePin(GPIOC, Power_OUT1_EN_Pin|Power_5V_EN_Pin|RS485_DIR1_Pin|LED1_Pin
                                |GPIO_PIN_1|Power_OUT2_EN_Pin, GPIO_PIN_SET);
 
@@ -124,14 +198,14 @@ int main(void)
   } else {
       BSP_Setup();
       Setup();
-      /* USER CODE END 2 */
+  /* USER CODE END 2 */
 
-      /* Infinite loop */
-      /* USER CODE BEGIN WHILE */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
       while (1) {
-          /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-          /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
           Loop();
       }
   }
@@ -187,7 +261,7 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 /**
- * @brief 将时钟源选择为内部时钟，避免Clion的Debug模式无法使能锁相�????
+ * @brief 将时钟源选择为内部时钟，避免Clion的Debug模式无法使能锁相�?????
  */
 void SystemClock_PreConfig(void) {
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
