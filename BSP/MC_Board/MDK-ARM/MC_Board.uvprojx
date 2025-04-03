@@ -826,6 +826,11 @@
               <FileType>8</FileType>
               <FilePath>..\..\..\Services\Bus\UART_Base.cpp</FilePath>
             </File>
+            <File>
+              <FileName>UARTBaseLite.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Services\Bus\UARTBaseLite.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

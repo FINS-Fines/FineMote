@@ -338,7 +338,6 @@ void USART2_IRQHandler(void)
   */
 void USART3_IRQHandler(void)
 {
-	
   /* USER CODE BEGIN USART3_IRQn 0 */
 
   /* USER CODE END USART3_IRQn 0 */

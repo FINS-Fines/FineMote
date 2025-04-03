@@ -19,16 +19,10 @@
 #include "RadioMaster_Zorro.h"
 #include "FineWarden/FineSerial.hpp"
 
-/**
- * @brief ����̬����
- */
 
-typedef void (*TaskFunc_t)(); // ����������ָ������
-#define TASK_EXPORT(n) __attribute__((used, section(".task_n"))) const TaskFunc_t __##n = n
-
-/*****  ʾ��1 *****/
+/***** 任务1 *****/
 /**
- * @brief LED��˸
+ * @brief LED闪烁˸
  */
 void Task1() {
     static uint16_t cnt = 0;
@@ -39,7 +33,7 @@ void Task1() {
     }
 }
 
-/*****  ʾ��2 *****/
+/***** 任务2 *****/
 /**
  * @brief ���ֲ������л�
  */
@@ -52,7 +46,7 @@ void Task2() {
     BeepMusic::MusicChannels[0].BeepService();
 }
 
-/*****  ʾ��3 *****/
+/***** 任务3 *****/
 /**
  * @brief ���̸���ң���������˶�
  */
@@ -122,22 +116,22 @@ void Task3() {
      }
 }
 
-/*****  ʾ��4 *****/
+/***** 任务4 *****/
 
 void Task4() {
 }
 
-/*****  ʾ��5 *****/
+/***** 任务5 *****/
 
 void Task5() {
 }
 
-/*****  ʾ��6 *****/
+/***** 任务6 *****/
 
 void Task6() {
 }
 
-/*****  ʾ��7 *****/
+/***** 任务7 *****/
 
 void Task7() {
 }
@@ -145,6 +139,14 @@ void Task7() {
 
 void TaskHead(){}
 void TaskTail(){}
+
+
+/**
+ * @brief 任务函数预编译挂载
+ */
+
+typedef void (*TaskFunc_t)();
+#define TASK_EXPORT(n) __attribute__((used, section(".task_n"))) const TaskFunc_t __##n = n
 
 TASK_EXPORT(TaskHead);//TASKHEAD和TAIL不要填具体功能，仅作为首尾标识
 TASK_EXPORT(Task1);
@@ -156,8 +158,7 @@ TASK_EXPORT(Task6);
 TASK_EXPORT(Task7);
 TASK_EXPORT(TaskTail);
 
-
-void RunAllTask()
+void RunAllTasks()
 {
     const TaskFunc_t *funcPtr;
     for(funcPtr = &__TaskHead; funcPtr < &__TaskTail; funcPtr++)
