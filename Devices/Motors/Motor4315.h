@@ -36,22 +36,34 @@ public:
 private:
     void SetFeedback() override {
         switch (params.ctrlType) {
-            case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedback({&state.position});
-                break;
-            }
+        case Motor_Ctrl_Type_e::Position:
+            controller->SetFeedback({&state.position});
+            break;
+        }
     }
 
     void MessageGenerate() {
-        switch (params.ctrlType) {
+            switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Position: {
-                float targetAngle = -1 * controller->GetOutput(); //统一正方向
-                int32_t txAngle = targetAngle * 16384.0f / 360.0f;
+                float targetAngle = -1 * controller->GetOutput();
 
+                // targetAngle += angleOffset; //多圈角度功能实现
+                // if(-targetAngle+state.position<-180)
+                // {
+                //     angleOffset += 360.f;
+                //     targetAngle += 360.f;
+                // }
+                // if(-targetAngle+state.position>180)
+                // {
+                //     angleOffset -= 360.f;
+                //     targetAngle -= 360.f;
+                // }
+
+                int32_t txAngle = targetAngle * 16384.0f / 360.0f;
                 rs485Agent.txbuf[0] = 0x3E;//协议头
                 rs485Agent.txbuf[1] = 0x00;//包序号
                 rs485Agent.txbuf[2] = rs485Agent.addr; //ID
-                rs485Agent.txbuf[3] = 0x55;//相对位置闭环控制命令码
+                rs485Agent.txbuf[3] = 0x55;//绝对位置闭环控制命令码
                 rs485Agent.txbuf[4] = 0x04;//数据包长度
                 rs485Agent.txbuf[5] = txAngle;
                 rs485Agent.txbuf[6] = txAngle >> 8u;
@@ -65,6 +77,7 @@ private:
             }
         }
     }
+
 
     void Update() {
         state.position = -1 * ((rs485Agent.rxbuf[7] | (rs485Agent.rxbuf[8] << 8u) | (rs485Agent.rxbuf[9] << 16u) | (rs485Agent.rxbuf[10] << 24u)) * 360.0f / 16384.0f);//多圈编码值

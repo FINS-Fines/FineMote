@@ -21,6 +21,7 @@ public:
     template<typename T>
     Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr) : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
         ResetController(_controller);
+        this->SetDivisionFactor(20);
     }
 
     void Handle() final{
@@ -57,7 +58,7 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Send(canAgent.addr & 0xffffffe0 | 0x00e);
+                canAgent.Send(canAgent.addr << 5 | 0x00e,CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
             case Motor_Ctrl_Type_e::Position: {
@@ -71,7 +72,7 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Send(canAgent.addr & 0xffffffe0 | 0x00c);
+                canAgent.Send(canAgent.addr << 5 | 0x00c,CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
             case Motor_Ctrl_Type_e::Speed: {
@@ -85,11 +86,11 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Send(canAgent.addr & 0xffffffe0 | 0x00d);
+                canAgent.Send(canAgent.addr << 5 | 0x00d,CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
         }
-        canAgent.Send(canAgent.addr, CAN_ID_STD | CAN_RTR_REMOTE);
+        // canAgent.Send(canAgent.addr, CAN_ID_STD | CAN_RTR_REMOTE); //��ȡ������
     }
 
     void Update() {

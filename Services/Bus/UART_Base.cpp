@@ -33,10 +33,14 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
         UARTBaseLite<5>::GetInstance().TxLoader();
         GetUartHandle_BusMap()[huart]->CallbackHandle(UART_Base::Callback_e::WRITE);
     }
-#endif
     else if(huart == &huart1){
         RS485_Base<1>::GetInstance().RxHandle();
     }
+    else if(huart == &huart2){
+        RS485_Base<2>::GetInstance().RxHandle();
+    }
+#endif
+
     //UART_Bus<0>::GetInstance().CallbackHandle(UART_Bus<0>::Callback_e::WRITE);
 }
 // 接收中断回调函数
@@ -54,8 +58,27 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     }
 #endif
 #ifdef __MC_BOARD
-    if (huart == &huart5) {
-        UARTBaseLite<5>::GetInstance().RxHandle(1);
+    if(huart->ErrorCode & HAL_UART_ERROR_ORE){
+        // 重新启动接收
+        if(huart == &huart3)
+        {
+            // 读取SR寄存器（自动获取状态）
+            uint32_t status = huart->Instance->SR;
+
+            // 读取DR寄存器（清除标志）
+            uint32_t data = huart->Instance->SR;
+
+            UARTBaseLite<3>::GetInstance().RxHandle(0);
+        }
+        else if(huart == &huart5)
+        {
+            // 读取SR寄存器（自动获取状态）
+            uint32_t status = UART5->SR;
+
+            // 读取DR寄存器（清除标志）
+            uint32_t data = UART5->DR;
+            UARTBaseLite<5>::GetInstance().RxHandle(0);
+        }
     }
 #endif
 }

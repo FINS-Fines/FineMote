@@ -1,6 +1,8 @@
-// Copyright (c) 2025.
-// IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
-// All rights reserved.
+/*******************************************************************************
+* Copyright (c) 2024.
+ * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+ * All rights reserved.
+ ******************************************************************************/
 
 #ifndef FINESERIAL_H
 #define FINESERIAL_H

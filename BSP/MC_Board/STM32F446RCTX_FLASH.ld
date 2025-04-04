@@ -85,6 +85,15 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  /* ������������ .task_fn */
+  .task_fn : {
+    . = ALIGN(4);
+    __task_fn_start = .;
+    KEEP(*(.task_fn))
+    __task_fn_end = .;
+    . = ALIGN(4);
+  } >FLASH
+
   .ARM.extab   : {
     . = ALIGN(4);
     *(.ARM.extab* .gnu.linkonce.armextab.*)
