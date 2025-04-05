@@ -10,6 +10,9 @@
 
 #include "ProjectConfig.h"
 
+typedef void (*TaskFunc_t)();
+#define TASK_EXPORT(n) __attribute__((used, section("Tasks"))) const TaskFunc_t __##n = n
+
 #include "LED.h"
 #include "BeepMusic.h"
 #include "Motor4315.h"
@@ -32,6 +35,7 @@ void Task1() {
         LED::Toggle();
     }
 }
+TASK_EXPORT(Task1);
 
 /***** 任务2 *****/
 /**
@@ -45,6 +49,7 @@ void Task2() {
     }
     BeepMusic::MusicChannels[0].BeepService();
 }
+TASK_EXPORT(Task2);
 
 /***** 任务3 *****/
 /**
@@ -115,57 +120,16 @@ void Task3() {
          chassis.SetVelocity(std::move(targetV));
      }
 }
-
-/***** 任务4 *****/
-
-void Task4() {
-}
-
-/***** 任务5 *****/
-
-void Task5() {
-}
-
-/***** 任务6 *****/
-
-void Task6() {
-}
-
-/***** 任务7 *****/
-
-void Task7() {
-}
-
-
-void TaskHead(){}
-void TaskTail(){}
-
-
-/**
- * @brief 任务函数预编译挂载
- */
-
-typedef void (*TaskFunc_t)();
-#define TASK_EXPORT(n) __attribute__((used, section(".task_n"))) const TaskFunc_t __##n = n
-
-TASK_EXPORT(TaskHead);//TASKHEAD和TAIL不要填具体功能，仅作为首尾标识
-TASK_EXPORT(Task1);
-TASK_EXPORT(Task2);
 TASK_EXPORT(Task3);
-TASK_EXPORT(Task4);
-TASK_EXPORT(Task5);
-TASK_EXPORT(Task6);
-TASK_EXPORT(Task7);
-TASK_EXPORT(TaskTail);
 
-void RunAllTasks()
-{
+void RunAllTasks() {
+    extern const TaskFunc_t Tasks$$Base;
+    extern const TaskFunc_t Tasks$$Limit;
+
     const TaskFunc_t *funcPtr;
-    for(funcPtr = &__TaskHead; funcPtr < &__TaskTail; funcPtr++)
-    {
+    for(funcPtr = &Tasks$$Base; funcPtr < &Tasks$$Limit; funcPtr++) {
         (*funcPtr)();
     }
 }
-
 
 #endif //TASKS_HPP
