@@ -33,10 +33,11 @@ public:
      */
     void SetDivisionFactor(uint32_t divisionFactor);
 
+protected:
+    uint32_t divisionFactor = 1;
+
 private:
     uint32_t cnt = 0;
-    uint32_t divisionFactor = 1;
 };
-
 
 #endif //FINEMOTE_DEVICEBASE_H
