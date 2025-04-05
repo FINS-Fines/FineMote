@@ -2,16 +2,20 @@
 // IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
 // All rights reserved.
 
-#ifndef CHASSISBASE_H
-#define CHASSISBASE_H
+#ifndef FINEMOTE_CHASSISBASE_H
+#define FINEMOTE_CHASSISBASE_H
 
 class WithoutOdom {
-    void SetOdom() {}
+public:
+    void SetOdom(const std::array<float, 3>& x) {}
+
     const std::array<float, 3>& GetOdom() {
         static std::array<float, 3> v = {0};
         return v;
     }
-    void UpdateOdom(const std::array<float, 3>&) {}
+
+    template<typename T>
+    void UpdateOdom(T&& v, uint32_t dt) {}
 };
 
 class Odom {
@@ -24,18 +28,18 @@ public:
         return estimatedX;
     }
 
-    void UpdateOdom(const std::array<float, 3>& v){
-        estimatedX[0] += (v[0] * cosf(estimatedX[2]) - v[1] * sinf(estimatedX[2])) * 0.001f;
-        estimatedX[1] += (v[0] * sinf(estimatedX[2]) + v[1] * cosf(estimatedX[2])) * 0.001f;
-        estimatedX[2] += v[2] * 0.001f;
+    void UpdateOdom(const std::array<float, 3>& v, uint32_t dt) {
+        estimatedX[0] += (v[0] * cosf(estimatedX[2]) - v[1] * sinf(estimatedX[2])) * 0.001f * dt;
+        estimatedX[1] += (v[0] * sinf(estimatedX[2]) + v[1] * cosf(estimatedX[2])) * 0.001f * dt;
+        estimatedX[2] += v[2] * 0.001f * dt;
     }
 
 private:
     std::array<float, 3> estimatedX = {0};
 };
 
-template <typename Odometer>
-class ChassisBase : public DeviceBase, private Odometer{
+template <typename OdomPolicy>
+class ChassisBase : public DeviceBase, private OdomPolicy{
 public:
     virtual void InverseKinematics(std::array<float,3>&) = 0; // 底盘到轮组
     virtual void ForwardKinematics() = 0; // 轮组到底盘
@@ -45,13 +49,13 @@ public:
         targetV = std::forward<T>(v);
     }
 
-    using Odometer::SetOdom;
-    using Odometer::GetOdom;
-    using Odometer::UpdateOdom;
+    using OdomPolicy::SetOdom;
+    using OdomPolicy::GetOdom;
+    using OdomPolicy::UpdateOdom;
 
 protected:
     std::array<float, 3> targetV = {0};
     std::array<float, 3> estimatedV = {0};
 };
 
-#endif //CHASSISBASE_H
+#endif

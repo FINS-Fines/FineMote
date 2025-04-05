@@ -93,7 +93,7 @@ constexpr float ROBOT_LENGTH = 0.2406f; //����0.240225f
 constexpr float ROBOT_WIDTH = 0.24f; //�����
 constexpr float WHEEL_DIAMETER = 0.0483; //4010ֱ��
 
-auto chassis = POV_ChassisBuilder( \
+auto chassis = POV_ChassisBuilder<Odom>( \
     WHEEL_DIAMETER, \
     Swerve_t{&SFRMotor, &CFRMotor,  ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180},
     Swerve_t{&SFLMotor, &CFLMotor,  ROBOT_LENGTH / 2,  ROBOT_WIDTH / 2},
