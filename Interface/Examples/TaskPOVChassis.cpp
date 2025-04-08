@@ -116,7 +116,7 @@ void TaskPOVChassis() {
 }
 TASK_EXPORT(TaskPOVChassis);
 
-void POVChassisASetup_Tmp() {
+void POVChassissSetup_Tmp() {
     std::function<void(uint8_t *, uint16_t)> remoteDecodeFunc = [](uint8_t* data, uint16_t length){
         remote.Decode(data, length);
     };

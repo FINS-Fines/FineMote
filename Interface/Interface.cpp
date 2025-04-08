@@ -12,14 +12,14 @@
  * @brief 用户初始化
  */
 
-extern void POVChassisASetup_Tmp();
+extern void POVChassissSetup_Tmp();
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void Setup() {
-    POVChassisASetup_Tmp();
+    POVChassissSetup_Tmp();
 }
 
 /**
@@ -34,6 +34,12 @@ void Loop() {
 }
 #endif
 
+void MainRTLoop() {
+    HAL_IWDG_Refresh(&hiwdg);
+    DeviceBase::DevicesHandle();
+    RunAllTasks();
+}
+
 /*****  不要修改以下代码 *****/
 
 #ifdef __cplusplus
@@ -42,9 +48,7 @@ extern "C" {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &TIM_Control) {
-        HAL_IWDG_Refresh(&hiwdg);
-        DeviceBase::DevicesHandle();
-        RunAllTasks();
+        MainRTLoop();
     }
 }
 
