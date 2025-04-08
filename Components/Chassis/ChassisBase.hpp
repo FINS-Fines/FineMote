@@ -5,12 +5,13 @@
 #ifndef FINEMOTE_CHASSISBASE_H
 #define FINEMOTE_CHASSISBASE_H
 
+template <int DOFs>
 class WithoutOdom {
 public:
-    void SetOdom(const std::array<float, 3>& x) {}
+    void SetOdom(const std::array<float, DOFs>& x) {}
 
-    const std::array<float, 3>& GetOdom() {
-        static std::array<float, 3> v = {0};
+    const std::array<float, DOFs>& GetOdom() {
+        static std::array<float, DOFs> v = {0};
         return v;
     }
 
@@ -18,7 +19,7 @@ public:
     void UpdateOdom(T&& v, uint32_t dt) {}
 };
 
-class Odom {
+class PlanarOdom {
 public:
     void SetOdom(const std::array<float, 3>& x) {
         estimatedX = x;

@@ -20,7 +20,7 @@ using Swerve_t = struct Swerve_t {
     float zeroPosition;
 };
 
-template<size_t N, typename OdomPolicy = WithoutOdom>
+template<size_t N, typename OdomPolicy = WithoutOdom<3>>
 class POV_Chassis : public ChassisBase<OdomPolicy> {
 public:
     POV_Chassis(const float _wheelDiameter, std::array<Swerve_t, N> &&configs) : modules(std::move(configs)),
@@ -121,7 +121,7 @@ public:
 
     void Handle() final {
         ForwardKinematics();
-        if (!std::is_same<OdomPolicy, WithoutOdom>::value) {
+        if (!std::is_same<OdomPolicy, WithoutOdom<3>>::value) {
             this->UpdateOdom(this->estimatedV, this->divisionFactor);
         }
         // Control
@@ -137,11 +137,9 @@ private:
     Matrixf<2, 2> B;
     const float alpha = 0.5;
     const float wheelDiameter;
-
-    std::function<void(const float *, const float *)> decodeFunc = nullptr;
 };
 
-template<typename OdomPolicy = WithoutOdom, typename... Configs>
+template<typename OdomPolicy = WithoutOdom<3>, typename... Configs>
 auto POV_ChassisBuilder(float _wheelDiameter, Configs &&... configs) {
     constexpr size_t N = sizeof...(Configs);
     static_assert((std::is_same<std::decay_t<Configs>, Swerve_t>::value && ...),
