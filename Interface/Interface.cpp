@@ -5,36 +5,30 @@
  ******************************************************************************/
 
 #include "ProjectConfig.h"
-#include "Tasks.hpp"
+#include "DeviceBase.h"
+#include "Task.h"
 
 /**
  * @brief 用户初始化
  */
 
+extern void POVChassisASetup_Tmp();
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    void Setup() {
-        std::function<void(uint8_t *, uint16_t)> remoteDecodeFunc = [](uint8_t* data, uint16_t length){
-            remote.Decode(data, length);
-        };
-        UARTBaseLite<3>::GetInstance().Bind(remoteDecodeFunc);
+void Setup() {
+    POVChassisASetup_Tmp();
+}
 
-        std::function<void(uint8_t *, uint16_t)> fineSerialDecodeFunc = [](uint8_t* data, uint16_t length){
-            fineSerial.Decode(data, length);
-        };
-        UARTBaseLite<5>::GetInstance().Bind(fineSerialDecodeFunc);
-
-    }
-
-    /**
-     * @brief 主循环，优先级低于定时器中断，不确定执行频率
-     */
-
-    void Loop() {
-
-    }
+/**
+ * @brief 主循环，优先级低于定时器中断，不确定执行频率
+ */
+void Loop() {
+    // Do something
+    HAL_Delay(1000);
+}
 
 #ifdef __cplusplus
 }
@@ -46,14 +40,13 @@ extern "C" {
 extern "C" {
 #endif
 
-    void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-        if(htim == &TIM_Control) {
-            HAL_IWDG_Refresh(&hiwdg);
-            DeviceBase::DevicesHandle();
-
-            RunAllTasks();
-        }
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    if (htim == &TIM_Control) {
+        HAL_IWDG_Refresh(&hiwdg);
+        DeviceBase::DevicesHandle();
+        RunAllTasks();
     }
+}
 
 #ifdef __cplusplus
 }
