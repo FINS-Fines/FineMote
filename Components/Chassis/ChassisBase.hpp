@@ -40,7 +40,7 @@ private:
 };
 
 template <typename OdomPolicy>
-class ChassisBase : public DeviceBase, private OdomPolicy{
+class ChassisBase : public DeviceBase {
 public:
     virtual void InverseKinematics(std::array<float,3>&) = 0; // 底盘到轮组
     virtual void ForwardKinematics() = 0; // 轮组到底盘
@@ -50,11 +50,9 @@ public:
         targetV = std::forward<T>(v);
     }
 
-    using OdomPolicy::SetOdom;
-    using OdomPolicy::GetOdom;
-    using OdomPolicy::UpdateOdom;
-
 protected:
+    OdomPolicy odom;
+
     std::array<float, 3> targetV = {0};
     std::array<float, 3> estimatedV = {0};
 };

@@ -122,7 +122,7 @@ public:
     void Handle() final {
         ForwardKinematics();
         if (!std::is_same<OdomPolicy, WithoutOdom<3>>::value) {
-            this->UpdateOdom(this->estimatedV, this->divisionFactor);
+            this->odom.UpdateOdom(this->estimatedV, this->divisionFactor);
         }
         // Control
         InverseKinematics(this->targetV);
