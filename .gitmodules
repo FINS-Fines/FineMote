@@ -1,3 +1,6 @@
 [submodule "ThirdParty/CMSIS-DSP"]
 	path = ThirdParty/CMSIS-DSP
 	url = https://github.com/ARM-software/CMSIS-DSP
+[submodule "ThirdParty/etl"]
+	path = ThirdParty/etl
+	url = https://github.com/ETLCPP/etl.git
