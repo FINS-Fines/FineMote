@@ -109,6 +109,12 @@ file(GLOB_RECURSE CMSIS_DSP_SOURCE_FILES ${CMSIS_DSP_SOURCE_FILES}
 )
 endif()
 
+# 添加ETL(Embedded Template Library)库
+
+include_directories(ThirdParty/etl/include)
+
+# 添加所有ThirdParty库的源文件
+
 file(GLOB_RECURSE FINEMOTE_COMMON_SOURCE_FILES ${FINEMOTE_SOURCE_FILES} ${CMSIS_DSP_SOURCE_FILES})
 
 #*******************************************************************************************#

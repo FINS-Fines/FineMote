@@ -15,6 +15,7 @@ add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
 # 添加BSP文件
 
 file(GLOB BSP_INCLUDE_DIRS
+        "FineMote_BSP"
         "Drivers/CMSIS/Include"
         "Drivers/STM32F*xx_HAL_Driver/Inc"
         "Drivers/STM32F*xx_HAL_Driver/Inc/Legacy"
