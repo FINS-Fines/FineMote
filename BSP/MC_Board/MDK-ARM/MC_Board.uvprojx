@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F446xx,__MC_BOARD</Define>
               <Undefine></Undefine>
-              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../../../Interface;../../../Services;../../../Devices;../../../Devices/Motors;..\..\..\Devices\RemoteControllers;..\..\..\Algorithms;..\..\..\Algorithms\Verification;../../../Services/Bus;../../../Services/MultiMedia;../../../Components;..\..\..\Algorithms\Matrix</IncludePath>
+              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../../../Interface;../../../Services;../../../Devices;../../../Devices/Motors;..\..\..\Devices\RemoteControllers;..\..\..\Algorithms;..\..\..\Algorithms\Verification;../../../Services/Bus;../../../Services/MultiMedia;../../../Components;..\..\..\Algorithms\Matrix;..\..\..\ThirdParty\etl\include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
