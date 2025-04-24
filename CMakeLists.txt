@@ -7,6 +7,9 @@ cmake_minimum_required(VERSION 3.21)
 set(CMAKE_C_COMPILER armclang.exe)
 set(CMAKE_C_COMPILER_WORKS TRUE)
 set(C_TARGET_FLAG --target=arm-arm-none-eabi)
+# 设置编译优化等级 不优化
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
 
 set(CMAKE_CXX_COMPILER armclang.exe)
 set(CMAKE_CXX_COMPILER_WORKS TRUE)

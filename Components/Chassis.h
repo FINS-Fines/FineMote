@@ -106,6 +106,7 @@ public:
 
     static ChassisBuilder Build();
 };
+
 //TODO 实际上建造者应该只使用电机基类指针，底盘类使用的应该也是电机基类指针
 class ChassisBuilder{
 private:
@@ -132,10 +133,8 @@ public:
             Error_Handler();
         }
         return Chassis{CFLPtr,CFRPtr,CBLPtr,CBRPtr,SFLPtr,SFRPtr,SBLPtr,SBRPtr};
-        
     }
 };
-
 
 class VelocityProfile : public DeviceBase {
 public:
@@ -168,8 +167,13 @@ public:
         }
         float inputData[2 * 4]
         {
-            currentTime * currentTime * currentTime, currentTime * currentTime, currentTime, 1,
-            3 * currentTime * currentTime, 2 * currentTime, 1, 0
+            currentTime * currentTime * currentTime,
+            currentTime * currentTime, currentTime,
+            1,
+            3 * currentTime * currentTime,
+            2 * currentTime,
+            1,
+            0
         };
         input = Matrixf<2, 4>(inputData);
         output = input * constant;

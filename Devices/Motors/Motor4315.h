@@ -16,6 +16,7 @@
 #include "Motors/MotorBase.h"
 #include "Verification/CRC.h"
 
+#define MOTOR4315_BUFFER_SIZE (30)
 template<int busID>
 class Motor4315 : public MotorBase {
 public:

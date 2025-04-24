@@ -4,8 +4,8 @@
 
 #include "RS485_Base.h"
 
-#ifdef RS485_BASE_MODULE
-
+#ifndef RS485_BASE_MODULE
+#define RS485_BASE_MODULE
 
 
 #endif //RS485_BASE_MODULE

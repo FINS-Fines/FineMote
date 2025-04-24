@@ -29,20 +29,25 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     }
 #endif
 #ifdef __MC_BOARD
-    if(huart == &huart5) {
-        UARTBaseLite<5>::GetInstance().TxLoader();
-        GetUartHandle_BusMap()[huart]->CallbackHandle(UART_Base::Callback_e::WRITE);
+    // if(huart == &huart5) {
+    //     UARTBaseLite<5>::GetInstance().TxLoader();
+    //     GetUartHandle_BusMap()[huart]->CallbackHandle(UART_Base::Callback_e::WRITE);
+    // }
+    // else if(huart == &huart4){
+    //     UARTBaseLite<4>::GetInstance().TxLoader();
+    //     GetUartHandle_BusMap()[huart]->CallbackHandle(UART_Base::Callback_e::WRITE);
+    // }
+    if(huart == &huart2){
+        RS485_Base<2>::GetInstance().RxHandle();
     }
-#endif
     else if(huart == &huart1){
         RS485_Base<1>::GetInstance().RxHandle();
     }
-    //UART_Bus<0>::GetInstance().CallbackHandle(UART_Bus<0>::Callback_e::WRITE);
+#endif // __MC_BOARD
 }
 // 接收中断回调函数
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     GetUartHandle_BusMap()[huart]->CallbackHandle(UART_Base::Callback_e::READ);
-    //UART_Bus<0>::GetInstance().CallbackHandle(UART_Bus<0>::Callback_e::READ);
 }
 
 // 出错中断回调函数

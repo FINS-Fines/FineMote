@@ -19,7 +19,6 @@
 #include "iwdg.h"
 #include "stm32f4xx_it.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -77,6 +76,14 @@ constexpr CAN_HandleTypeDef* CAN_Buses[] = {&hcan1, &hcan2};
 constexpr uint8_t CAN_BUS_MAXIMUM_COUNT = sizeof(CAN_Buses) / sizeof(CAN_HandleTypeDef*);
 
 #define RS485_PERIPHERAL
+
+typedef struct {
+    TIM_HandleTypeDef* timerPtr; // 定时器HAL对象指针
+    uint32_t channel;              // 定时器通道
+    uint32_t activeFlag;
+}PWM_UNIT_t;
+extern PWM_UNIT_t pwmList[4];
+#define PWM_PERIPHERAL
 
 typedef struct {
     SPI_HandleTypeDef *spiHandle;

@@ -9,6 +9,13 @@
 
 #include "BeepMusic.h"
 
+PWM_UNIT_t pwmList[4] = {
+    {&htim8,TIM_CHANNEL_1},
+    {&htim8,TIM_CHANNEL_2},
+    {&htim8,TIM_CHANNEL_3},
+    {&htim8,TIM_CHANNEL_4},
+};
+
 UART_HandleTypeDef *uartHandleList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, &huart5};
 GPIO_TypeDef *rs485TxPortList[3] = {nullptr, GPIOC, GPIOB};
 uint16_t rs485TxPinList[3] = {0, GPIO_PIN_15, GPIO_PIN_3};

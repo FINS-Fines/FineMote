@@ -12,7 +12,7 @@
 #include "Bus/RS485_Base.h"
 #include "Verification/CRC.h"
 
-
+#define D28_485_BUFFER_SIZE (30)
 template<int busID>
 class D28_485 : public DeviceBase {
 public:
