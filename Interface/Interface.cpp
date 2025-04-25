@@ -13,12 +13,12 @@
  * @brief LED闪烁
  */
 void Task1() {
-    static int cnt = 0;
-    cnt++;
-    if(cnt > 1000) {
-        cnt = 0;
-        LED::Toggle();
-    }
+  static int cnt = 0;
+  cnt++;
+  if (cnt > 1000) {
+    cnt = 0;
+    LED::Toggle();
+  }
 }
 
 /*****  示例2 *****/
@@ -28,12 +28,12 @@ void Task1() {
 #include "BeepMusic.h"
 
 void Task2() {
-    if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15)) {
-        static int index = 1;
-        BeepMusic::MusicChannels[0].Play(index++);
-        index %= 3;
-    }
-    BeepMusic::MusicChannels[0].BeepService();
+  if (GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15)) {
+    static int index = 1;
+    BeepMusic::MusicChannels[0].Play(index++);
+    index %= 3;
+  }
+  BeepMusic::MusicChannels[0].BeepService();
 }
 
 /*****  示例3 *****/
@@ -83,6 +83,12 @@ dji_group_agent<1> group_1_1(0x200);
 M3508<1> LMotor(M3508_left_para, wheelControllers[0], 0x201, &group_1_1);
 M3508<1> RMotor(M3508_right_para, wheelControllers[1], 0x202, &group_1_1);
 
+
+constexpr PID_Param_t MowerPID = {10.0f, 0.0f, 100.f, 2000, 16384};
+
+auto MowerControllers = CreateControllers<PID, 1>(MowerPID);
+M3508<1> MowerMotor(M3508_left_para, MowerControllers[0], 0x203, &group_1_1);
+
 //首先调取底盘类的构建器，然后使用提供的电机添加函数，将上文构建的电机指针传入构建器，最后由构建器返回构建好的底盘类对象
 Chassis_d chassis = Chassis_d::Build().
         AddLMotor(LMotor).
@@ -101,8 +107,33 @@ RadioMaster_Zorro remote;
  * @brief 底盘根据遥控器数据运动
  */
 void Task3() {
-    constexpr float speedLimit = 3.f;
-    chassis.ChassisSetVelocity(remote.GetInfo().rightCol * speedLimit, remote.GetInfo().leftRol * 360.f);
+  constexpr float speedLimit = 3.f;
+  switch(remote.GetInfo().sB){
+    case 3: // middle
+      chassis.chassisAutoFlag = false;
+      chassis.ChassisSetVelocity(remote.GetInfo().rightCol * speedLimit, -remote.GetInfo().leftRol * 360.f);
+      break;
+    case 2: //up
+      if (!chassis.chassisAutoFlag){
+        chassis.OdoFeedback.x = 0;
+        chassis.OdoFeedback.y = 0;
+        chassis.OdoFeedback.theta = 0;
+        chassis.QueueHead = 0;
+      }
+      chassis.chassisAutoFlag = true;
+
+      break;
+    default:
+      chassis.chassisAutoFlag = false;
+      chassis.ChassisSetVelocity(0, 0);
+      break;
+  }
+
+
+  if (remote.GetInfo().leftCol > -0.8f) {
+    MowerMotor.SetTargetSpeed((remote.GetInfo().leftCol + 0.8f) * 200.f * 2.f);
+  } else MowerMotor.SetTargetSpeed(0);
+
 }
 
 /*****  示例4 *****/
@@ -122,14 +153,14 @@ extern "C" {
 #endif
 
 void Setup() {
-    std::function<void(uint8_t *, uint16_t)> remoteDecodeFunc = [](uint8_t* data, uint16_t length){
-        remote.Decode(data, length);
-    };
-    UARTBaseLite<3>::GetInstance().Bind(remoteDecodeFunc);
+  std::function<void(uint8_t *, uint16_t)> remoteDecodeFunc = [](uint8_t *data, uint16_t length) {
+      remote.Decode(data, length);
+  };
+  UARTBaseLite<3>::GetInstance().Bind(remoteDecodeFunc);
 
-    std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t* data, uint16_t length){
-        motion.Decode(data, length);
-    };
+  std::function<void(uint8_t *, uint16_t)> decodeFunc = [](uint8_t *data, uint16_t length) {
+      motion.Decode(data, length);
+  };
 //    UARTBaseLite<5>::GetInstance().Bind(decodeFunc);
 }
 
@@ -151,17 +182,17 @@ extern "C" {
 #endif
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if(htim == &TIM_Control) {
-        HAL_IWDG_Refresh(&hiwdg);
-        DeviceBase::DevicesHandle();
-        Task1();
-        Task2();
-        Task3();
-        Task4();
+  if (htim == &TIM_Control) {
+    HAL_IWDG_Refresh(&hiwdg);
+    DeviceBase::DevicesHandle();
+    Task1();
+    Task2();
+    Task3();
+    Task4();
 
-        CAN_Bus<1>::TxLoader();
-        CAN_Bus<2>::TxLoader();
-    }
+    CAN_Bus<1>::TxLoader();
+    CAN_Bus<2>::TxLoader();
+  }
 }
 
 #ifdef __cplusplus
