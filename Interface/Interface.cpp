@@ -16,6 +16,9 @@
 
 #include "RS485Dev_EnvMonitor.hpp"
 
+#include "RS485Dev_VolMonitor_4p.hpp"
+#include "RS485Dev_IntMonitor_4p.hpp"
+
 /*****  示例1 *****/
 /// @brief LED闪烁
 void Task1() {
@@ -95,6 +98,8 @@ void Task6() {
 
 /*****  电堆 系统安全监控管理子系统  *****/
 /// 电堆巡检，氢气泄露，堆芯温度，进气压力
+VolMonitor_4p<1> volMonitor_00x03(0x07, 500);
+VolMonitor_4p<1> volMonitor_04x07(0x08, 500);
 // FineSerial fineSerial;
 void Task7() {
 

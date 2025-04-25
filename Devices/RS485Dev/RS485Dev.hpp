@@ -1,7 +1,6 @@
 #ifndef RS485DEV_HPP
 #define RS485DEV_HPP
 
-
 #include "Bus/RS485_Base.h"
 
 // 接收 RS485 消息， PWM 占空比输出
@@ -20,9 +19,9 @@ protected:
   virtual void Update() {}
 
   void Handle() override {
-    Require();
     if (Check())
       Update();
+    Require();
   }
 };
 
