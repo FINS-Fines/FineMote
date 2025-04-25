@@ -17,17 +17,15 @@ public:
     explicit TempMonitor_8p(
         uint32_t dev_addr,
         uint32_t div = TEMP_MONITOR_DIVISION)
-    : rs485Agent(dev_addr)
-    , dev_addr_(dev_addr) {
+    : rs485Agent(dev_addr) {
         this->SetDivisionFactor(div);
     }
 
 protected:
     RS485_Agent<busID> rs485Agent;
-    uint32_t dev_addr_;
 
 public:
-    std::array<float, MONITOR_ARR_SIZE> temps_{};
+    // std::array<float, MONITOR_ARR_SIZE> temps_{};
 
 protected:
     /// 地址码(1), 功能码(1), 寄存器地址(2), 读取数量(2), CRC16(2)
@@ -80,12 +78,14 @@ protected:
                 (this->rs485Agent.rxbuf[3 + i * 2]<<8) |\
                 (this->rs485Agent.rxbuf[4 + i * 2]));
 
-            if (temp_raw & 0x8000) {
+           if (temp_raw & 0x8000) {
                 temp_raw = temp_raw - 65536;
             }
 
-            this->values_[i] = temp_raw / 10.0f;
-            this->temps_[i] = temp_raw / 10.0f;
+            this->values_[i] = static_cast<float>(temp_raw) / 10.0f;
+
+            // debug
+            // this->temps_[i] = this->values_[i];
         }
     }
 };

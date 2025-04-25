@@ -14,6 +14,8 @@
 #include "RS485Dev_PWMFan.hpp"
 #include "RS485Dev_TempMonitor_8p.hpp"
 
+#include "RS485Dev_EnvMonitor.hpp"
+
 /*****  示例1 *****/
 /// @brief LED闪烁
 void Task1() {
@@ -45,7 +47,7 @@ Fan<2> fan_04(0x03, 0x00, 500);
 Fan<2> fan_05(0x03, 0x01, 500);
 Fan<2> fan_06(0x03, 0x02, 500);
 Fan<2> fan_07(0x03, 0x03, 500);
-TempMonitor_8p<1> temp_monitor(0x04, 500);
+// TempMonitor_8p<1> temp_monitor(0x04, 500);
 constexpr PID_Param_t fan_pi_param = {-50.f, -0.05f, -0.80f, 2000, 100};
 PID fan_ctrl_00{fan_pi_param};
 PID fan_ctrl_01{fan_pi_param};
@@ -55,16 +57,16 @@ PID fan_ctrl_04{fan_pi_param};
 PID fan_ctrl_05{fan_pi_param};
 PID fan_ctrl_06{fan_pi_param};
 PID fan_ctrl_07{fan_pi_param};
-FuelCell::AirCooler cooler = FuelCell::AirCooler::Build().
-    AddFan0(&fan_00, &fan_ctrl_00).
-    AddFan1(&fan_01, &fan_ctrl_01).
-    AddFan2(&fan_02, &fan_ctrl_02).
-    AddFan3(&fan_03, &fan_ctrl_03).
-    AddFan4(&fan_04, &fan_ctrl_04).
-    AddFan5(&fan_05, &fan_ctrl_05).
-    AddFan6(&fan_06, &fan_ctrl_06).
-    AddFan7(&fan_07, &fan_ctrl_07).
-    AddTempMonitor(&temp_monitor).Build();
+// FuelCell::AirCooler cooler = FuelCell::AirCooler::Build().
+//     AddFan0(&fan_00, &fan_ctrl_00).
+//     AddFan1(&fan_01, &fan_ctrl_01).
+//     AddFan2(&fan_02, &fan_ctrl_02).
+//     AddFan3(&fan_03, &fan_ctrl_03).
+//     AddFan4(&fan_04, &fan_ctrl_04).
+//     AddFan5(&fan_05, &fan_ctrl_05).
+//     AddFan6(&fan_06, &fan_ctrl_06).
+//     AddFan7(&fan_07, &fan_ctrl_07).
+//     AddTempMonitor(&temp_monitor).Build();
 
 void Task3() {
 
@@ -98,6 +100,10 @@ void Task7() {
 
 }
 
+/*****  异常监控  *****/
+
+/*****  环境监控  *****/
+EnvMonitor<1> env_monitor(0x05, 1000);
 
 /**
  * @brief 用户初始化
