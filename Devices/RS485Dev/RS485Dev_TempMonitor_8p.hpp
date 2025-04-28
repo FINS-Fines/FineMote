@@ -86,6 +86,7 @@ protected:
 
             // debug
             // this->temps_[i] = this->values_[i];
+            // this->values_[7] = 50;
         }
     }
 };

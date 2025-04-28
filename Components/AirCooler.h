@@ -166,11 +166,11 @@ public:
             // config.insert({400, 55});
             // config.insert({600, 55});
             // config.insert({800, 55});
-            config.insert(0, 30);
-            config.insert(200, 30);
-            config.insert(400, 30);
-            config.insert(600, 30);
-            config.insert(800, 30);
+            config.insert(0, 45);
+            config.insert(200, 50);
+            config.insert(400, 50);
+            config.insert(600, 50);
+            config.insert(800, 50);
         }
         return config;
     };

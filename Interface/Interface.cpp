@@ -46,12 +46,12 @@ Fan<2> fan_00(0x02, 0x00, 500);
 Fan<2> fan_01(0x02, 0x01, 500);
 Fan<2> fan_02(0x02, 0x02, 500);
 Fan<2> fan_03(0x02, 0x03, 500);
-Fan<2> fan_04(0x03, 0x00, 500);
-Fan<2> fan_05(0x03, 0x01, 500);
-Fan<2> fan_06(0x03, 0x02, 500);
-Fan<2> fan_07(0x03, 0x03, 500);
-// TempMonitor_8p<1> temp_monitor(0x04, 500);
-constexpr PID_Param_t fan_pi_param = {-50.f, -0.05f, -0.80f, 2000, 100};
+Fan<2> fan_04(0x03, 0x03, 500);
+Fan<2> fan_05(0x03, 0x02, 500);
+Fan<2> fan_06(0x03, 0x01, 500);
+Fan<2> fan_07(0x03, 0x00, 500);
+TempMonitor_8p<1> temp_monitor(0x04, 500);
+constexpr PID_Param_t fan_pi_param = {-5.f, -0.01f, -0.8f, 2000, 100};
 PID fan_ctrl_00{fan_pi_param};
 PID fan_ctrl_01{fan_pi_param};
 PID fan_ctrl_02{fan_pi_param};
@@ -60,16 +60,16 @@ PID fan_ctrl_04{fan_pi_param};
 PID fan_ctrl_05{fan_pi_param};
 PID fan_ctrl_06{fan_pi_param};
 PID fan_ctrl_07{fan_pi_param};
-// FuelCell::AirCooler cooler = FuelCell::AirCooler::Build().
-//     AddFan0(&fan_00, &fan_ctrl_00).
-//     AddFan1(&fan_01, &fan_ctrl_01).
-//     AddFan2(&fan_02, &fan_ctrl_02).
-//     AddFan3(&fan_03, &fan_ctrl_03).
-//     AddFan4(&fan_04, &fan_ctrl_04).
-//     AddFan5(&fan_05, &fan_ctrl_05).
-//     AddFan6(&fan_06, &fan_ctrl_06).
-//     AddFan7(&fan_07, &fan_ctrl_07).
-//     AddTempMonitor(&temp_monitor).Build();
+FuelCell::AirCooler cooler = FuelCell::AirCooler::Build().
+    AddFan0(&fan_00, &fan_ctrl_00).
+    AddFan1(&fan_01, &fan_ctrl_01).
+    AddFan2(&fan_02, &fan_ctrl_02).
+    AddFan3(&fan_03, &fan_ctrl_03).
+    AddFan4(&fan_04, &fan_ctrl_04).
+    AddFan5(&fan_05, &fan_ctrl_05).
+    AddFan6(&fan_06, &fan_ctrl_06).
+    AddFan7(&fan_07, &fan_ctrl_07).
+    AddTempMonitor(&temp_monitor).Build();
 
 void Task3() {
 
@@ -98,8 +98,8 @@ void Task6() {
 
 /*****  电堆 系统安全监控管理子系统  *****/
 /// 电堆巡检，氢气泄露，堆芯温度，进气压力
-VolMonitor_4p<1> volMonitor_00x03(0x07, 500);
-VolMonitor_4p<1> volMonitor_04x07(0x08, 500);
+// VolMonitor_4p<1> volMonitor_00x03(0x07, 500);
+// VolMonitor_4p<1> volMonitor_04x07(0x08, 500);
 // FineSerial fineSerial;
 void Task7() {
 
