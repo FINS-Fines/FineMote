@@ -47,13 +47,13 @@ void Task2() {
  * @brief 底盘根据遥控器数据运动
  */
 
-constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
+//constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
 
 //auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 //auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
 
 ////构建组成底盘的各个电机
-//#define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
+#define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
 //Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
 //Motor4010<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143);
 //Motor4010<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
@@ -112,9 +112,13 @@ void Task3() {
 
 /*****  示例4 *****/
 
-#define SPEED_2_SPEED {Motor_Ctrl_Type_e::Speed, Motor_Ctrl_Type_e::Speed}
-auto oneAmplifiers = CreateControllers<Amplifier<1>, 1>();
-M1502E<1> motor1(SPEED_2_SPEED, oneAmplifiers[0], 0x97);//0x97没什么用
+//#define SPEED_2_SPEED {Motor_Ctrl_Type_e::Speed, Motor_Ctrl_Type_e::Speed}
+//auto oneAmplifiers = CreateControllers<Amplifier<1>, 1>();
+//M1502E<1> motor1(SPEED_2_SPEED, oneAmplifiers[0], 0x97);//0x97没什么用
+
+constexpr PID_Param_t speedPID = {40.f, 0.f, 100.f, 10.f, 32766.f};
+auto wheelController = CreateControllers<PID, 1>(speedPID);
+M1502E<1> motor1(TORQUE_2_SPEED, wheelController[0], 0x97);//0x97没什么用
 
 void Task4() {
   //里边本来是空的，现在是周时逸补充的内容

@@ -109,10 +109,11 @@ private:
         }
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
-                int16_t txTorque = Clamp(-controller->GetOutput(), -500.f, 500.f);
+//                int16_t txTorque = Clamp(+controller->GetOutput(), -32766.f, 32766.f);
+                int16_t txTorque = controller->GetOutput();
 
-                canAgent[0] = txTorque;
-                canAgent[1] = txTorque >> 8;
+                canAgent[0] = txTorque >> 8;
+                canAgent[1] = txTorque;
                 canAgent[2] = 0x00;
                 canAgent[3] = 0x00;
                 canAgent[4] = 0x00;
