@@ -77,6 +77,14 @@ void Error_Handler(void);
 #define CS1_GYRO_GPIO_Port GPIOB
 #define CS1_ACCEL_Pin GPIO_PIN_1
 #define CS1_ACCEL_GPIO_Port GPIOB
+#define DSHOT6_Pin GPIO_PIN_6
+#define DSHOT6_GPIO_Port GPIOC
+#define DSHOT7_Pin GPIO_PIN_7
+#define DSHOT7_GPIO_Port GPIOC
+#define DSHOT8_Pin GPIO_PIN_8
+#define DSHOT8_GPIO_Port GPIOC
+#define DSHOT9_Pin GPIO_PIN_9
+#define DSHOT9_GPIO_Port GPIOC
 #define USER_KEY_Pin GPIO_PIN_15
 #define USER_KEY_GPIO_Port GPIOA
 #define RS485_DIR2_Pin GPIO_PIN_3
