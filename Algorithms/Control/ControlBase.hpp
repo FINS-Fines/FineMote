@@ -4,10 +4,9 @@
  * All rights reserved.
  ******************************************************************************/
 
-#ifndef FINEMOTE_CONTROLBASE_H
-#define FINEMOTE_CONTROLBASE_H
+#ifndef FINEMOTE_CONTROLBASE_HPP
+#define FINEMOTE_CONTROLBASE_HPP
 
-#include <utility>
 #include <array>
 #include <vector>
 
@@ -70,4 +69,4 @@ class Amplifier : public ControllerBase {
     }
 };
 
-#endif //FINEMOTE_CONTROLBASE_H
+#endif
