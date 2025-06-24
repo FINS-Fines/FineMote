@@ -12,17 +12,12 @@
  * @brief 用户初始化
  */
 
-// extern void POVChassissSetup_Tmp();
-extern void DshotInit();
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void Setup() {
-    // hdma_tim8_up.XferCpltCallback = &HAL_DMA_XferCpltCallback;
-    DshotInit();
-    // POVChassissSetup_Tmp();
+
 }
 
 /**

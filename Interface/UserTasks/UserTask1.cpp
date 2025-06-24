@@ -1,6 +1,8 @@
-// Copyright (c) 2025.
-// IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
-// All rights reserved.
+/*******************************************************************************
+* Copyright (c) 2023.
+ * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+ * All rights reserved.
+ ******************************************************************************/
 
 #include "Task.h"
 #include "DSHOT.h"
