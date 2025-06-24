@@ -2,7 +2,7 @@
 #define FINEMOTE_MOTORBASE_H
 
 #include "DeviceBase.h"
-#include "Control/PID.h"
+#include "Control/ControlBase.h"
 
 enum class Motor_Ctrl_Type_e: uint16_t {
     Position = 0,
@@ -102,4 +102,4 @@ protected:
     ControllerBase* controller = nullptr;
 };
 
-#endif //FINEMOTE_MOTORBASE_H
+#endif

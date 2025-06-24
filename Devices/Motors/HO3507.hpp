@@ -7,12 +7,8 @@
 #ifndef FINEMOTE_MOTOR3507_H
 #define FINEMOTE_MOTOR3507_H
 
-#include "ProjectConfig.h"
-
-#ifdef MOTOR_COMPONENTS
-
-#include "Bus/CAN_Base.h"
-#include "Motors/MotorBase.h"
+#include "Motors/MotorBase.hpp"
+#include "Bus/CAN_Base.hpp"
 
 /**
  * Todo: Reduction ratio
@@ -68,7 +64,7 @@ private:
         canAgent[5] = 0XFF;
         canAgent[6] = 0xFF;
         canAgent[7] = 0xFC;
-        canAgent.Send(canAgent.addr);
+        canAgent.Transmit(canAgent.addr);
     }
 
     /**
@@ -113,7 +109,7 @@ private:
                 break;
             }
         }
-        canAgent.Send(canAgent.addr);
+        canAgent.Transmit(canAgent.addr);
     }
 
     void MessageGenerate(){
@@ -147,10 +143,10 @@ private:
                 break;
             }
         }
-        canAgent.Send(canAgent.addr);
+        canAgent.Transmit(canAgent.addr);
     }
 
-    void Update(){//方向取CCW
+    void Update(){  //正方向取CCW
         int16_t position_code = (canAgent.rxbuf[1] << 8) | canAgent.rxbuf[2];
         state.position = -static_cast<float>(position_code - 0x8000) / 32768.0f * 360.0f;
         int16_t speed_code = (canAgent.rxbuf[3] << 4) | ((canAgent.rxbuf[4] >> 4) & 0x0F);
@@ -160,5 +156,4 @@ private:
     }
 };
 
-#endif //MOTOR_COMPONENTS
-#endif //FINEMOTE_MOTOR3507_H
+#endif

@@ -4,26 +4,21 @@
  * All rights reserved.
  ******************************************************************************/
 
-#ifndef FINEMOTE_RMD_L_40xx_V3_H
-#define FINEMOTE_RMD_L_40xx_V3_H
+#ifndef FINEMOTE_MOTOR4010_H
+#define FINEMOTE_MOTOR4010_H
 
-#include "ProjectConfig.h"
-
-#ifdef MOTOR_COMPONENTS
-
-#include "Bus/CAN_Base.h"
-#include "Motors/MotorBase.h"
+#include "Motors/MotorBase.hpp"
+#include "Bus/CAN_Base.hpp"
 
 /**
  * Todo: Reduction ratio
  */
 template<int busID>
-class RMD_L_40xx_v3 : public MotorBase {
+class Motor4010 : public MotorBase {
 public:
 
     template<typename T>
-    RMD_L_40xx_v3(const Motor_Param_t&& params, T& _controller, uint32_t addr) : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
-        SetDivisionFactor(3);
+    Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr) : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
         ResetController(_controller);
     }
 
@@ -50,7 +45,7 @@ private:
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
-                int16_t txTorque = Clamp(1 * controller->GetOutput(), -1000.f, 1000.f);
+                int16_t txTorque = Clamp(1 * controller->GetOutput(), -500.f, 500.f);
 
                 canAgent[0] = 0xA1;
                 canAgent[1] = 0x00;
@@ -77,16 +72,15 @@ private:
                 break;
             }
         }
-        canAgent.Send(canAgent.addr - 0x100);
+        canAgent.Transmit(canAgent.addr);
     }
 
     void Update() {
-        state.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) / 65536.0f * 360.0f;
+        state.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
         state.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
         state.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
         state.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
     }
 };
 
-#endif //MOTOR_COMPONENTS
-#endif //FINEMOTE_RMD_L_40xx_V3_H
+#endif

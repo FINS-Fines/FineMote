@@ -7,7 +7,7 @@
 #ifndef FINEMOTE_SERVO_H
 #define FINEMOTE_SERVO_H
 
-#include "../../Services/Bus/PWM.h"
+#include "Bus/PWM.h"
 
 /**
  * 只考虑了180角度舵机
@@ -34,5 +34,4 @@ public:
     };
 };
 
-
-#endif //FINEMOTE_SERVO_H
+#endif
