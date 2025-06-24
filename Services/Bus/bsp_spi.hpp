@@ -1,10 +1,16 @@
-#include "Bus/bsp_spi.h"
+/*******************************************************************************
+* Copyright (c) 2024.
+ * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+ * All rights reserved.
+ ******************************************************************************/
+
+#ifndef BSP_SPI_H
+#define BSP_SPI_H
 #include "main.h"
+#include "ProjectConfig.h"
 
 
-
-void SPI_DMA_init(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint16_t num)
-{
+void SPI_DMA_init(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint16_t num) {
     auto spi_h = spi_t.spiHandle;
     auto dma_rx = spi_t.rxDMAHandle;
     auto dma_tx = spi_t.txDMAHandle;
@@ -16,9 +22,9 @@ void SPI_DMA_init(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint16
 
 
     //disable DMA
-    //Ê§Ğ§DMA
+    //å¤±æ•ˆDMA
     __HAL_DMA_DISABLE(dma_rx);
-    
+
     while(dma_rx->Instance->CR & DMA_SxCR_EN)
     {
         __HAL_DMA_DISABLE(dma_rx);
@@ -28,19 +34,19 @@ void SPI_DMA_init(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint16
 
     dma_rx->Instance->PAR = (uint32_t) & (SPI1->DR);
     //memory buffer 1
-    //ÄÚ´æ»º³åÇø1
+    //å†…å­˜ç¼“å†²åŒº1
     dma_rx->Instance->M0AR = (uint32_t)(rx_buf);
     //data length
-    //Êı¾İ³¤¶È
+    //æ•°æ®é•¿åº¦
     __HAL_DMA_SET_COUNTER(dma_rx, num);
 
     __HAL_DMA_ENABLE_IT(dma_rx, DMA_IT_TC);
 
 
     //disable DMA
-    //Ê§Ğ§DMA
+    //å¤±æ•ˆDMA
     __HAL_DMA_DISABLE(dma_tx);
-    
+
     while(dma_tx->Instance->CR & DMA_SxCR_EN)
     {
         __HAL_DMA_DISABLE(dma_tx);
@@ -51,23 +57,21 @@ void SPI_DMA_init(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint16
 
     dma_tx->Instance->PAR = (uint32_t) & (SPI1->DR);
     //memory buffer 1
-    //ÄÚ´æ»º³åÇø1
+    //å†…å­˜ç¼“å†²åŒº1
     dma_tx->Instance->M0AR = (uint32_t)(tx_buf);
     //data length
-    //Êı¾İ³¤¶È
+    //æ•°æ®é•¿åº¦
     __HAL_DMA_SET_COUNTER(dma_tx, num);
-
-
 }
 
-void SPI_DMA_enable(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint16_t ndtr)
-{
+
+void SPI_DMA_enable(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint16_t ndtr) {
     auto spi_h = spi_t.spiHandle;
     auto dma_rx = spi_t.rxDMAHandle;
     auto dma_tx = spi_t.txDMAHandle;
 
     //disable DMA
-    //Ê§Ğ§DMA
+    //å¤±æ•ˆDMA
     __HAL_DMA_DISABLE(dma_rx);
     __HAL_DMA_DISABLE(dma_tx);
     while(dma_rx->Instance->CR & DMA_SxCR_EN)
@@ -79,7 +83,7 @@ void SPI_DMA_enable(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint
         __HAL_DMA_DISABLE(dma_tx);
     }
     //clear flag
-    //Çå³ı±êÖ¾Î»
+    //æ¸…é™¤æ ‡å¿—ä½
     __HAL_DMA_CLEAR_FLAG (spi_h->hdmarx, __HAL_DMA_GET_TC_FLAG_INDEX(spi_h->hdmarx));
     __HAL_DMA_CLEAR_FLAG (spi_h->hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(spi_h->hdmarx));
     __HAL_DMA_CLEAR_FLAG (spi_h->hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(spi_h->hdmarx));
@@ -92,19 +96,17 @@ void SPI_DMA_enable(SPI_WITH_DMA_t spi_t, uint32_t tx_buf, uint32_t rx_buf, uint
     __HAL_DMA_CLEAR_FLAG (spi_h->hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(spi_h->hdmatx));
     __HAL_DMA_CLEAR_FLAG (spi_h->hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(spi_h->hdmatx));
     //set memory address
-    //ÉèÖÃÊı¾İµØÖ·
+    //è®¾ç½®æ•°æ®åœ°å€
     dma_rx->Instance->M0AR = rx_buf;
     dma_tx->Instance->M0AR = tx_buf;
     //set data length
-    //ÉèÖÃÊı¾İ³¤¶È
+    //è®¾ç½®æ•°æ®é•¿åº¦
     __HAL_DMA_SET_COUNTER(dma_rx, ndtr);
     __HAL_DMA_SET_COUNTER(dma_tx, ndtr);
     //enable DMA
-    //Ê¹ÄÜDMA
+    //ä½¿èƒ½DMA
     __HAL_DMA_ENABLE(dma_rx);
     __HAL_DMA_ENABLE(dma_tx);
 }
 
-
-
-
+#endif
