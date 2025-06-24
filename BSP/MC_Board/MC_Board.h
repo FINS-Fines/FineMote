@@ -31,9 +31,7 @@ extern int main();
 #endif
 
 class HALInit {
-/**
- *  @attention 此函数需要与cube生成的保持一致
- */
+
     HALInit() {
         main();
     };
@@ -51,13 +49,21 @@ public:
 
 #define HAL_INIT_HANDLE
 
-extern UART_HandleTypeDef *uartHandleList[];
-extern GPIO_TypeDef *rs485TxPortList[3];
-extern uint16_t rs485TxPinList[3];
-
 
 #define UART_PERIPHERAL
+constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, &huart5};
+constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UARTList[0]) - 1;
 
+#define RS485_PERIPHERAL
+constexpr size_t BSP_RS485UARTIndexList[] = {0, 1, 2};
+constexpr size_t RS485_BUS_MAXIMUM_COUNT = sizeof(BSP_RS485UARTIndexList) / sizeof(BSP_RS485UARTIndexList[0]) - 1;
+
+inline GPIO_TypeDef *const BSP_RS485FlowCtrlPortList[3] = {nullptr, GPIOC, GPIOB};
+constexpr uint16_t BSP_RS485FlowCtrlPinList[3] = {0, GPIO_PIN_15, GPIO_PIN_3};
+
+#define CAN_PERIPHERAL
+constexpr CAN_HandleTypeDef *BSP_CANList[] = {nullptr, &hcan1, &hcan2};
+constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
 
 #define TIM_Buzzer htim2
 #define TIM_Buzzer_Channel TIM_CHANNEL_4
@@ -72,12 +78,6 @@ extern uint16_t rs485TxPinList[3];
 
 #define TIM_Control htim7
 
-#define CAN_PERIPHERAL
-constexpr CAN_HandleTypeDef* CAN_Buses[] = {&hcan1, &hcan2};
-constexpr uint8_t CAN_BUS_MAXIMUM_COUNT = sizeof(CAN_Buses) / sizeof(CAN_HandleTypeDef*);
-
-#define RS485_PERIPHERAL
-
 typedef struct {
     SPI_HandleTypeDef *spiHandle;
     DMA_HandleTypeDef *rxDMAHandle;
@@ -85,7 +85,9 @@ typedef struct {
     TIM_HandleTypeDef *timHandleForHeat;
     uint32_t timChannelForHeat;
 } SPI_WITH_DMA_t;
+
 extern SPI_WITH_DMA_t spiWithDMA;
+
 #define IMU_PERIPHERAL
 
 #endif //FINEMOTE_MC_BOARD_H
