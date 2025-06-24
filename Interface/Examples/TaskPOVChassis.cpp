@@ -92,7 +92,7 @@ auto chassis = POV_ChassisBuilder<PlanarOdom>( \
 * Part 3: Command input definitions.
 */
 
-#include "RadioMaster_Zorro.h"
+#include "RemoteControllers/RadioMaster_Zorro.h"
 #include "FineWarden/FineSerial.hpp"
 
 FineSerial fineSerial;
