@@ -4,7 +4,7 @@
 
 #include "Task.h"
 
-#include "BeepMusic.h"
+#include "MultiMedia/BeepMusic.h"
 
 void TaskBeepMusic() {
     if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15)) {
