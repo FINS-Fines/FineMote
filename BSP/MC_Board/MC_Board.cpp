@@ -5,7 +5,7 @@
  ******************************************************************************/
 
 #include "MC_Board.h"
-#include "BeepMusic.h"
+#include "MultiMedia/BeepMusic.h"
 
 extern DMA_HandleTypeDef hdma_spi2_rx;
 extern DMA_HandleTypeDef hdma_spi2_tx;
