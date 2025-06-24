@@ -9,7 +9,7 @@
 
 #include <array>
 #include "arm_math.h"
-#include "matrix.h"
+#include "Matrix/matrix.h"
 #include "ChassisBase.hpp"
 
 using Swerve_t = struct Swerve_t {
