@@ -8,9 +8,6 @@
 #define FINEMOTE_RADIOMASTER_ZORRO_H
 
 #include "ProjectConfig.h"
-
-#ifdef RADIOMASTER_ZORRO_MODULE
-
 #include "RemoteControl.h"
 
 class RadioMaster_Zorro : public RemoteControl{
@@ -26,6 +23,4 @@ private:
     int32_t channel[16] = {};
 };
 
-#endif //RADIOMASTER_ZORRO_MODULE
-
-#endif //FINEMOTE_RADIOMASTER_ZORRO_H
+#endif
