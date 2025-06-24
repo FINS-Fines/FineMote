@@ -4,17 +4,13 @@
  * All rights reserved.
  ******************************************************************************/
 
-#ifndef FINEMOTE_MOTORODRIVE_H
-#define FINEMOTE_MOTORODRIVE_H
+#ifndef FINEMOTE_ODRIVE_H
+#define FINEMOTE_ODRIVE_H
 
-#include "ProjectConfig.h"
+#include "Motors/MotorBase.hpp"
+#include "Bus/CAN_Base.hpp"
 
-#ifdef MOTOR_COMPONENTS
-
-#include "Bus/CAN_Base.h"
-#include "Motors/MotorBase.h"
-
-template<int busID>
+template <int busID>
 class Odrive : public MotorBase {
 public:
 
@@ -58,7 +54,7 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Send(canAgent.addr << 5 | 0x00e,CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr << 5 | 0x00e,CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
             case Motor_Ctrl_Type_e::Position: {
@@ -72,7 +68,7 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Send(canAgent.addr << 5 | 0x00c,CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr << 5 | 0x00c,CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
             case Motor_Ctrl_Type_e::Speed: {
@@ -86,7 +82,7 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Send(canAgent.addr << 5 | 0x00d,CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr << 5 | 0x00d,CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
         }
@@ -105,4 +101,3 @@ private:
 };
 
 #endif
-#endif //FINEMOTE_MOTORODRIVE_H

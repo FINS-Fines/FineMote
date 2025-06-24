@@ -7,12 +7,8 @@
 #ifndef FINEMOTE_EMM28_H
 #define FINEMOTE_EMM28_H
 
-#include "ProjectConfig.h"
-
-#ifdef MOTOR_COMPONENTS
-#include "cmath"
-#include "Bus/CAN_Base.h"
-#include "Motors/MotorBase.h"
+#include "Motors/MotorBase.hpp"
+#include "Bus/CAN_Base.hpp"
 
 template <int busID>
 class Emm28 : public MotorBase {
@@ -57,7 +53,7 @@ private:
                 canAgent[5] = (uint8_t)(clk >> 24);
                 canAgent[6] = (uint8_t)(clk >> 16);
                 canAgent[7] = (uint8_t)(clk >> 8);
-                canAgent.Send(canAgent.addr, CAN_ID_EXT | CAN_RTR_DATA); //扩展帧模式
+                canAgent.Transmit(canAgent.addr, CAN_ID_EXT | CAN_RTR_DATA); //扩展帧模式
 
                 canAgent.SetDLC(5);
                 canAgent[0] = 0xFD;
@@ -65,7 +61,7 @@ private:
                 canAgent[2] = 0x01; //00 表示相对位置模式（01 表示绝对位置模式）
                 canAgent[3] = 0x00; //00 表示不启用多机同步（01表示启用）
                 canAgent[4] = 0x6B;
-                canAgent.Send(canAgent.addr + 1, CAN_ID_EXT | CAN_RTR_DATA); //第二段指令的地址+1
+                canAgent.Transmit(canAgent.addr + 1, CAN_ID_EXT | CAN_RTR_DATA); //第二段指令的地址+1
             }
         }
     }
@@ -74,7 +70,7 @@ private:
         canAgent.SetDLC(2);
         canAgent[0] = 0x36;
         canAgent[1] = 0x6B;
-        canAgent.Send(canAgent.addr, CAN_ID_EXT | CAN_RTR_DATA);
+        canAgent.Transmit(canAgent.addr, CAN_ID_EXT | CAN_RTR_DATA);
     }
 
     void Update() {
@@ -86,5 +82,4 @@ private:
     }
 };
 
-#endif //MOTOR_COMPONENTS
-#endif //FINEMOTE_EMM28_H
+#endif
