@@ -1,4 +1,3 @@
-
 /*******************************************************************************
  * Copyright (c) 2024.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
@@ -6,12 +5,7 @@
  ******************************************************************************/
 
 #include "MC_Board.h"
-
 #include "BeepMusic.h"
-
-UART_HandleTypeDef *uartHandleList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, &huart5};
-GPIO_TypeDef *rs485TxPortList[3] = {nullptr, GPIOC, GPIOB};
-uint16_t rs485TxPinList[3] = {0, GPIO_PIN_15, GPIO_PIN_3};
 
 extern DMA_HandleTypeDef hdma_spi2_rx;
 extern DMA_HandleTypeDef hdma_spi2_tx;
