@@ -4,28 +4,12 @@
  * All rights reserved.
  ******************************************************************************/
 
-#ifndef FINEMOTE_PID_H
-#define FINEMOTE_PID_H
+#ifndef FINEMOTE_PID_HPP
+#define FINEMOTE_PID_HPP
 
 #include <vector>
 
-#include "ControlBase.h"
-
-template <typename T>
-T& Clamp(T& value, const T& min, const T& max) {
-    static_assert(std::is_lvalue_reference<T&>::value, "value must be a reference (lvalue)");
-    if (value < min) value = min;
-    else if (value > max) value = max;
-    return value;
-}
-
-template <typename T>
-T Clamp(T&& value, const T& min, const T& max) {
-    static_assert(!std::is_lvalue_reference<T&&>::value, "value must be temporary (rvalue)");
-    if (value < min) value = min;
-    else if (value > max) value = max;
-    return value;
-}
+#include "ControlBase.hpp"
 
 typedef struct PID_Param_t {
     float kp;
@@ -92,4 +76,4 @@ private:
     std::array<PID, K - 1> nodes;
 };
 
-#endif //FINEMOTE_PID_H
+#endif

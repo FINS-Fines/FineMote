@@ -11,7 +11,7 @@
 #include "Motors/Motor4010.hpp"
 #include "Motors/Motor4315.hpp"
 
-#include "Control/PID.h"
+#include "Control/PID.hpp"
 
 constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
 
