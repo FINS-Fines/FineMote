@@ -12,14 +12,12 @@
  * @brief 用户初始化
  */
 
-extern void POVChassissSetup_Tmp();
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void Setup() {
-    POVChassissSetup_Tmp();
+
 }
 
 /**

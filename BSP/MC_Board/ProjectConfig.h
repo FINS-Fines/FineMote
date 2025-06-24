@@ -10,13 +10,8 @@
 /******************************************************************************************************
 1.根据cmakelist中选择的构建目标，导入对应BSP包
 ******************************************************************************************************/
-#ifdef __MC_BOARD
-#include "MC_Board.h"
-#endif
 
-#ifdef __ROBOMASTER_C
-#include "Robomaster_C.h"
-#endif
+#include "Board.h"
 
 /******************************************************************************************************
 2.处理各模块对BSP包的依赖关系，若满足全部依赖则启用模块，此处需要以注释形式给出应由BSP包实现的依赖条件的具体内容
@@ -34,31 +29,6 @@ static_assert(false);
 #endif
 
 /**
- * UART_PERIPHERAL 模块所需的UART外设依赖条件
- * @variable UART_HandleTypeDef uartHandleList[size] 所有可用的串口句柄列表，其定义和声明应该分离。使用时，
- *           传入的模板参数busID与此列表中串口的顺序相对应。
- */
-#if defined(UART_PERIPHERAL)
-#define UART_BASE_MODULE
-#define UART_AGNET_TASK_MAX_NUM 20
-#define UNFIXED_READ_MAX_LENGTH 100
-#endif
-
-/**
- * RS485_PERIPHERAL 模块所需的RS485外设依赖条件
- *
- */
-#if defined(RS485_PERIPHERAL)&& defined(UART_BASE_MODULE)
-#define RS485_BASE_MODULE
-#define RS485_AGNET_TASK_MAX_NUM 20
-#define RS485_UNFIXED_READ_MAX_LENGTH 100
-
-
-#endif
-
-
-
-/**
  * I2C_PERIPHERAL 模块所需的I2C外设依赖条件
  * @def USER_I2C 配置的I2C外设
  */
@@ -66,19 +36,6 @@ static_assert(false);
 #define I2C_BASE_MODULE
 #define I2C_AGNET_TASK_MAX_NUM 200
 #endif
-
-
-/**
- * CAN_PERIPHERAL //todo 完善此部分内容
- * @def
- * @variable
- *
- */
-#if defined(CAN_PERIPHERAL)
-#define CAN_BASE_MODULE
-#define CAN_QUEUE_MAX_NUM 16
-#endif
-
 
 /**
  * PWM_PERIPHERAL 模块所需的PWM外设依赖条件
@@ -93,7 +50,6 @@ extern PWM_UNIT_t pwmList[7];
 #if defined(PWM_PERIPHERAL)
 #define PWM_MODULE
 #endif
-
 
 /**
  * BUZZER_PERIPHERAL PWM驱动的蜂鸣器
@@ -155,9 +111,8 @@ typedef struct {
 #endif
 
 #define MOTOR_ENABLED
-#if defined(MOTOR_ENABLED)&& defined(CAN_BASE_MODULE)
+#if defined(MOTOR_ENABLED)
 #define MOTOR_COMPONENTS
 #endif
 
-
-#endif //FINEMOTE_PROJECTCONFIG_H
+#endif
