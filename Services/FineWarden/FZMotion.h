@@ -7,7 +7,7 @@
 #ifndef FINEMOTE_FZMOTION_H
 #define FINEMOTE_FZMOTION_H
 
-#include "UARTBaseLite.h"
+#include "UART_Base.hpp"
 
 typedef struct{
     uint32_t rig_id;
@@ -94,4 +94,4 @@ private:
     mqtt_brief_composed_t rxBuffer;
 };
 
-#endif //FINEMOTE_FZMOTION_H
+#endif
