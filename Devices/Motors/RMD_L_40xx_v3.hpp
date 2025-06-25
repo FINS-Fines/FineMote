@@ -9,6 +9,7 @@
 
 #include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
+#include "Control/Clamp.hpp"
 
 /**
  * Todo: Reduction ratio
