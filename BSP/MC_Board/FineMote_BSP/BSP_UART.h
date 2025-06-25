@@ -18,7 +18,7 @@ public:
 
 private:
     BSP_UARTs() {
-        HALInit::GetInstance();
+        PeripheralsInit::GetInstance();
         BSP_UARTs_Setup();
     }
     void BSP_UARTs_Setup();
