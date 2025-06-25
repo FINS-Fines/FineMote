@@ -9,6 +9,8 @@
 
 #include "ProjectConfig.h"
 
+#include "Verification/CRC.h"
+
 class FineSerial {
 public:
     void Decode(uint8_t* data, uint16_t size) {
@@ -38,4 +40,4 @@ private:
     std::array<float, 3> rtCmd;
 };
 
-#endif //FINESERIAL_H
+#endif
