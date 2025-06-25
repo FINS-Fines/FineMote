@@ -29,7 +29,7 @@ Song_t BeepMusic::songs[] = {
 };
 
 BeepMusic::BeepMusic(void (*handle)(uint32_t freq)) {
-    HALInit::GetInstance();
+    PeripheralsInit::GetInstance();
     beepHandle = handle;
 }
 

@@ -30,19 +30,19 @@ extern int main();
 }
 #endif
 
-class HALInit {
+class PeripheralsInit {
 
-    HALInit() {
+    PeripheralsInit() {
         main();
     };
 
 public:
-    HALInit(const HALInit &) = delete;
+    PeripheralsInit(const PeripheralsInit &) = delete;
 
-    HALInit &operator=(const HALInit &) = delete;
+    PeripheralsInit &operator=(const PeripheralsInit &) = delete;
 
-    static HALInit &GetInstance() {
-        static HALInit instance;
+    static PeripheralsInit &GetInstance() {
+        static PeripheralsInit instance;
         return instance;
     }
 };
@@ -54,14 +54,18 @@ public:
 constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, &huart5};
 constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UARTList[0]) - 1;
 
-#define RS485_PERIPHERAL
+/**
+ * RS485 Definitions
+ */
 constexpr size_t BSP_RS485UARTIndexList[] = {0, 1, 2};
 constexpr size_t RS485_BUS_MAXIMUM_COUNT = sizeof(BSP_RS485UARTIndexList) / sizeof(BSP_RS485UARTIndexList[0]) - 1;
 
 inline GPIO_TypeDef *const BSP_RS485FlowCtrlPortList[3] = {nullptr, GPIOC, GPIOB};
 constexpr uint16_t BSP_RS485FlowCtrlPinList[3] = {0, GPIO_PIN_15, GPIO_PIN_3};
 
-#define CAN_PERIPHERAL
+/**
+ * CAN Definitions
+ */
 constexpr CAN_HandleTypeDef *BSP_CANList[] = {nullptr, &hcan1, &hcan2};
 constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
 
@@ -88,6 +92,4 @@ typedef struct {
 
 extern SPI_WITH_DMA_t spiWithDMA;
 
-#define IMU_PERIPHERAL
-
-#endif //FINEMOTE_MC_BOARD_H
+#endif
