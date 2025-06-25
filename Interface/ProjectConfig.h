@@ -7,6 +7,8 @@
 #ifndef FINEMOTE_PROJECTCONFIG_H
 #define FINEMOTE_PROJECTCONFIG_H
 
+#include <type_traits>
+
 /******************************************************************************************************
 1.根据cmakelist中选择的构建目标，导入对应BSP包
 ******************************************************************************************************/
@@ -20,13 +22,29 @@
  ******************************************************************************************************/
 
 /**
- *  HAL_INIT_HANDLE 此项为系统重要依赖，不满足可能导致HAL库初始化晚于设备的构造函数，从而导致对外设操作失效
+ *  PeripheralsInit类为系统重要依赖，不满足可能导致外设初始化晚于设备的构造函数，从而导致对外设操作失效
  *  要求提供了由于确保HAL库初始化的处理对象，并且通过goto语句跳过main函数中由cube生成的初始化函数
  *
  */
-#ifndef HAL_INIT_HANDLE
-static_assert(false);
-#endif
+
+template <typename T, typename = void>
+struct is_complete : std::false_type {};
+
+template <typename T>
+struct is_complete<T, std::void_t<decltype(sizeof(T))>> : std::true_type {};
+
+template <>
+struct is_complete<void, void> : std::true_type {};
+
+template <typename T>
+struct is_complete<T, std::enable_if_t<std::is_function_v<T>>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_complete_v = is_complete<T>::value;
+
+
+
+static_assert(is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed in BSP.");
 
 /**
  * BUZZER_PERIPHERAL PWM驱动的蜂鸣器

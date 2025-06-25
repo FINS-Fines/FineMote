@@ -47,10 +47,9 @@ public:
     }
 };
 
-#define HAL_INIT_HANDLE
-
-
-#define UART_PERIPHERAL
+/**
+ * UART Definitions
+ */
 constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, &huart5};
 constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UARTList[0]) - 1;
 
