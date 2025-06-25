@@ -18,6 +18,7 @@ public:
 
 private:
     BSP_CANs() {
+        PeripheralsInit::GetInstance();
         BSP_CANs_Setup();
     }
 
