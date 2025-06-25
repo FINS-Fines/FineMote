@@ -840,9 +840,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Components</GroupName>
-        </Group>
-        <Group>
           <GroupName>::CMSIS</GroupName>
         </Group>
       </Groups>
