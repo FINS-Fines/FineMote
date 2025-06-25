@@ -12,9 +12,7 @@
 
 class RadioMaster_Zorro : public RemoteControl{
 public:
-    RadioMaster_Zorro() {
-        HALInit::GetInstance();
-    }
+    RadioMaster_Zorro() {}
     void Decode(uint8_t* data, uint16_t length) override;
 
 private:
