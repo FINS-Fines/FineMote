@@ -40,7 +40,7 @@ Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 
 // #include "Motors/RMD_L_40xx_v3.hpp"
 //
-// #include "Control/PID.h"
+// #include "Control/PID.hpp"
 //
 // constexpr PID_Param_t speedPID = {0.15f, 0.00145f, 0.0016f, 8000, 500};
 // constexpr PID_Param_t positionInnerPID = {0.5f, 0.0f, 0.02f, 500, 500};
