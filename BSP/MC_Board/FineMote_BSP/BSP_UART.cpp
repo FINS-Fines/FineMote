@@ -4,7 +4,7 @@
  * All rights reserved.
  ******************************************************************************/
 
-#include "UART_Base.hpp"
+#include "Bus/UART_Base.hpp"
 
 #ifdef __cplusplus
 extern "C" {

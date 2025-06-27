@@ -5,7 +5,7 @@
  ******************************************************************************/
 
 #include "BSP_CAN.h"
-#include "CAN_Base.hpp"
+#include "Bus/CAN_Base.hpp"
 
 #ifdef __cplusplus
 extern "C" {
