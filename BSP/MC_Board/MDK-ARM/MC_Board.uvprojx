@@ -81,7 +81,7 @@
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>0</RunUserProg1>
-            <RunUserProg2>1</RunUserProg2>
+            <RunUserProg2>0</RunUserProg2>
             <UserProg1Name></UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
@@ -747,9 +747,29 @@
           <GroupName>BSP</GroupName>
           <Files>
             <File>
+              <FileName>Semihost.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Semihost.c</FilePath>
+            </File>
+            <File>
               <FileName>MC_Board.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\MC_Board.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>BSP_CAN.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\FineMote_BSP\BSP_CAN.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>BSP_RS485.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\FineMote_BSP\BSP_RS485.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>BSP_UART.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\FineMote_BSP\BSP_UART.cpp</FilePath>
             </File>
           </Files>
         </Group>

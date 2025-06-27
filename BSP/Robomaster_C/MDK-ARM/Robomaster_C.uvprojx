@@ -595,9 +595,24 @@
           <GroupName>BSP</GroupName>
           <Files>
             <File>
+              <FileName>Semihost.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Semihost.c</FilePath>
+            </File>
+            <File>
               <FileName>Robomaster.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\Robomaster.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>BSP_CAN.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\FineMote_BSP\BSP_CAN.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>BSP_UART.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\FineMote_BSP\BSP_UART.cpp</FilePath>
             </File>
           </Files>
         </Group>
