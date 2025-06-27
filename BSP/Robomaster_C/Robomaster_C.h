@@ -18,15 +18,7 @@
 #include "usart.h"
 #include "gpio.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern int main();
-
-#ifdef __cplusplus
-}
-#endif
+int main();
 
 class PeripheralsInit{
 /**

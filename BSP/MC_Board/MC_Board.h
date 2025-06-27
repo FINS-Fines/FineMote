@@ -19,22 +19,13 @@
 #include "iwdg.h"
 #include "stm32f4xx_it.h"
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern int main();
-
-#ifdef __cplusplus
-}
-#endif
+int main();
 
 class PeripheralsInit {
 
     PeripheralsInit() {
         main();
-    };
+    }
 
 public:
     PeripheralsInit(const PeripheralsInit &) = delete;
