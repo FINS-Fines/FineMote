@@ -338,7 +338,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F407xx,__ROBOMASTER_C</Define>
+              <Define>USE_HAL_DRIVER,STM32F407xx,__ROBOMASTER_C,__KEIL_APP</Define>
               <Undefine></Undefine>
               <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../FineMote_BSP;../../../Interface;../../../Services;../../../Devices;../../../Algorithms;../../../Components;../../../ThirdParty/etl/include</IncludePath>
             </VariousControls>
