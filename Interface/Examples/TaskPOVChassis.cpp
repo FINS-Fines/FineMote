@@ -1,6 +1,18 @@
-// Copyright (c) 2025.
-// IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
-// All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2025.
+ * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+ * All rights reserved.
+ ******************************************************************************/
+
+#include "ProjectConfig.h"
+
+#ifdef __Keil_APP
+#ifndef WITH_POV_EXAMPLE
+#define WITH_POV_EXAMPLE
+#endif
+#endif
+
+#ifdef WITH_POV_EXAMPLE
 
 #include "Task.h"
 
@@ -128,3 +140,5 @@ void TaskPOVChassis() {
      }
 }
 TASK_EXPORT(TaskPOVChassis);
+
+#endif
