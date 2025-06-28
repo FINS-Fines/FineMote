@@ -797,11 +797,6 @@
               <FilePath>..\..\..\Interface\Examples\TaskLED.cpp</FilePath>
             </File>
             <File>
-              <FileName>TaskPOVChassis.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Interface\Examples\TaskPOVChassis.cpp</FilePath>
-            </File>
-            <File>
               <FileName>UserTask1.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\Interface\UserTasks\UserTask1.cpp</FilePath>
