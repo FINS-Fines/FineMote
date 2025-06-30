@@ -49,6 +49,21 @@ constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UART
 constexpr CAN_HandleTypeDef *BSP_CANList[] = {nullptr, &hcan1, &hcan2};
 constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
 
+/**
+ * DHSOT Definitions
+ */
+// inline GPIO_TypeDef *const BSP_DHOSTPortList[5] = {nullptr, GPIOC, GPIOC, GPIOC, GPIOC};
+// constexpr size_t BSP_DHOSTPinList[5] = {0, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9};
+
+/**
+ * PWM Definitions
+ */
+#define PWM_MODULE
+constexpr uint32_t BSP_PWMTimChannleList[5] = {0, TIM_CHANNEL_1, TIM_CHANNEL_2, TIM_CHANNEL_3, TIM_CHANNEL_4};
+constexpr TIM_HandleTypeDef *BSP_PWMTimList[9] = {nullptr, &htim1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &htim8};
+constexpr uint32_t BSP_TIMFrequencyList[9] = {0, 168000000, 0, 0, 0, 0, 0, 0, 168000000};
+
+
 #define TIM_Buzzer htim4
 #define TIM_Buzzer_Channel TIM_CHANNEL_3
 #define BUZZER_PERIPHERAL
