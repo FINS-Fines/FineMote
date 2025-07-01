@@ -68,14 +68,23 @@ constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANLis
 /**
  * PWM Definitions
  */
-#define PWM_MODULE
-constexpr uint32_t BSP_PWMTimChannleList[5] = {0, TIM_CHANNEL_1, TIM_CHANNEL_2, TIM_CHANNEL_3, TIM_CHANNEL_4};
-constexpr TIM_HandleTypeDef *BSP_PWMTimList[9] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &htim8};
-constexpr uint32_t BSP_TIMFrequencyList[9] = {0, 0, 0, 0, 0, 0, 0, 0, 168000000};
+constexpr struct {
+  uint32_t TIM_CHANNEL;
+  TIM_HandleTypeDef *TIM_Handle = nullptr;
+  uint16_t TIM_Frequency = 168; // Default frequency
+} BSP_PWMList[6] = {
+  {0, nullptr, 0},
+  {TIM_CHANNEL_1, &htim8, 168},
+  {TIM_CHANNEL_2, &htim8, 168},
+  {TIM_CHANNEL_3, &htim8, 168},
+  {TIM_CHANNEL_4, &htim8, 168},
+  {TIM_CHANNEL_4, &htim2, 84}  // BUZZER_PWM
+};
 
-
-#define TIM_Buzzer htim2
-#define TIM_Buzzer_Channel TIM_CHANNEL_4
+/**
+ * BUZZER Definitions
+ */
+#define BUZZER_PWM_ID 5
 #define BUZZER_PERIPHERAL
 
 #define LED_GPIO_Port   GPIOC

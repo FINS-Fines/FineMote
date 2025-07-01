@@ -7,6 +7,7 @@
 #define FINEMOTE_BEEPMUSIC_C
 
 #include "BeepMusic.h"
+#include "PWM_Base.hpp"
 #ifdef BEEPMUSIC_MODULE
 
 /*****   曲库   *****/
@@ -64,10 +65,11 @@ void BeepMusic::BeepService() {
 BeepMusic BeepMusic::MusicChannels[] = {
     BeepMusic([](uint32_t freq)->void {
         if(0 == freq){
-            __HAL_TIM_SET_COMPARE(&TIM_Buzzer, TIM_Buzzer_Channel, 0);
+            PWM_Base<BUZZER_PWM_ID>::GetInstance().SetDutyCycle(0);
         } else {
-            __HAL_TIM_SET_AUTORELOAD(&TIM_Buzzer, 1000000 / freq);
-            __HAL_TIM_SET_COMPARE(&TIM_Buzzer, TIM_Buzzer_Channel, 500000 / freq);
+            PWM_Base<BUZZER_PWM_ID>::GetInstance().SetFrequency(freq);
+            PWM_Base<BUZZER_PWM_ID>::GetInstance().SetDutyCycle(0.5);
+
         }
     }),
 };

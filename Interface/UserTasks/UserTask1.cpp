@@ -5,10 +5,12 @@
  ******************************************************************************/
 
 #include "Task.h"
-#include "PWM.h"
+#include "PWM_Base.hpp"
 
 void UserTask1() {
- ChannelPWM<8,1>::GetInstance().SetCompare(0.5);
- ChannelPWM<8,1>::GetInstance().SetFrequency(50);//
+ PWM_Base<1>::GetInstance().SetDutyCycle(0.2f);
+ PWM_Base<2>::GetInstance().SetDutyCycle(0.4f);
+ PWM_Base<3>::GetInstance().SetDutyCycle(0.6f);
+ PWM_Base<4>::GetInstance().SetDutyCycle(0.8f);
 }
 TASK_EXPORT(UserTask1);
