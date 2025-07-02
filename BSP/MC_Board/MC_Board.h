@@ -62,8 +62,16 @@ constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANLis
 /**
  * DHSOT Definitions
  */
-// inline GPIO_TypeDef *const BSP_DHOSTPortList[5] = {nullptr, GPIOC, GPIOC, GPIOC, GPIOC};
-// constexpr size_t BSP_DHOSTPinList[5] = {0, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9};
+extern DMA_HandleTypeDef hdma_tim1_up;
+#define DSHOT_DMA_HANDLE hdma_tim1_up
+#define DSHOT_DMA_TIM htim1
+#define DSHOT_PACK_HEAD_LENGTH 2
+#define DSHOT_PACK_TAIL_LENGTH 2
+#define DSHOT_FRAME_LENGTH 16
+#define DSHOT_PACK_LENGTH (DSHOT_FRAME_LENGTH + DSHOT_PACK_HEAD_LENGTH + DSHOT_PACK_TAIL_LENGTH)
+#define DSHOT_RX_LENGTH 100
+inline GPIO_TypeDef *const BSP_DHOSTPortList[5] = {nullptr, GPIOC, GPIOC, GPIOC, GPIOC};
+constexpr size_t BSP_DHOSTPinList[5] = {0, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9};
 
 /**
  * PWM Definitions

@@ -108,6 +108,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   MX_I2C1_Init();
+  MX_TIM8_Init();
   MX_I2C3_Init();
   MX_SPI2_Init();
   MX_USART2_UART_Init();
@@ -116,8 +117,6 @@ int main(void)
   MX_TIM7_Init();
   MX_USART3_UART_Init();
   MX_IWDG_Init();
-  MX_TIM5_Init();
-  MX_TIM8_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
       HAL_GPIO_WritePin(GPIOC, Power_OUT1_EN_Pin|Power_5V_EN_Pin|RS485_DIR1_Pin|LED1_Pin
