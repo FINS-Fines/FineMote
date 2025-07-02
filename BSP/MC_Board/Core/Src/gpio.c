@@ -53,8 +53,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, Power_OUT1_EN_Pin|Power_5V_EN_Pin|RS485_DIR1_Pin|LED1_Pin
-                          |GPIO_PIN_1|Power_OUT2_EN_Pin|DSHOT6_Pin|DSHOT7_Pin
-                          |DSHOT8_Pin|DSHOT9_Pin, GPIO_PIN_RESET);
+                          |GPIO_PIN_1|Power_OUT2_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, CS1_GYRO_Pin|CS1_ACCEL_Pin|RS485_DIR2_Pin, GPIO_PIN_RESET);
@@ -80,13 +79,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : DSHOT6_Pin DSHOT7_Pin DSHOT8_Pin DSHOT9_Pin */
-  GPIO_InitStruct.Pin = DSHOT6_Pin|DSHOT7_Pin|DSHOT8_Pin|DSHOT9_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USER_KEY_Pin */
   GPIO_InitStruct.Pin = USER_KEY_Pin;

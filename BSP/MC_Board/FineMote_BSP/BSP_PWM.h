@@ -41,7 +41,7 @@ void BSP_PWM_Setup(uint8_t ID) {
     BSP_PWM_SetDutyCycle(ID, 0);
     HAL_TIM_PWM_Start(BSP_PWMList[ID].TIM_Handle, BSP_PWMList[ID].TIM_CHANNEL);
 }
-} // 匿名空间，避免外部文件访问
+}
 
 /**
  * BSP Specific Definitions End

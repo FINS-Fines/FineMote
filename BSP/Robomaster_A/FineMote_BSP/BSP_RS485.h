@@ -1,0 +1,21 @@
+/*******************************************************************************
+ * Copyright (c) 2025.
+ * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+ * All rights reserved.
+ ******************************************************************************/
+
+#ifndef FINEMOTE_BSP_RS485_H
+#define FINEMOTE_BSP_RS485_H
+
+#include "Board.h"
+
+template <size_t ID>
+class RS485FlowControl {
+public:
+    // 自动流控
+    static void Switch2Rx() {}
+
+    static void Switch2Tx() {}
+};
+
+#endif
