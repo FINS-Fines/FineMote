@@ -12,10 +12,10 @@
 
 extern void DMA_XferCpltCallback(DMA_HandleTypeDef *hdma);
 
-class BSP_DSHOT {
+class BSP_DSHOTs {
 public:
-    static BSP_DSHOT &GetInstance() {
-        static BSP_DSHOT instance;
+    static BSP_DSHOTs &GetInstance() {
+        static BSP_DSHOTs instance;
         return instance;
     }
 
@@ -24,20 +24,38 @@ public:
     }
 
 private:
-    BSP_DSHOT() {
+    BSP_DSHOTs() {
         PeripheralsInit::GetInstance();
-        BSP_DSHOT_Setup();
+        BSP_DSHOTs_Setup();
     }
 
-    void BSP_DSHOT_Setup() {
-        LL_GPIO_SetPinMode(GPIOI,GPIO_PIN_2,LL_GPIO_MODE_OUTPUT);
-        LL_GPIO_SetPinMode(GPIOI,GPIO_PIN_5,LL_GPIO_MODE_OUTPUT);
-        LL_GPIO_SetPinMode(GPIOI,GPIO_PIN_6,LL_GPIO_MODE_OUTPUT);
-        LL_GPIO_SetPinMode(GPIOI,GPIO_PIN_7,LL_GPIO_MODE_OUTPUT);
+    void BSP_DSHOTs_Setup() {
         DSHOT_DMA_HANDLE.XferCpltCallback = &DMA_XferCpltCallback;
         __HAL_TIM_ENABLE_DMA(&DSHOT_DMA_TIM, TIM_DMA_UPDATE);
         HAL_TIM_Base_Start(&DSHOT_DMA_TIM);
     }
 };
+
+
+template <uint16_t ID>
+class BSP_DSHOT {
+public:
+    static BSP_DSHOT& GetInstance() {
+        static BSP_DSHOT instance;
+        return instance;
+    }
+
+private:
+    BSP_DSHOT() {
+        static_assert(ID > 0 && ID < sizeof(BSP_DHOSTPinList) / sizeof(BSP_DHOSTPinList[0]) && BSP_DHOSTPinList[ID] != 0, "Invalid DSHOT ID");
+        BSP_DSHOTs::GetInstance();
+        BSP_DSHOT_Setup();
+    }
+
+    void BSP_DSHOT_Setup() {
+        LL_GPIO_SetPinMode(BSP_DHOSTPortList[ID],BSP_DHOSTPinList[ID],LL_GPIO_MODE_OUTPUT);
+    }
+};
+
 
 #endif

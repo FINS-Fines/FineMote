@@ -7,7 +7,7 @@
 #include "MultiMedia/BeepMusic.h"
 
 void TaskBeepMusic() {
-    if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15)) {
+    if(BUTTON_PRESSED_STATE == HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin)) {
         static int index = 1;
         BeepMusic::MusicChannels[0].Play(index++);
         index %= 3;

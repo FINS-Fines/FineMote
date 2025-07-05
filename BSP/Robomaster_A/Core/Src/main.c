@@ -86,41 +86,42 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
     SystemClock_PreConfig();
   /* USER CODE END Init */
 
   /* Configure the system clock */
-    SystemClock_Config();
+  SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
     SystemClock_PostConfig();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-    MX_GPIO_Init();
-    MX_DMA_Init();
-    MX_CAN1_Init();
-    MX_CAN2_Init();
-    MX_I2C2_Init();
-    MX_TIM2_Init();
-    MX_TIM4_Init();
-    MX_TIM5_Init();
-    MX_TIM8_Init();
-    MX_TIM12_Init();
-    MX_UART7_Init();
-    MX_UART8_Init();
-    MX_USART1_UART_Init();
-    MX_USART3_UART_Init();
-    MX_USART6_UART_Init();
-    MX_USB_OTG_FS_USB_Init();
-    MX_TIM1_Init();
-    MX_SPI4_Init();
-    MX_ADC1_Init();
-    MX_IWDG_Init();
-    MX_TIM7_Init();
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_CAN1_Init();
+  MX_CAN2_Init();
+  MX_I2C2_Init();
+  MX_TIM2_Init();
+  MX_TIM4_Init();
+  MX_TIM5_Init();
+  MX_TIM8_Init();
+  MX_TIM12_Init();
+  MX_UART7_Init();
+  MX_UART8_Init();
+  MX_USART1_UART_Init();
+  MX_USART3_UART_Init();
+  MX_USART6_UART_Init();
+  MX_USB_OTG_FS_USB_Init();
+  MX_TIM1_Init();
+  MX_SPI4_Init();
+  MX_ADC1_Init();
+  MX_IWDG_Init();
+  MX_TIM7_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
     HAL_GPIO_WritePin(LED_G1_GPIO_Port, LED_G1_Pin|LED_G2_Pin|LED_G3_Pin|LED_G4_Pin|LED_G5_Pin|LED_G6_Pin|LED_G7_Pin|LED_G8_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);

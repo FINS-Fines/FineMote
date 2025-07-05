@@ -41,13 +41,13 @@ public:
 /**
  * UART Definitions
  */
-constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart1, nullptr, &huart3, nullptr, nullptr, &huart6, &huart7, &huart8};
+constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, nullptr, &huart6, &huart7, &huart8};
 constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UARTList[0]) - 1;
 
 /**
  * RS485 Definitions
  */
-constexpr size_t BSP_RS485UARTIndexList[] = {0, 1, 2, 3};
+constexpr size_t BSP_RS485UARTIndexList[] = {0, 1, 2};
 constexpr size_t RS485_BUS_MAXIMUM_COUNT = sizeof(BSP_RS485UARTIndexList) / sizeof(BSP_RS485UARTIndexList[0]) - 1;
 
 /**
@@ -107,9 +107,16 @@ constexpr struct {
 /**
  * BUZZER Definitions
  */
+#define BUTTON_PRESSED_STATE GPIO_PIN_SET
 #define BUZZER_PWM_ID 17
 #define BUZZER_PERIPHERAL
 
+/**
+ * LED Definitions
+ */
+inline GPIO_TypeDef *const BSP_LED_PortList[9] = {nullptr, GPIOG, GPIOG, GPIOG, GPIOG, GPIOG, GPIOG, GPIOG, GPIOG};
+constexpr size_t BSP_LED_PinList[9] = {0, LED_G1_Pin,  LED_G2_Pin,  LED_G3_Pin,  LED_G4_Pin, LED_G5_Pin,  LED_G6_Pin,  LED_G7_Pin,  LED_G8_Pin};
+#define LED_FLOW
 #define LED_GPIO_Port   LED_RED_GPIO_Port
 #define LED_Pin         LED_RED_Pin
 #define LED_PERIPHERAL

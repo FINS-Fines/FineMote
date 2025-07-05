@@ -13,5 +13,6 @@ void TaskLED() {
         cnt = 0;
         LED::Toggle();
     }
+    LED::Flow();
 }
 TASK_EXPORT(TaskLED);

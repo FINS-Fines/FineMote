@@ -18,7 +18,7 @@ private:
         }
     };
     uint32_t outPutData[DSHOT_PACK_LENGTH * 3] {};
-    etl::vector<DSHOT_GPIO_PortPins, 3> gpioPortsQueue = {};
+    etl::vector<DSHOT_GPIO_PortPins, 4> gpioPortsQueue = {};
 
     DSHOT_Port(){}
 
@@ -46,7 +46,7 @@ private:
     {
         uint32_t portMask = 0;
         for(auto &pin : pins) {
-            portMask += pin.first;
+            portMask |= pin.first;
         }
         uint32_t resetMask;
         uint32_t setMask;
@@ -59,27 +59,23 @@ private:
             setMask = portMask;
         }
 
-        UpdateMiddleBit(pins);
-
-        static bool isInitFinished = false;
-        if(!isInitFinished) {
-            for(int hold_bit_index = 0; hold_bit_index < DSHOT_PACK_HEAD_LENGTH; hold_bit_index++) {
-                outPutData[hold_bit_index * 3 + 0] |= resetMask; // Always reset all ports
-                outPutData[hold_bit_index * 3 + 1] |= resetMask;
-                outPutData[hold_bit_index * 3 + 2] |= resetMask;
-            }
-            for (int symbol_index = DSHOT_PACK_HEAD_LENGTH; symbol_index < DSHOT_FRAME_LENGTH + DSHOT_PACK_HEAD_LENGTH; symbol_index++) {
-                outPutData[symbol_index * 3 + 0] |= setMask ; // Always set all ports
-                outPutData[symbol_index * 3 + 1] = 0;          // Reset bits are port dependent
-                outPutData[symbol_index * 3 + 2] |= resetMask; // Always reset all ports
-            }
-            for(int hold_bit_index = DSHOT_FRAME_LENGTH + DSHOT_PACK_HEAD_LENGTH; hold_bit_index < DSHOT_PACK_LENGTH; hold_bit_index++) {
-                outPutData[hold_bit_index * 3 + 0] |= resetMask; // Always reset all ports
-                outPutData[hold_bit_index * 3 + 1] |= resetMask;
-                outPutData[hold_bit_index * 3 + 2] |= resetMask;
-            }
-            isInitFinished = true;
+        for(int hold_bit_index = 0; hold_bit_index < DSHOT_PACK_HEAD_LENGTH; hold_bit_index++) {
+            outPutData[hold_bit_index * 3 + 0] = resetMask; // Always reset all ports
+            outPutData[hold_bit_index * 3 + 1] = resetMask;
+            outPutData[hold_bit_index * 3 + 2] = resetMask;
         }
+        for (int symbol_index = DSHOT_PACK_HEAD_LENGTH; symbol_index < DSHOT_FRAME_LENGTH + DSHOT_PACK_HEAD_LENGTH; symbol_index++) {
+            outPutData[symbol_index * 3 + 0] = setMask ; // Always set all ports
+            outPutData[symbol_index * 3 + 1] = 0;          // Reset bits are port dependent
+            outPutData[symbol_index * 3 + 2] = resetMask; // Always reset all ports
+        }
+        for(int hold_bit_index = DSHOT_FRAME_LENGTH + DSHOT_PACK_HEAD_LENGTH; hold_bit_index < DSHOT_PACK_LENGTH; hold_bit_index++) {
+            outPutData[hold_bit_index * 3 + 0] = resetMask; // Always reset all ports
+            outPutData[hold_bit_index * 3 + 1] = resetMask;
+            outPutData[hold_bit_index * 3 + 2] = resetMask;
+        }
+
+        UpdateMiddleBit(pins);
     }
 
 public:
@@ -129,9 +125,8 @@ public:
             return; // 队列已遍历完毕
         }
 
-        etl::map<uint16_t, uint16_t, 16> &pins = gpioPortsQueue[currentIndex].pins;
-        GenerateMessage(pins);
-        BSP_DSHOT::GetInstance().TransmitMessage(outPutData, gpioPortsQueue[currentIndex].port, DSHOT_PACK_LENGTH * 3);
+        GenerateMessage(gpioPortsQueue[currentIndex].pins);
+        BSP_DSHOTs::GetInstance().TransmitMessage(outPutData, gpioPortsQueue[currentIndex].port, DSHOT_PACK_LENGTH * 3);
         currentIndex++;
     }
 
@@ -186,7 +181,7 @@ private:
     bool telemetryRequest = false;
 
     DSHOT_PIN() {
-        static_assert(ID > 0 && ID < sizeof(BSP_DHOSTPinList) / sizeof(BSP_DHOSTPinList[0]) && BSP_DHOSTPinList[ID] != 0, "Invalid DSHOT ID");
+        BSP_DSHOT<ID>::GetInstance();
         DSHOT_Port::GetInstance().AddPin(BSP_DHOSTPortList[ID], BSP_DHOSTPinList[ID]);
         isInverted = DSHOT_Port::GetInstance().isInverted;
     }
