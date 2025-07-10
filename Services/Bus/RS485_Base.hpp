@@ -46,7 +46,7 @@ public:
                 break;
             case RxState_e::RX:
                 cnt--;
-                if (cnt == 0 || !waitForResponse) {
+                if (!waitForResponse || cnt == 0) {
                     state = RxState_e::IDLE;
                     waitForResponse = false;
                     RS485FlowControl<ID>::Switch2Tx();
