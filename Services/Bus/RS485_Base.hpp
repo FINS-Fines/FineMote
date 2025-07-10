@@ -50,7 +50,7 @@ public:
                     state = RxState_e::IDLE;
                     waitForResponse = false;
                     RS485FlowControl<ID>::Switch2Tx();
-                    UART_Base<BSP_RS485UARTIndexList[ID]>::GetInstance().TxHandle();
+                    UART_Base<BSP_RS485UARTIndexList[ID]>::GetInstance().TxLoader();
                 }
                 break;
         }
