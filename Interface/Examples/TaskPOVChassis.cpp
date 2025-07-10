@@ -6,7 +6,7 @@
 
 #include "ProjectConfig.h"
 
-#ifdef __Keil_APP
+#ifdef __KEIL_APP
 #ifndef WITH_POV_EXAMPLE
 #define WITH_POV_EXAMPLE
 #endif
