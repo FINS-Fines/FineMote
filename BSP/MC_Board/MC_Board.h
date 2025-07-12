@@ -59,8 +59,33 @@ constexpr uint16_t BSP_RS485FlowCtrlPinList[3] = {0, GPIO_PIN_15, GPIO_PIN_3};
 constexpr CAN_HandleTypeDef *BSP_CANList[] = {nullptr, &hcan1, &hcan2};
 constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
 
-#define TIM_Buzzer htim2
-#define TIM_Buzzer_Channel TIM_CHANNEL_4
+/**
+ * DHSOT Definitions
+ */
+
+
+/**
+ * PWM Definitions
+ */
+using PWMList_t =  struct {
+  uint32_t TIM_CHANNEL;
+  TIM_HandleTypeDef *TIM_Handle = nullptr;
+  uint16_t TIM_Frequency = 168; // Default frequency
+};
+
+constexpr PWMList_t BSP_PWMList[6] = {
+  {0, nullptr, 0},
+  {TIM_CHANNEL_1, &htim8, 168},
+  {TIM_CHANNEL_2, &htim8, 168},
+  {TIM_CHANNEL_3, &htim8, 168},
+  {TIM_CHANNEL_4, &htim8, 168},
+  {TIM_CHANNEL_4, &htim2, 84}  // BUZZER_PWM
+};
+
+/**
+ * BUZZER Definitions
+ */
+#define BUZZER_PWM_ID 5
 #define BUZZER_PERIPHERAL
 
 #define LED_GPIO_Port   GPIOC

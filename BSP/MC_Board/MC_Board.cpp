@@ -19,7 +19,6 @@ extern "C" {
 
 void BSP_Setup() {
     HAL_TIM_Base_Start_IT(&TIM_Control);
-    HAL_TIM_PWM_Start(&TIM_Buzzer,TIM_Buzzer_Channel);
     BeepMusic::MusicChannels[0].Play(3);
 }
 

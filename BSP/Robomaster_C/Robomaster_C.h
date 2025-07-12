@@ -49,8 +49,35 @@ constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UART
 constexpr CAN_HandleTypeDef *BSP_CANList[] = {nullptr, &hcan1, &hcan2};
 constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
 
-#define TIM_Buzzer htim4
-#define TIM_Buzzer_Channel TIM_CHANNEL_3
+/**
+ * DHSOT Definitions
+ */
+
+/**
+ * PWM Definitions
+ */
+using PWMList_t =  struct {
+  uint32_t TIM_CHANNEL;
+  TIM_HandleTypeDef *TIM_Handle = nullptr;
+  uint16_t TIM_Frequency = 168; // Default frequency
+};
+
+constexpr PWMList_t BSP_PWMList[9] = {
+  {0, nullptr, 0},
+  {TIM_CHANNEL_1, &htim1, 168},
+  {TIM_CHANNEL_2, &htim1, 168},
+  {TIM_CHANNEL_3, &htim1, 168},
+  {TIM_CHANNEL_4, &htim1, 168},
+  {TIM_CHANNEL_1, &htim8, 168},
+  {TIM_CHANNEL_2, &htim8, 168},
+  {TIM_CHANNEL_3, &htim8, 168},
+  {TIM_CHANNEL_3, &htim4, 84}  // BUZZER_PWM
+};
+
+/**
+ * BUZZER Definitions
+ */
+#define BUZZER_PWM_ID 8
 #define BUZZER_PERIPHERAL
 
 #define LED_GPIO_Port   LED_B_GPIO_Port
@@ -61,14 +88,6 @@ constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANLis
 #define SPI_BMI088 hspi1 /** todo */
 
 #define USER_I2C hi2c2
-
-typedef struct {
-    TIM_HandleTypeDef* timerPtr; // 定时器HAL对象指针
-    uint32_t channel;              // 定时器通道
-    uint32_t activeFlag;
-}PWM_UNIT_t;
-
-extern PWM_UNIT_t pwmList[7];
 
 typedef struct {
     SPI_HandleTypeDef* spiHandle;
