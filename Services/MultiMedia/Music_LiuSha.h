@@ -1,7 +1,5 @@
-
-
 /*******************************************************************************
- * Copyright (c) 2024.
+ * Copyright (c) 2025.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
@@ -11,9 +9,7 @@
 
 #include "BeepMusicBasic.h"
 
-#ifdef FINEMOTE_BEEPMUSIC_C
-
-const MusicNote_t LiuSha_s[] = {
+inline const MusicNote_t LiuSha_s[] = {
         {_0,200},
         {M4, 30},{M5, 607}, {_0, 30},
         {M4, 30},{M5, 607}, {_0, 30},
@@ -23,6 +19,5 @@ const MusicNote_t LiuSha_s[] = {
         {M7, 137}, {_0, 30},
         {H1, 803}, {_0, 30},
 };
-#endif //FINEMOTE_BEEPMUSIC_C
 
-#endif //FINEMOTE_MUSIC_LIUSHA_H
+#endif

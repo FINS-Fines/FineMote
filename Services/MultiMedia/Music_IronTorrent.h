@@ -1,11 +1,15 @@
+/*******************************************************************************
+* Copyright (c) 2025.
+ * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+ * All rights reserved.
+ ******************************************************************************/
+
 #ifndef FINEMOTE_MUSIC_IRONTORRENT_H
 #define FINEMOTE_MUSIC_IRONTORRENT_H
 
 #include "BeepMusicBasic.h"
 
-#ifdef FINEMOTE_BEEPMUSIC_C
-
-const MusicNote_t IronTorrent_s[] = {
+inline const MusicNote_t IronTorrent_s[] = {
         {L6, 2400}, {_0, 150},
         {L3, 125}, {_0, 50},
         {L6, 125}, {_0, 25}, {L6, 125}, {_0, 25},
@@ -105,6 +109,4 @@ const MusicNote_t IronTorrent_s[] = {
         {H2, 250}, {_0, 50}, {H4, 250}, {_0, 50}, {H3, 250}, {_0, 50}, {H2, 250}, {_0, 50},
 };
 
-#endif //FINEMOTE_BEEPMUSIC_C
-
-#endif //FINEMOTE_MUSIC_IRONTORRENT_H
+#endif

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2023.
+ * Copyright (c) 2025.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
@@ -9,9 +9,7 @@
 
 #include "BeepMusicBasic.h"
 
-#ifdef FINEMOTE_BEEPMUSIC_C
-
-const MusicNote_t Astronomia_s[] = {
+inline const MusicNote_t Astronomia_s[] = {
     {H1, 100}, {_0, 50},
     {H1, 100}, {_0, 50},
     {H1, 100}, {_0, 50},
@@ -129,6 +127,4 @@ const MusicNote_t Astronomia_s[] = {
     {M5, 100}, {_0, 50},
 };
 
-#endif //FINEMOTE_BEEPMUSIC_C
-
-#endif //FINEMOTE_MUSIC_ASTRONOMIA_H
+#endif
