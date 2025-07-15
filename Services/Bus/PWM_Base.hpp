@@ -17,7 +17,7 @@ public:
     }
 
     void SetDutyCycle(float dutyCycle) {
-            BSP_PWM<ID>::GetInstance().SetDutyCycle(dutyCycle);
+        BSP_PWM<ID>::GetInstance().SetDutyCycle(dutyCycle);
     }
 
     void SetFrequency(uint32_t frequency) {
@@ -25,7 +25,9 @@ public:
     }
 
 private:
-    PWM_Base() = default;
+    PWM_Base() {
+        BSP_PWM<ID>::GetInstance();
+    }
     ~PWM_Base() = default;
     PWM_Base(const PWM_Base &) = delete;
     PWM_Base &operator=(const PWM_Base &) = delete;
