@@ -77,8 +77,7 @@ constexpr PWMList_t BSP_PWMList[9] = {
 /**
  * BUZZER Definitions
  */
-#define BUZZER_PWM_ID 8
-#define BUZZER_PERIPHERAL
+constexpr size_t BUZZER_PWM_ID = 8;
 
 #define LED_GPIO_Port   LED_B_GPIO_Port
 #define LED_Pin         LED_B_Pin

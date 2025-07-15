@@ -5,7 +5,6 @@
  ******************************************************************************/
 
 #include "MC_Board.h"
-#include "MultiMedia/BeepMusic.h"
 
 extern DMA_HandleTypeDef hdma_spi2_rx;
 extern DMA_HandleTypeDef hdma_spi2_tx;
@@ -19,7 +18,6 @@ extern "C" {
 
 void BSP_Setup() {
     HAL_TIM_Base_Start_IT(&TIM_Control);
-    BeepMusic::MusicChannels[0].Play(3);
 }
 
 #ifdef __cplusplus
