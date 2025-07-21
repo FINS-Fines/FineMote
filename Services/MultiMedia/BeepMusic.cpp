@@ -67,8 +67,8 @@ BeepMusic BeepMusic::MusicChannels[] = {
         if(0 == freq){
             PWM_Base<BUZZER_PWM_ID>::GetInstance().SetDutyCycle(0);
         } else {
-            PWM_Base<BUZZER_PWM_ID>::GetInstance().SetFrequency(freq);
-            PWM_Base<BUZZER_PWM_ID>::GetInstance().SetDutyCycle(0.5);
+       //     PWM_Base<BUZZER_PWM_ID>::GetInstance().SetFrequency(freq);
+        //    PWM_Base<BUZZER_PWM_ID>::GetInstance().SetDutyCycle(0.5);
 
         }
     }),

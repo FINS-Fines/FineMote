@@ -1,22 +1,22 @@
 /*******************************************************************************
- * Copyright (c) 2023.
+* Copyright (c) 2023.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
 
 #include "Task.h"
-#include "PWM_Base.hpp"
-#include "UART_Base.hpp"
-#include "DSHOT.hpp"
+
+#include "Bus/UART_Base.hpp"
+
+uint8_t buffer[] = "Hello";
 
 void UserTask1() {
- PWM_Base<1>::GetInstance().SetDutyCycle(0.2f);
- PWM_Base<2>::GetInstance().SetDutyCycle(0.4f);
- PWM_Base<3>::GetInstance().SetDutyCycle(0.6f);
- PWM_Base<4>::GetInstance().SetDutyCycle(0.8f);
- // DSHOT_PIN<1>::GetInstance().SetTargetThrottle(0);
- // DSHOT_PIN<2>::GetInstance().SetTargetThrottle(0.1);
- // DSHOT_PIN<3>::GetInstance().SetTargetThrottle(0.2);
- // DSHOT_PIN<4>::GetInstance().SetTargetThrottle(0.3);
+ // Do something
+ static uint32_t cnt = 0;
+ cnt++;
+ if (cnt > 1000) {
+  UART_Base<6>::GetInstance().Transmit(buffer, sizeof(buffer));
+  cnt = 0;
+ }
 }
 TASK_EXPORT(UserTask1);

@@ -68,4 +68,33 @@ void BSP_UART<ID>::Receive(uint8_t *data, uint16_t size) {
     HAL_UARTEx_ReceiveToIdle_IT(BSP_UARTList[ID], data, size);
 }
 
+template<>
+inline void BSP_UART<6>::Transmit(uint8_t *data, uint16_t size) {
+    HAL_UART_Transmit_DMA(BSP_UARTList[6], data, size);
+}
+
+template<>
+inline void BSP_UART<6>::Receive(uint8_t *data, uint16_t size) {
+    HAL_UARTEx_ReceiveToIdle_DMA(BSP_UARTList[6], data, size);
+}
+
+template<>
+inline void BSP_UART<7>::Transmit(uint8_t *data, uint16_t size) {
+    HAL_UART_Transmit_DMA(BSP_UARTList[7], data, size);
+}
+
+template<>
+inline void BSP_UART<7>::Receive(uint8_t *data, uint16_t size) {
+    HAL_UARTEx_ReceiveToIdle_DMA(BSP_UARTList[7], data, size);
+}
+
+template<>
+inline void BSP_UART<8>::Transmit(uint8_t *data, uint16_t size) {
+    HAL_UART_Transmit_DMA(BSP_UARTList[8], data, size);
+}
+
+template<>
+inline void BSP_UART<8>::Receive(uint8_t *data, uint16_t size) {
+    HAL_UARTEx_ReceiveToIdle_DMA(BSP_UARTList[8], data, size);
+}
 #endif
