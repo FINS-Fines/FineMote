@@ -9,6 +9,7 @@
 
 #include <vector>
 
+#include "Clamp.hpp"
 #include "ControlBase.hpp"
 
 typedef struct PID_Param_t {
@@ -24,17 +25,30 @@ public:
     constexpr explicit PID(const PID_Param_t& params) : params(params) {}
 
     const float& Calc() override{
+        //位置式PID
+        // float error = *targetPtr - *feedbackPtr;
+        // totalError += error;
+        // Clamp(totalError, -1 * params.iMax, params.iMax);
+        // output = params.kp * error + params.ki * totalError + params.kd * (error - lastError);
+        // lastError = error;
+        // return Clamp(output, -1 * params.outputMax, params.outputMax);
+
+        //增量式PID
         float error = *targetPtr - *feedbackPtr;
-        totalError += error;
-        Clamp(totalError, -1 * params.iMax, params.iMax);
-        output = params.kp * error + params.ki * totalError + params.kd * (error - lastError);
+        float delta_output = params.kp * (error - lastError) + params.ki * error + params.kd * (error - 2 * lastError + prevError);
+        output += delta_output;
+        prevError = lastError;
         lastError = error;
-        return Clamp(output, -1 * params.outputMax, params.outputMax);
+        return Clamp(output ,-1 * params.outputMax, 1 * params.outputMax);
     }
 
 private:
     const PID_Param_t params;
-    float totalError = 0, lastError = 0;
+    //位置式PID
+    // float totalError = 0, lastError = 0;
+
+    //增量式PID
+    float lastError = 0, prevError = 0;
 };
 
 template<size_t K>
