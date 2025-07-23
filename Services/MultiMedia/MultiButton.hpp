@@ -1,3 +1,8 @@
+/*******************************************************************************
+* Copyright (c) 2025.
+ * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+ * All rights reserved.
+ ******************************************************************************/
 
 #ifndef MULTI_BUTTON_HPP
 #define MULTI_BUTTON_HPP
@@ -10,20 +15,10 @@
 constexpr uint32_t SHORT_TICKS = 200 ;
 constexpr uint32_t LONG_TICKS = 1000 ;
 constexpr uint32_t GAP_TICKS = 400 ;
-constexpr uint8_t PRESS_REPEAT_MAX_NUM = 2;
 
 class Button;
 using ButtonCallback = void (*)(Button*);
-// enum class ButtonEvent : uint8_t {
-//     PressDown = 0,
-//     PressUp,
-//     PressRepeat,
-//     SingleClick,
-//     DoubleClick,
-//     LongPressStart,
-//     LongPressHold,
-//     NonePress
-// };
+
 enum class ButtonState : uint8_t {
     StateIdle = 0,
     StatePress,
@@ -31,6 +26,7 @@ enum class ButtonState : uint8_t {
     StateRepeat,
     StateLongHold
 };
+
 class Button : public DeviceBase{
 public:
     template <typename conditionFunc , typename exeFunc>
@@ -38,10 +34,8 @@ public:
         SetDivisionFactor(5);
         ticks = 0;
         gapTicks = 0;
-        // repeat = 0;
         isButtonBeingPressed = false;
         state = ButtonState::StateIdle;
-        // event = ButtonEvent::BTN_NONE_PRESS;
     }
     void Handle() final {
         ticks++;
@@ -92,7 +86,8 @@ public:
         if (gapTicks > GAP_TICKS) {
             ticks = 0;
             gapTicks = 0;
-            ExecuteFunction(ButtonState::StateRelease);  // 单击 判定完毕 播放 songIndex
+            state = ButtonState::StateIdle;
+            ExecuteFunction(ButtonState::StateRelease);
         }
         else {
             if (isButtonBeingPressed) {
@@ -107,17 +102,15 @@ public:
         }
     }
     void ImplementRepeat() {
-        if (!isButtonBeingPressed) {
-            ExecuteFunction(ButtonState::StateRepeat);    // 双击 判定完毕 播放index 3
+            ExecuteFunction(ButtonState::StateRepeat);
             ticks = 0;
             state = ButtonState::StateIdle;
-        }
     }
     void ImplementLongHold() {
         if (!isButtonBeingPressed) {
             ticks = 0;
             state = ButtonState::StateRelease;
-            ExecuteFunction(ButtonState::StateLongHold);  // 长按 判定完毕 播放 index 4
+            ExecuteFunction(ButtonState::StateLongHold);
         }
     }
 
@@ -126,11 +119,7 @@ public:
 
     int ticks ;
     int gapTicks;
-    // int repeat ;
     bool isButtonBeingPressed;
-    // ButtonEvent event ;
     ButtonState state ;
 };
 #endif
-
-
