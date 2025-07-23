@@ -15,6 +15,7 @@
 constexpr uint32_t SHORT_TICKS = 200 ;
 constexpr uint32_t LONG_TICKS = 1000 ;
 constexpr uint32_t GAP_TICKS = 400 ;
+constexpr uint32_t MAX_REPEAT_TIME = 5;
 
 class Button;
 using ButtonCallback = void (*)(Button*);
@@ -34,6 +35,7 @@ public:
         SetDivisionFactor(5);
         ticks = 0;
         gapTicks = 0;
+        repeat = 0 ;
         isButtonBeingPressed = false;
         state = ButtonState::StateIdle;
     }
@@ -102,9 +104,21 @@ public:
         }
     }
     void ImplementRepeat() {
-            ExecuteFunction(ButtonState::StateRepeat);
+        repeat++;
+        ExecuteFunction(ButtonState::StateRepeat);
+        if (ticks > GAP_TICKS) {
             ticks = 0;
+            repeat = 0;
             state = ButtonState::StateIdle;
+        }
+
+        if (isButtonBeingPressed) {
+            if (ticks > SHORT_TICKS && repeat <= MAX_REPEAT_TIME) {
+                state = ButtonState::StateRelease;
+            }
+        }else {
+            ticks = 0;
+        }
     }
     void ImplementLongHold() {
         if (!isButtonBeingPressed) {
@@ -117,8 +131,9 @@ public:
     std::function<bool()> IsButtonPressed;
     std::function<void(ButtonState)> ExecuteFunction;
 
-    int ticks ;
-    int gapTicks;
+    uint32_t ticks ;
+    uint32_t gapTicks;
+    uint32_t repeat;
     bool isButtonBeingPressed;
     ButtonState state ;
 };
