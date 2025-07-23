@@ -106,7 +106,7 @@ public:
     void ImplementRepeat() {
         repeat++;
         ExecuteFunction(ButtonState::StateRepeat);
-        if (ticks > GAP_TICKS) {
+        if (ticks > GAP_TICKS || repeat > MAX_REPEAT_TIME) {
             ticks = 0;
             repeat = 0;
             state = ButtonState::StateIdle;
