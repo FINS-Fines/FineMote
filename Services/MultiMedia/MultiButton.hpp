@@ -111,13 +111,9 @@ public:
             repeat = 0;
             state = ButtonState::StateIdle;
         }
-
-        if (isButtonBeingPressed) {
-            if (ticks > SHORT_TICKS && repeat <= MAX_REPEAT_TIME) {
+        if (!isButtonBeingPressed) {
+                ticks = 0;
                 state = ButtonState::StateRelease;
-            }
-        }else {
-            ticks = 0;
         }
     }
     void ImplementLongHold() {
