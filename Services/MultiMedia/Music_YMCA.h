@@ -1,6 +1,5 @@
-
 /*******************************************************************************
- * Copyright (c) 2024.
+ * Copyright (c) 2025.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
@@ -10,9 +9,7 @@
 
 #include "BeepMusicBasic.h"
 
-#ifdef FINEMOTE_BEEPMUSIC_C
-
-const MusicNote_t YMCA_s[] = {
+inline const MusicNote_t YMCA_s[] = {
     {_0, 300},
     {M5, 250}, {_0, 50},
     {M3, 250}, {_0, 50},
@@ -39,6 +36,5 @@ const MusicNote_t YMCA_s[] = {
     {M2, 250}, {_0, 50},
     {M1, 250}, {_0, 50},
 };
-#endif //FINEMOTE_BEEPMUSIC_C
 
-#endif //FINEMOTE_MUSIC_YMCA_H
+#endif

@@ -4,14 +4,45 @@
 
 #include "Task.h"
 
-#include "MultiMedia/BeepMusic.h"
+#include "MultiMedia/BeepMusic.hpp"
+
+enum class button_state_e {
+    UNPRESSED = 0 ,
+    PRESSED
+};
+
+BeepMusic<BUZZER_PWM_ID> MusicBuzzer(0);
+
+constexpr unsigned int debounceChecks = 5;
+constexpr auto buttonPressedLevel = GPIO_PIN_RESET;
+
+static button_state_e buttonStableState = button_state_e::UNPRESSED;
+static button_state_e buttonLastState = button_state_e::UNPRESSED;
+
+static int songIndex = 0;
+
+void updateButtonStateBitwise(button_state_e* current_state, bool rawIsPressed) {
+    constexpr uint32_t debounceMask = (1U << debounceChecks) - 1;
+    static uint32_t history = debounceMask;
+    history = (history << 1) | rawIsPressed;
+    if ((history & debounceMask) == 0) {
+        *current_state = button_state_e::PRESSED;
+    } else if ((history & debounceMask) == debounceMask) {
+        *current_state = button_state_e::UNPRESSED;
+    }
+}
 
 void TaskBeepMusic() {
-    if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15)) {
-        static int index = 1;
-        BeepMusic::MusicChannels[0].Play(index++);
-        index %= 3;
+    bool rawIsPressed = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) == buttonPressedLevel);
+    updateButtonStateBitwise(&buttonStableState,rawIsPressed );
+
+    if (buttonStableState != buttonLastState) {
+        if (buttonStableState == button_state_e::PRESSED) {
+            songIndex = (songIndex + 1) % 5;
+            MusicBuzzer.Play(songIndex);
+        }
     }
-    BeepMusic::MusicChannels[0].BeepService();
+    buttonLastState = buttonStableState;
 }
 TASK_EXPORT(TaskBeepMusic);
+

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2023.
+ * Copyright (c) 2025.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
@@ -72,4 +72,4 @@ typedef struct {
 
 #define SONG_INIT(_NAME) {#_NAME, _NAME##_s, sizeof(_NAME##_s)/sizeof(MusicNote_t)}
 
-#endif //FINEMOTE_BEEPMUSICBASIC_H
+#endif
