@@ -122,6 +122,7 @@ int main(void)
   MX_IWDG_Init();
   MX_TIM7_Init();
   MX_USART2_UART_Init();
+  MX_SPI5_Init();
   /* USER CODE BEGIN 2 */
     HAL_GPIO_WritePin(LED_G1_GPIO_Port, LED_G1_Pin|LED_G2_Pin|LED_G3_Pin|LED_G4_Pin|LED_G5_Pin|LED_G6_Pin|LED_G7_Pin|LED_G8_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
