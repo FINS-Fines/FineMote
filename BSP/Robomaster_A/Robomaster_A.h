@@ -105,6 +105,19 @@ constexpr struct {
 };
 
 /**
+ * SPI Definitions
+ */
+constexpr SPI_HandleTypeDef *BSP_SPIList[] = {nullptr, nullptr, nullptr, nullptr, &hspi4, &hspi5};
+constexpr size_t SPI_BUS_MAXIMUM_COUNT = sizeof(BSP_SPIList) / sizeof(BSP_SPIList[0]) - 1;
+constexpr struct {
+  GPIO_TypeDef *GPIO_PORT = nullptr;
+  uint16_t GPIO_PIN = 0;
+} BSP_SPI_NSS_List[2] = {
+  {SPI4_NSS1_GPIO_Port, SPI4_NSS1_Pin},
+  {SPI5_NSS1_GPIO_Port, SPI5_NSS1_Pin}
+};
+
+/**
  * BUZZER Definitions
  */
 #define BUTTON_PRESSED_STATE GPIO_PIN_SET
