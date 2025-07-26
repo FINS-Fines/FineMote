@@ -6,7 +6,7 @@
 
 #include "ProjectConfig.h"
 #include "DeviceBase.h"
-#include "Task.h"
+#include "Scheduler.h"
 
 /**
  * @brief 用户初始化
@@ -35,7 +35,7 @@ void Loop() {
 void MainRTLoop() {
     HAL_IWDG_Refresh(&hiwdg);
     DeviceBase::DevicesHandle();
-    RunAllTasks();
+    FineMoteScheduler();
 }
 
 /*****  不要修改以下代码 *****/

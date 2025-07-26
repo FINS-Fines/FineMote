@@ -1,12 +1,12 @@
 /*******************************************************************************
-* Copyright (c) 2023.
+* Copyright (c) 2025.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
 
-#include "Task.h"
+#include "Scheduler.h"
 
-void RunAllTasks() {
+void FineMoteScheduler() {
     extern const TaskFunc_t Tasks$$Base;
     extern const TaskFunc_t Tasks$$Limit;
 

@@ -2,7 +2,7 @@
 // IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
 // All rights reserved.
 
-#include "Task.h"
+#include "Scheduler.h"
 
 #include "MultiMedia/BeepMusic.hpp"
 
