@@ -56,7 +56,7 @@ constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANLis
 /**
  * PWM Definitions
  */
-using PWMList_t =  struct {
+using PWMList_t = struct PWMList_t {
   uint32_t TIM_CHANNEL;
   TIM_HandleTypeDef *TIM_Handle = nullptr;
   uint16_t TIM_Frequency = 168; // Default frequency
