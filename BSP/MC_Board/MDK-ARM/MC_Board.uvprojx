@@ -783,9 +783,9 @@
               <FilePath>..\..\..\Interface\Interface.cpp</FilePath>
             </File>
             <File>
-              <FileName>Task.cpp</FileName>
+              <FileName>Scheduler.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\..\..\Interface\Task.cpp</FilePath>
+              <FilePath>..\..\..\Interface\Scheduler.cpp</FilePath>
             </File>
             <File>
               <FileName>TaskBeepMusic.cpp</FileName>
@@ -822,11 +822,6 @@
         <Group>
           <GroupName>Services</GroupName>
           <Files>
-            <File>
-              <FileName>BeepMusic.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Services\MultiMedia\BeepMusic.cpp</FilePath>
-            </File>
             <File>
               <FileName>I2C_Base.cpp</FileName>
               <FileType>8</FileType>

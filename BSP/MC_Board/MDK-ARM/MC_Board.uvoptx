@@ -903,8 +903,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\..\..\Interface\Task.cpp</PathWithFileName>
-      <FilenameWithoutPath>Task.cpp</FilenameWithoutPath>
+      <PathWithFileName>..\..\..\Interface\Scheduler.cpp</PathWithFileName>
+      <FilenameWithoutPath>Scheduler.cpp</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -991,18 +991,6 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\..\..\Services\MultiMedia\BeepMusic.cpp</PathWithFileName>
-      <FilenameWithoutPath>BeepMusic.cpp</FilenameWithoutPath>
-      <RteFlg>0</RteFlg>
-      <bShared>0</bShared>
-    </File>
-    <File>
-      <GroupNumber>8</GroupNumber>
-      <FileNumber>52</FileNumber>
-      <FileType>8</FileType>
-      <tvExp>0</tvExp>
-      <tvExpOptDlg>0</tvExpOptDlg>
-      <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Services\Bus\I2C_Base.cpp</PathWithFileName>
       <FilenameWithoutPath>I2C_Base.cpp</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
@@ -1018,7 +1006,7 @@
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>9</GroupNumber>
-      <FileNumber>53</FileNumber>
+      <FileNumber>52</FileNumber>
       <FileType>8</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
@@ -1030,7 +1018,7 @@
     </File>
     <File>
       <GroupNumber>9</GroupNumber>
-      <FileNumber>54</FileNumber>
+      <FileNumber>53</FileNumber>
       <FileType>8</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
@@ -1042,7 +1030,7 @@
     </File>
     <File>
       <GroupNumber>9</GroupNumber>
-      <FileNumber>55</FileNumber>
+      <FileNumber>54</FileNumber>
       <FileType>8</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
