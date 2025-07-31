@@ -1,6 +1,12 @@
 #ifndef FINEMOTE_DSHOT_H
 #define FINEMOTE_DSHOT_H
 
+#define DSHOT_MIN_THROTTLE              (48)
+#define DSHOT_MAX_THROTTLE              (2047)
+#define DSHOT_3D_FORWARD_MIN_THROTTLE   (1048)
+#define DSHOT_3D_BACKWARD_MAX_THROTTLE  (1047)
+#define DSHOT_RANGE                     (1999)
+
 #include "BSP_DSHOT.h"
 #include "DeviceBase.h"
 #include "etl/map.h"
@@ -147,20 +153,44 @@ public:
         return instance;
     }
 
+    void SetIntThrottle(int integerThrottle) {
+        if(!isMotorEnabled) {
+            targetThrottle = 0;
+            GenerateDshotPack();
+            return;
+        }
+
+        targetThrottle = integerThrottle;
+        GenerateDshotPack();
+    }
+
     void SetTargetThrottle(float throttle) {
+        if(!isMotorEnabled) {
+            targetThrottle = 0;
+            GenerateDshotPack();
+            return;
+        }
         // range of throttle 3D(-1，1), normal(0，1)
         if(is3DModeEnabled) {
             if (fabsf(throttle) < 1e-6f) {
-                targetThrottle = 1500;
+                targetThrottle = 0;
             }
             else {
-                targetThrottle = static_cast<uint16_t>(1500 + throttle * 500); // 3D模式下油门范围为1000到2000
-                targetThrottle = targetThrottle > 2000 ? 2000 : (targetThrottle < 1000 ? 1000 : targetThrottle); // 限制范围
+                if(throttle < 0) {
+                    targetThrottle = DSHOT_MIN_THROTTLE + static_cast<int>(roundf(fabsf(throttle) * (DSHOT_3D_BACKWARD_MAX_THROTTLE - DSHOT_MIN_THROTTLE)));
+                    targetThrottle = targetThrottle < DSHOT_MIN_THROTTLE ? DSHOT_MIN_THROTTLE : targetThrottle;
+                    targetThrottle = targetThrottle > DSHOT_3D_BACKWARD_MAX_THROTTLE ? DSHOT_3D_BACKWARD_MAX_THROTTLE : targetThrottle;
+                }
+                else {
+                    targetThrottle = DSHOT_3D_FORWARD_MIN_THROTTLE + static_cast<int>(roundf(throttle * (DSHOT_MAX_THROTTLE - DSHOT_3D_FORWARD_MIN_THROTTLE)));
+                    targetThrottle = targetThrottle < DSHOT_3D_FORWARD_MIN_THROTTLE ? DSHOT_3D_FORWARD_MIN_THROTTLE : targetThrottle;
+                    targetThrottle = targetThrottle > DSHOT_MAX_THROTTLE ? DSHOT_MAX_THROTTLE : targetThrottle;
+                }
             }
         }
         else {
-            int integerThrottle = static_cast<int>(roundf(throttle * 2000));
-            targetThrottle = integerThrottle > 2000 ? 2047 : (integerThrottle <= 0 ? 0 : integerThrottle + 47); // 1-47保留为特殊指令
+            int integerThrottle = static_cast<int>(roundf(throttle * DSHOT_RANGE));
+            targetThrottle = integerThrottle > DSHOT_RANGE ? DSHOT_MAX_THROTTLE : (integerThrottle <= 0 ? 0 : integerThrottle + DSHOT_MIN_THROTTLE); // 1-47保留为特殊指令
         }
 
         GenerateDshotPack();
@@ -174,11 +204,22 @@ public:
         telemetryRequest = isEnable;
     }
 
+    void EnableMotor() {
+        isMotorEnabled = true;
+    }
+
+    void DisableMotor() {
+        isMotorEnabled = false;
+        targetThrottle = 0;
+        GenerateDshotPack();
+    }
+
 private:
     uint16_t targetThrottle = 0;
     bool is3DModeEnabled = false;
     bool isInverted = false;
     bool telemetryRequest = false;
+    bool isMotorEnabled = true; // 是否允许电机工作
 
     DSHOT_PIN() {
         BSP_DSHOT<ID>::GetInstance();
