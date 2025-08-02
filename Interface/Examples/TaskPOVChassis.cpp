@@ -14,7 +14,7 @@
 
 #ifdef WITH_POV_EXAMPLE
 
-#include "Task.h"
+#include "Scheduler.h"
 
 /**
 * Part 1 (Case 1): Motor definitions.
