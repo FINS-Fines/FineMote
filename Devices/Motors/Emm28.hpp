@@ -32,7 +32,7 @@ private:
     void SetFeedback() final {
         switch (params.targetType) {
         case Motor_Ctrl_Type_e::Position:
-            controller->SetFeedback({&state.position, &state.position});
+            controller->SetFeedbacks(&state.position);
             break;
         }
     }
@@ -41,7 +41,8 @@ private:
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Position: {
                 const uint16_t vel = 0x0100; //转动速度(RPM)
-                float target = controller->GetOutput();
+                ControllerOutputData output=controller->GetOutputs();
+                float target = output.dataPtr[0];
                 const uint32_t clk = std::abs(std::round(target * 3200.f / 360.f)); //16 细分下发送 3200 个脉冲电机旋转一圈
 
                 canAgent.SetDLC(8);

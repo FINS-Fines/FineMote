@@ -32,10 +32,10 @@ private:
     void SetFeedback() final{
         switch (params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedback({&state.position, &state.speed});
+                controller->SetFeedbacks(&state.position);
                 break;
             case Motor_Ctrl_Type_e::Speed:
-                controller->SetFeedback({&state.speed});
+                controller->SetFeedbacks(&state.speed);
                 break;
         }
     }
@@ -44,7 +44,8 @@ private:
 
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
-                float txTorque = Clamp(1 * controller->GetOutput(), -2000.f, 2000.f);
+                ControllerOutputData output=controller->GetOutputs();
+                float txTorque = Clamp(1 * output.dataPtr[0], -2000.f, 2000.f);
                 volatile uint32_t txTorqueFloat = *reinterpret_cast<uint32_t*>(&txTorque);
 
                 for (int i = 0; i < 4; ++i) {
@@ -58,7 +59,8 @@ private:
                 break;
             }
             case Motor_Ctrl_Type_e::Position: {
-                float pos = controller->GetOutput()/360.0f;
+                ControllerOutputData output=controller->GetOutputs();
+                float pos = output.dataPtr[0]/360.0f;
                 uint32_t pos_binary = *reinterpret_cast<uint32_t*>(&pos);
 
                 for (int i = 0; i < 4; ++i) {
@@ -72,7 +74,8 @@ private:
                 break;
             }
             case Motor_Ctrl_Type_e::Speed: {
-                float txSpeed = controller->GetOutput();
+                ControllerOutputData output=controller->GetOutputs();
+                float txSpeed = output.dataPtr[0];
                 uint32_t txSpeedFloat = *reinterpret_cast<uint32_t*>(&txSpeed);
 
                 for (int i = 0; i < 4; ++i) {

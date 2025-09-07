@@ -44,10 +44,10 @@ private:
     void SetFeedback() final{
         switch (params.targetType){
         case Motor_Ctrl_Type_e::Position:
-            controller->SetFeedback({&state.position, &state.speed});
+            controller->SetFeedbacks(&state.position);//{&state.position, &state.speed}
             break;
         case Motor_Ctrl_Type_e::Speed:
-            controller->SetFeedback({&state.speed});
+            controller->SetFeedbacks(&state.speed);
             break;
         }
     }
@@ -115,7 +115,8 @@ private:
     void MessageGenerate(){
         switch (params.ctrlType){
         case Motor_Ctrl_Type_e::Speed:{
-                float txSpeed = -controller->GetOutput();//方向取CCW
+                ControllerOutputData output=controller->GetOutputs();
+                float txSpeed = -output.dataPtr[0];//方向取CCW
                 int32_t txSpeedCode = txSpeed / 58.639f * 0x800 + 0x800;
                 canAgent[0] = 0x00;
                 canAgent[1] = 0x00;
@@ -128,7 +129,8 @@ private:
                 break;
             }
         case Motor_Ctrl_Type_e::Position:{
-                float txPosition = -controller->GetOutput();//方向取CCW
+                ControllerOutputData output=controller->GetOutputs();
+                float txPosition = -output.dataPtr[0];//方向取CCW
                 uint16_t txPositionCode = txPosition / 360.0f * 0x8000 + 0x8000;
                 uint16_t velocity = (100/200) * 0x800 + 0x800;//100为设置速度，200为最大速度
                 uint16_t torque = (1/4) * 0x800 + 0x800;//100为设置速度，200为最大速度

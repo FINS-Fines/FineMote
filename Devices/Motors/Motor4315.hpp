@@ -68,7 +68,7 @@ private:
     void SetFeedback() override {
         switch (params.ctrlType) {
         case Motor_Ctrl_Type_e::Position:
-            controller->SetFeedback({&state.position});
+            controller->SetFeedbacks(&state.position);
             break;
         }
     }
@@ -76,7 +76,8 @@ private:
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Position: {
-                float targetAngle = -1 * controller->GetOutput();
+                ControllerOutputData output=controller->GetOutputs();
+                float targetAngle = -1 * output.dataPtr[0];
                 int32_t txAngle = targetAngle * 16384.0f / 360.0;
 
                 txbuf[0] = 0x3E; //协议头
