@@ -25,10 +25,11 @@
 
 #include "Control/PID.hpp"
 
-constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f, 2000, 2000};
-
-auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
+constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f};
+std::array<PID, 4>wheelControllers={PID(speedPID),PID(speedPID),PID(speedPID),PID(speedPID)};
+std::array<Amplifier<1>, 4>swerveControllers ={Amplifier<1>{},Amplifier<1>{},Amplifier<1>{},Amplifier<1>{}};
+//auto wheelControllers = CreateControllers<PID, 4>(speedPID);
+//auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
 
 #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
 Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
@@ -94,7 +95,7 @@ auto chassis = POV_ChassisBuilder<PlanarOdom>( \
     Swerve_t{&SFLMotor, &CFLMotor,  ROBOT_LENGTH / 2,  ROBOT_WIDTH / 2},
     Swerve_t{&SBLMotor, &CBLMotor, -ROBOT_LENGTH / 2,  ROBOT_WIDTH / 2},
     Swerve_t{&SBRMotor, &CBRMotor, -ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180}
-    );
+);
 
 
 
@@ -128,16 +129,16 @@ UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
 void TaskPOVChassis() {
     constexpr float SPEED_LIMIT = 2.0f;
 
-     if(remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::UP_POS) {
-         std::array<float, 3> targetV = {
-             remote.GetInfo().rightCol * SPEED_LIMIT,
-             -remote.GetInfo().rightRol * SPEED_LIMIT,
-             -remote.GetInfo().leftRol * PI };
-     chassis.SetVelocity(std::move(targetV));
-     }
-     if(remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::DOWN_POS) {
+    if(remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::UP_POS) {
+        std::array<float, 3> targetV = {
+                remote.GetInfo().rightCol * SPEED_LIMIT,
+                -remote.GetInfo().rightRol * SPEED_LIMIT,
+                -remote.GetInfo().leftRol * PI };
+        chassis.SetVelocity(std::move(targetV));
+    }
+    if(remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::DOWN_POS) {
         chassis.SetVelocity(fineSerial.GetVelCmd());
-     }
+    }
 }
 TASK_EXPORT(TaskPOVChassis);
 
