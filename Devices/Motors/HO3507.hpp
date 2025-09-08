@@ -25,7 +25,6 @@ public:
     }
 
     void Handle() final {
-        Update();
         controller->Calc();
         if (HAL_GetTick() - initTick < 5000) {
             ChooseCtrlType();
@@ -147,7 +146,7 @@ private:
         canAgent.Transmit(canAgent.addr);
     }
 
-    void Update() { //正方向取CCW
+    void Update() override { //正方向取CCW
         int16_t position_code = (canAgent.rxbuf[1] << 8) | canAgent.rxbuf[2];
         state.position = -static_cast<float>(position_code - 0x8000) / 32768.0f * 360.0f;
         int16_t speed_code = (canAgent.rxbuf[3] << 4) | ((canAgent.rxbuf[4] >> 4) & 0x0F);

@@ -1,7 +1,7 @@
 #ifndef FINEMOTE_MOTORBASE_H
 #define FINEMOTE_MOTORBASE_H
 
-#include "DeviceBase.h"
+#include "DeviceBase.hpp"
 #include "Control/ImplementControlBase.hpp"
 #include <cstdint>
 
