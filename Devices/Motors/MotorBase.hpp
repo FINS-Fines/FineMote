@@ -2,7 +2,8 @@
 #define FINEMOTE_MOTORBASE_H
 
 #include "DeviceBase.h"
-#include "Control/ControlBase.hpp"
+#include "Control/ImplementControlBase.hpp"
+#include <cstdint>
 
 enum class Motor_Ctrl_Type_e: uint16_t {
     Position = 0,
@@ -30,12 +31,11 @@ public:
 
     }
 
-    template<typename T>
-    void ResetController(T& _controller) {
-        static_assert(!std::is_same<ControllerBase, T>::value, "ControllerBase itself is not allowed as a controller");
+
+    void ResetController(ImplementControllerBase<1,1>& _controller) {
 
         controller = &_controller;
-        _controller.SetTarget(&target);
+        _controller.SetTargets(&target);
         this->SetFeedback();
     }
 
@@ -99,7 +99,7 @@ protected:
     float target = 0; //多圈目标，减速后
     Motor_State_t state = {0, 0, 0, 0}; //单圈状态，不考虑减速
     Motor_Param_t params;
-    ControllerBase* controller = nullptr;
+    ImplementControllerBase<1,1>* controller = nullptr;
 };
 
 #endif

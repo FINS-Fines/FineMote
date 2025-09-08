@@ -4,51 +4,27 @@
  * All rights reserved.
  ******************************************************************************/
 
-#ifndef FINEMOTE_CONTROLBASE_HPP
-#define FINEMOTE_CONTROLBASE_HPP
+#ifndef FINEMOTE_IMPLEMENTCONTROLBASE_HPP
+#define FINEMOTE_IMPLEMENTCONTROLBASE_HPP
+
 
 #include <array>
 #include <cstdint>
 #include <functional>
-
-using ControllerOutputData = struct ControllerOutputData{
-    float* dataPtr;
-    uint8_t size;
-};
-
-class ControllerBase {
-public:
-    ControllerBase() = default;
-    virtual ~ControllerBase() = default;
-
-    ControllerOutputData Calc() {
-        PerformCalc();
-        if (nextCalc) {
-            return nextCalc();
-        }
-        return GetOutputs();
-    }
-
-protected:
-
-    virtual void PerformCalc() = 0;
-    virtual ControllerOutputData GetOutputs() = 0;
-
-    std::function<ControllerOutputData()> nextCalc = nullptr;
-};
+#include <Control/ControlBase.hpp>
 
 
 template <size_t InputSize, size_t OutputSize>
-class ControllerBaseImpl  : public ControllerBase {
+class ImplementControllerBase  : public ControllerBase {
 public:
-    ControllerBaseImpl() = default;
-    virtual ~ControllerBaseImpl() = default;
+    ImplementControllerBase() = default;
+    virtual ~ImplementControllerBase() = default;
 
     template <size_t NextInputSize, size_t NextOutputSize>
-    void Cascade( ControllerBaseImpl<NextInputSize, NextOutputSize>& nextController ) {
+    void Cascade(ImplementControllerBase<NextInputSize, NextOutputSize>& nextController) {
         static_assert(OutputSize == NextInputSize, "Output size of current controller must match input size of the next one.");
         nextController.SetTargets(this->outputs);
-        nextCalc = std::bind(&ControllerBaseImpl<NextInputSize, NextOutputSize>::Calc, &nextController);
+        nextCalc = std::bind(&ImplementControllerBase<NextInputSize, NextOutputSize>::Calc, &nextController);
     }
 
     void SetTargets(std::array<float, InputSize>& sourceOutputs) {
@@ -72,7 +48,7 @@ public:
 
 
     ControllerOutputData GetOutputs() const {
-        return { outputs.data(), OutputSize };
+        return { (float*)outputs.data(), (uint8_t)OutputSize };
     }
 
 protected:
@@ -82,5 +58,17 @@ protected:
     std::array<float, OutputSize> outputs{};
 };
 
+template <size_t K>
+class Amplifier : public ImplementControllerBase<1, 1> {
+public:
+    Amplifier() = default;
+    void PerformCalc() override {
+
+        this->outputs[0] = *(this->targetPtrs[0]) * static_cast<float>(K);
+    }
+    ControllerOutputData GetOutputs() override {
+        return { this->outputs.data(), 1 };
+    }
+};
 
 #endif

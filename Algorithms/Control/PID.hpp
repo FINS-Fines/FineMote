@@ -7,73 +7,34 @@
 #ifndef FINEMOTE_PID_HPP
 #define FINEMOTE_PID_HPP
 
-#include <vector>
-
-#include "ControlBase.hpp"
+#include "ImplementControlBase.hpp"
 
 typedef struct PID_Param_t {
     float kp;
     float ki;
     float kd;
-    float iMax;
-    float outputMax;
 } PID_Param_t;
 
-class PID : public ControllerBase {
+class PID : public ImplementControllerBase<1, 1> {
 public:
     constexpr explicit PID(const PID_Param_t& params) : params(params) {}
 
-    const float& Calc() override{
-        float error = *targetPtr - *feedbackPtr;
+    void PerformCalc() override {
+        float error = *(this->targetPtrs[0]) - *(this->feedbackPtrs[0]);
         totalError += error;
-        Clamp(totalError, -1 * params.iMax, params.iMax);
-        output = params.kp * error + params.ki * totalError + params.kd * (error - lastError);
+        //Clamp(totalError, -params.iMax, params.iMax);
+        this->outputs[0] = params.kp * error + params.ki * totalError + params.kd * (error - lastError);
         lastError = error;
-        return Clamp(output, -1 * params.outputMax, params.outputMax);
+    }
+
+    ControllerOutputData GetOutputs() override {
+        return { this->outputs.data(), 1 };
     }
 
 private:
     const PID_Param_t params;
-    float totalError = 0, lastError = 0;
-};
-
-template<size_t K>
-class CascadePID : public PID {
-public:
-    template<typename... Params>
-    constexpr explicit CascadePID(const PID_Param_t& first, Params... params) : PID(first), nodes{PID(params)...} {
-        static_assert(K > 1, "CascadePID should have at least 2 layers");
-
-        Cascade(nodes[0]);
-        for (int i = 0; i < K - 2; ++i) {
-            nodes[i].Cascade(nodes[i + 1]);
-        }
-    }
-
-    const float& Calc() final{
-        PID::Calc();
-        for(auto& node : nodes) {
-            node.Calc();
-        }
-
-        output = nodes.rbegin()->GetOutput();
-        return output;
-    }
-
-    void SetFeedback(const std::vector<float*>& feedbackPtrs) final {
-        //static_assert(K == feedbackPtrs.size(), "Feedback number should be equal to K");
-
-        auto iter = feedbackPtrs.begin();
-        PID::SetFeedback({*iter});
-        iter++;
-        for(auto& node : nodes) {
-            node.SetFeedback({*iter});
-            iter++;
-        }
-    }
-
-private:
-    std::array<PID, K - 1> nodes;
+    float totalError = 0;
+    float lastError = 0;
 };
 
 #endif

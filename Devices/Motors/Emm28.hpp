@@ -15,7 +15,7 @@ class Emm28 : public MotorBase {
 public:
     template <typename T>
     Emm28(const Motor_Param_t&& params, T& _controller, uint32_t addr) :
-        MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+            MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
         ResetController(_controller);
     }
 
@@ -31,37 +31,38 @@ public:
 private:
     void SetFeedback() final {
         switch (params.targetType) {
-        case Motor_Ctrl_Type_e::Position:
-            controller->SetFeedback({&state.position, &state.position});
-            break;
+            case Motor_Ctrl_Type_e::Position:
+                controller->SetFeedbacks(&state.position);
+                break;
         }
     }
 
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Position: {
-                const uint16_t vel = 0x0100; //转动速度(RPM)
-                float target = controller->GetOutput();
-                const uint32_t clk = std::abs(std::round(target * 3200.f / 360.f)); //16 细分下发送 3200 个脉冲电机旋转一圈
+                const uint16_t vel = 0x0100; // 转动速度(RPM)
+                ControllerOutputData output = controller->GetOutputs();
+                float target = output.dataPtr[0];
+                const uint32_t clk = std::abs(std::round(target * 3200.f / 360.f)); // 16 细分下发送 3200 个脉冲电机旋转一圈
 
                 canAgent.SetDLC(8);
                 canAgent[0] = 0xFD;
                 canAgent[1] = std::signbit(target) ? 0x00 : 0x01; // 0x01表示旋转方向为 CCW,0x00表示CW）
                 canAgent[2] = (uint8_t)(vel >> 8);
                 canAgent[3] = (uint8_t)(vel >> 0);
-                canAgent[4] = 0x00; //加速度，为0时不使用加速度
+                canAgent[4] = 0x00; // 加速度，为0时不使用加速度
                 canAgent[5] = (uint8_t)(clk >> 24);
                 canAgent[6] = (uint8_t)(clk >> 16);
                 canAgent[7] = (uint8_t)(clk >> 8);
-                canAgent.Transmit(canAgent.addr, CAN_ID_EXT | CAN_RTR_DATA); //扩展帧模式
+                canAgent.Transmit(canAgent.addr, CAN_ID_EXT | CAN_RTR_DATA); // 扩展帧模式
 
                 canAgent.SetDLC(5);
                 canAgent[0] = 0xFD;
                 canAgent[1] = (uint8_t)(clk >> 0);
-                canAgent[2] = 0x01; //00 表示相对位置模式（01 表示绝对位置模式）
-                canAgent[3] = 0x00; //00 表示不启用多机同步（01表示启用）
+                canAgent[2] = 0x01; // 00 表示相对位置模式（01 表示绝对位置模式）
+                canAgent[3] = 0x00; // 00 表示不启用多机同步（01表示启用）
                 canAgent[4] = 0x6B;
-                canAgent.Transmit(canAgent.addr + 1, CAN_ID_EXT | CAN_RTR_DATA); //第二段指令的地址+1
+                canAgent.Transmit(canAgent.addr + 1, CAN_ID_EXT | CAN_RTR_DATA); // 第二段指令的地址+1
             }
         }
     }

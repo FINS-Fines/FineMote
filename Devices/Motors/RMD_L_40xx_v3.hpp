@@ -14,32 +14,32 @@
 /**
  * Todo: Reduction ratio
  */
-template<int busID>
+template <int busID>
 class RMD_L_40xx_v3 : public MotorBase {
 public:
-
-    template<typename T>
-    RMD_L_40xx_v3(const Motor_Param_t&& params, T& _controller, uint32_t addr) : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+    template <typename T>
+    RMD_L_40xx_v3(const Motor_Param_t&& params, T& _controller, uint32_t addr)
+            : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
         SetDivisionFactor(3);
         ResetController(_controller);
     }
 
-    void Handle() final{
+    void Handle() final {
         Update();
         controller->Calc();
         MessageGenerate();
-    };
+    }
 
     CAN_Agent<busID> canAgent;
 
 private:
-    void SetFeedback() final{
+    void SetFeedback() final {
         switch (params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedback({&state.position, &state.speed});
+                controller->SetFeedbacks(&state.position);
                 break;
             case Motor_Ctrl_Type_e::Speed:
-                controller->SetFeedback({&state.speed});
+                controller->SetFeedbacks(&state.speed);
                 break;
         }
     }
@@ -47,7 +47,8 @@ private:
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
-                int16_t txTorque = Clamp(1 * controller->GetOutput(), -1000.f, 1000.f);
+                ControllerOutputData output = controller->GetOutputs();
+                int16_t txTorque = Clamp(1 * output.dataPtr[0], -1000.f, 1000.f);
 
                 canAgent[0] = 0xA1;
                 canAgent[1] = 0x00;
@@ -61,7 +62,8 @@ private:
             }
             case Motor_Ctrl_Type_e::Position: {
                 constexpr uint16_t txSpeed = 0x800;
-                int32_t txAngle = 100 * controller->GetOutput();
+                ControllerOutputData output = controller->GetOutputs();
+                int32_t txAngle = 100 * output.dataPtr[0];
 
                 canAgent[0] = 0xA4;
                 canAgent[1] = 0x00;

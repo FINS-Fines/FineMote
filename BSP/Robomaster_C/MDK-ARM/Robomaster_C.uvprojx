@@ -663,13 +663,6 @@
         </Group>
         <Group>
           <GroupName>Services</GroupName>
-          <Files>
-            <File>
-              <FileName>I2C_Base.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Services\Bus\I2C_Base.cpp</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>Devices</GroupName>
