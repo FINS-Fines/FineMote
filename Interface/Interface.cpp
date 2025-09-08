@@ -5,7 +5,7 @@
  ******************************************************************************/
 
 #include "ProjectConfig.h"
-#include "DeviceBase.h"
+#include "DeviceBase.hpp"
 #include "Scheduler.h"
 
 /**
