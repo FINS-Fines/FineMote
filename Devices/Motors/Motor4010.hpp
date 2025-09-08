@@ -14,25 +14,26 @@
 /**
  * Todo: Reduction ratio
  */
-template<int busID>
+template <int busID>
 class Motor4010 : public MotorBase {
 public:
-
-    Motor4010(const Motor_Param_t&& params, ImplementControllerBase<1,1>& _controller, uint32_t addr) : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+    template <typename T>
+    Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr)
+            : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
         ResetController(_controller);
     }
 
-    void Handle() final{
+    void Handle() final {
         Update();
         controller->Calc();
         MessageGenerate();
-    };
+    }
 
     CAN_Agent<busID> canAgent;
 
 private:
-    void SetFeedback() final{
-        switch (this -> params.targetType) {
+    void SetFeedback() final {
+        switch (this->params.targetType) {
             case Motor_Ctrl_Type_e::Position:
                 controller->SetFeedbacks(&state.position);
                 break;
@@ -47,7 +48,7 @@ private:
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
-                ControllerOutputData output=controller->GetOutputs();
+                ControllerOutputData output = controller->GetOutputs();
                 int16_t txTorque = Clamp(1 * output.dataPtr[0], -500.f, 500.f);
 
                 canAgent[0] = 0xA1;
@@ -62,7 +63,7 @@ private:
             }
             case Motor_Ctrl_Type_e::Position: {
                 constexpr uint16_t txSpeed = 0x800;
-                ControllerOutputData output=controller->GetOutputs();
+                ControllerOutputData output = controller->GetOutputs();
                 int32_t txAngle = 100 * output.dataPtr[0];
 
                 canAgent[0] = 0xA4;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024.
+ * Copyright (c) 2024.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
@@ -13,14 +13,14 @@
 template <int busID>
 class Odrive : public MotorBase {
 public:
-
-    template<typename T>
-    Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr) : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+    template <typename T>
+    Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr)
+            : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
         ResetController(_controller);
         this->SetDivisionFactor(20);
     }
 
-    void Handle() final{
+    void Handle() final {
         Update();
         controller->Calc();
         MessageGenerate();
@@ -29,7 +29,7 @@ public:
     CAN_Agent<busID> canAgent;
 
 private:
-    void SetFeedback() final{
+    void SetFeedback() final {
         switch (params.targetType) {
             case Motor_Ctrl_Type_e::Position:
                 controller->SetFeedbacks(&state.position);
@@ -41,10 +41,9 @@ private:
     }
 
     void MessageGenerate() {
-
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
-                ControllerOutputData output=controller->GetOutputs();
+                ControllerOutputData output = controller->GetOutputs();
                 float txTorque = Clamp(1 * output.dataPtr[0], -2000.f, 2000.f);
                 volatile uint32_t txTorqueFloat = *reinterpret_cast<uint32_t*>(&txTorque);
 
@@ -55,12 +54,12 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Transmit(canAgent.addr << 5 | 0x00e,CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr << 5 | 0x00e, CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
             case Motor_Ctrl_Type_e::Position: {
-                ControllerOutputData output=controller->GetOutputs();
-                float pos = output.dataPtr[0]/360.0f;
+                ControllerOutputData output = controller->GetOutputs();
+                float pos = output.dataPtr[0] / 360.0f;
                 uint32_t pos_binary = *reinterpret_cast<uint32_t*>(&pos);
 
                 for (int i = 0; i < 4; ++i) {
@@ -70,11 +69,11 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Transmit(canAgent.addr << 5 | 0x00c,CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr << 5 | 0x00c, CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
             case Motor_Ctrl_Type_e::Speed: {
-                ControllerOutputData output=controller->GetOutputs();
+                ControllerOutputData output = controller->GetOutputs();
                 float txSpeed = output.dataPtr[0];
                 uint32_t txSpeedFloat = *reinterpret_cast<uint32_t*>(&txSpeed);
 
@@ -85,11 +84,11 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Transmit(canAgent.addr << 5 | 0x00d,CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr << 5 | 0x00d, CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
         }
-        // canAgent.Send(canAgent.addr, CAN_ID_STD | CAN_RTR_REMOTE); //��ȡ������
+        // canAgent.Send(canAgent.addr, CAN_ID_STD | CAN_RTR_REMOTE); //获取反馈数据
     }
 
     void Update() {
