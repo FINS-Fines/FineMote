@@ -788,11 +788,6 @@
               <FilePath>..\..\..\Interface\Scheduler.cpp</FilePath>
             </File>
             <File>
-              <FileName>TaskBeepMusic.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Interface\Examples\TaskBeepMusic.cpp</FilePath>
-            </File>
-            <File>
               <FileName>TaskLED.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\Interface\Examples\TaskLED.cpp</FilePath>
@@ -834,11 +829,6 @@
               <FileName>RemoteControl.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\Devices\RemoteControllers\RemoteControl.cpp</FilePath>
-            </File>
-            <File>
-              <FileName>DeviceBase.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Devices\DeviceBase.cpp</FilePath>
             </File>
           </Files>
         </Group>
