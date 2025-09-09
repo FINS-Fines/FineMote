@@ -21,6 +21,9 @@ file(GLOB BSP_INCLUDE_DIRS
         "Drivers/STM32F*xx_HAL_Driver/Inc/Legacy"
         "Drivers/CMSIS/Device/ST/STM32F*xx/Include"
         "Core/Inc"
+        "Middlewares/Third_Party/FreeRTOS/Source/include"
+        "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2"
+        "Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F"
 )
 
 include_directories(. ${BSP_INCLUDE_DIRS})
@@ -30,6 +33,7 @@ file(GLOB_RECURSE SOURCES ${FINEMOTE_COMMON_SOURCE_FILES}
         "Core/*.*"
         "MDK-ARM/startup_*.s"
         "./*.cpp"
+        "Middlewares/*.*"
 )
 
 file(GLOB_RECURSE EXCLUDE_SRCS
