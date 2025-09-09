@@ -15,7 +15,7 @@ add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
 # 添加BSP文件
 
 file(GLOB BSP_INCLUDE_DIRS
-        "FineMote_BSP"
+        "FineMote_BSP/BSP"
         "Drivers/CMSIS/Include"
         "Drivers/STM32F*xx_HAL_Driver/Inc"
         "Drivers/STM32F*xx_HAL_Driver/Inc/Legacy"
@@ -24,6 +24,16 @@ file(GLOB BSP_INCLUDE_DIRS
         "Middlewares/Third_Party/FreeRTOS/Source/include"
         "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2"
         "Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F"
+
+# 添加FreeRTOS-POSIX库
+
+        "FineMote_BSP/POSIX/include"
+        "FineMote_BSP/POSIX/include/private"
+#        "FineMote_BSP/POSIX/include/FreeRTOS_POSIX"
+#        "FineMote_BSP/POSIX/include/FreeRTOS_POSIX/sys"
+        "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include"
+        "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include/portable"
+        "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include/portable/empty_portable"
 )
 
 include_directories(. ${BSP_INCLUDE_DIRS})
@@ -34,6 +44,7 @@ file(GLOB_RECURSE SOURCES ${FINEMOTE_COMMON_SOURCE_FILES}
         "MDK-ARM/startup_*.s"
         "./*.cpp"
         "Middlewares/*.*"
+        "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/source/*.c"
 )
 
 file(GLOB_RECURSE EXCLUDE_SRCS

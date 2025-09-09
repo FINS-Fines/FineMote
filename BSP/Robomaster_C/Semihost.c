@@ -60,10 +60,10 @@ void _sys_exit(int return_code) {
         ;
 }
 
-clock_t clock(void){
-    clock_t tmp;
-    return tmp;
-}
+// clock_t clock(void){
+//     clock_t tmp;
+//     return tmp;
+// }
 
 void _clock_init(void){
 }
