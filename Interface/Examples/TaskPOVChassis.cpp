@@ -26,10 +26,10 @@
 #include "Control/PID.hpp"
 
 constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f};
-std::array<PID, 4> wheelControllers = {PID(speedPID), PID(speedPID), PID(speedPID), PID(speedPID)};
-std::array<Amplifier<1>, 4> swerveControllers = {Amplifier<1>{}, Amplifier<1>{}, Amplifier<1>{}, Amplifier<1>{}};
-// auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-// auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
+// std::array<PID, 4> wheelControllers = {PID(speedPID), PID(speedPID), PID(speedPID), PID(speedPID)};
+// std::array<Amplifier<1>, 4> swerveControllers = {Amplifier<1>{}, Amplifier<1>{}, Amplifier<1>{}, Amplifier<1>{}};
+auto wheelControllers = CreateControllers<PID, 4>(speedPID);
+auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
 
 #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
 Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
