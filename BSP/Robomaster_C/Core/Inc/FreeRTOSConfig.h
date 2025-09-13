@@ -168,6 +168,18 @@ standard names. */
 
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
+
+/* Redirect FreeRTOS memory management functions to micro-ROS custom implementation */
+#define pvPortMalloc                          pvPortMallocMicroROS
+#define vPortFree                             vPortFreeMicroROS
+#define pvPortRealloc                         pvPortReallocMicroROS
+#define pvPortCalloc                          pvPortCallocMicroROS
+#define xPortGetFreeHeapSize                  xPortGetFreeHeapSizeMicroROS
+#define xPortGetMinimumEverFreeHeapSize       xPortGetMinimumEverFreeHeapSizeMicroROS
+
+#define configUSE_POSIX_ERRNO                   1
+#define configUSE_STATS_FORMATTING_FUNCTIONS    1
+#define configUSE_APPLICATION_TASK_TAG          1
 /* USER CODE END Defines */
 
 #endif /* FREERTOS_CONFIG_H */

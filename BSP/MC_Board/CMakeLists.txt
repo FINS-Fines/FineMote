@@ -36,7 +36,7 @@ file(GLOB BSP_INCLUDE_DIRS
         "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include/portable/empty_portable"
 
 # 添加Micro-ROS静态库
-        "FineMote_BSP/libmicroros/microros_static_library/include"
+        "FineMote_BSP/Micro_ROS/microros_static_library/include"
 )
 
 include_directories(. ${BSP_INCLUDE_DIRS})
@@ -56,6 +56,8 @@ file(GLOB_RECURSE EXCLUDE_SRCS
         "Core/Src/sysmem.c"
         "STM32*_FLASH.ld"
         "STM32*_RAM.ld"
+# Removing heap4 manager while being polite with STM32CubeMX
+        "Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_*.c"
 )
 
 # 从源文件列表(SOURCES)中剔除干扰文件(EXCLUDE_SRCS)
@@ -99,7 +101,7 @@ add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT})
 
 # 添加micro-ROS静态库
 target_link_libraries(${BOARD_NAME} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP/libmicroros/microros_static_library/libmicroros.a
+        ${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP/Micro_ROS/microros_static_library/libmicroros.a
 )
 
 set(HEX_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.hex)
