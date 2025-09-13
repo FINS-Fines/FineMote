@@ -34,6 +34,9 @@ file(GLOB BSP_INCLUDE_DIRS
         "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include"
         "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include/portable"
         "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include/portable/empty_portable"
+
+# 添加Micro-ROS静态库
+        "FineMote_BSP/libmicroros/microros_static_library/include"
 )
 
 include_directories(. ${BSP_INCLUDE_DIRS})
@@ -97,6 +100,11 @@ add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT})
 set(HEX_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.hex)
 set(BIN_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.bin)
 set(ELF_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.elf)
+
+# 添加micro-ROS静态库
+target_link_libraries(${BOARD_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP/libmicroros/microros_static_library/libmicroros.a
+)
 
 # 使用 armclang 自带的 fromelf 工具，实现 elf 转 hex
 set(ARMCC_fromelf fromelf.exe)
