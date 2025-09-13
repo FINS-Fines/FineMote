@@ -73,7 +73,7 @@ set(LINKER_TARGET_FLAG "--cpu=${CMAKE_SYSTEM_PROCESSOR}")
 #*******************************************************************************************#
 # 设置编译选项
 set(CMAKE_C_FLAGS "${C_TARGET_FLAG} ${COMPILE_RULE_FLAG} \
-    -fno-rtti -funsigned-char -fshort-enums -fshort-wchar \
+    -fno-rtti -funsigned-char -fshort-enums \
     -gdwarf-4 -Os -ffunction-sections \
     -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier \
     ")

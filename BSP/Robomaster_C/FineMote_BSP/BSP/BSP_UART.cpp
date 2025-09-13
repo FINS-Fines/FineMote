@@ -16,10 +16,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 // 接收中断回调函数
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    uint16_t receivedSize = huart->RxXferSize;
-    FineMoteAux_UART<>::OnRxComplete(huart, receivedSize);
-}
+// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+//     uint16_t receivedSize = huart->RxXferSize;
+//     FineMoteAux_UART<>::OnRxComplete(huart, receivedSize);
+// }
 
 // 出错中断回调函数
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
