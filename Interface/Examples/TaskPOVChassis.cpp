@@ -105,10 +105,6 @@ auto chassis = POV_ChassisBuilder<PlanarOdom>(
 #include "RemoteControllers/RadioMaster_Zorro.h"
 #include "FineWarden/FineSerial.hpp"
 
-FineSerial fineSerial;
-UARTBuffer<5, 200> uart5Buffer([](uint8_t* data, size_t length) {
-    fineSerial.Decode(data, length);
-});
 
 RadioMaster_Zorro remote;
 UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
@@ -132,9 +128,6 @@ void TaskPOVChassis() {
             -remote.GetInfo().leftRol * PI
         };
         chassis.SetVelocity(std::move(targetV));
-    }
-    if (remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::DOWN_POS) {
-        chassis.SetVelocity(fineSerial.GetVelCmd());
     }
 }
 TASK_EXPORT(TaskPOVChassis);
