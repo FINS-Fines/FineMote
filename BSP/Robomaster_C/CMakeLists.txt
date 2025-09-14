@@ -15,12 +15,28 @@ add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
 # 添加BSP文件
 
 file(GLOB BSP_INCLUDE_DIRS
-        "FineMote_BSP"
+        "FineMote_BSP/BSP"
         "Drivers/CMSIS/Include"
         "Drivers/STM32F*xx_HAL_Driver/Inc"
         "Drivers/STM32F*xx_HAL_Driver/Inc/Legacy"
         "Drivers/CMSIS/Device/ST/STM32F*xx/Include"
         "Core/Inc"
+        "Middlewares/Third_Party/FreeRTOS/Source/include"
+        "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2"
+        "Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F"
+
+# 添加FreeRTOS-POSIX库
+
+        "FineMote_BSP/POSIX/include"
+        "FineMote_BSP/POSIX/include/private"
+#        "FineMote_BSP/POSIX/include/FreeRTOS_POSIX"
+#        "FineMote_BSP/POSIX/include/FreeRTOS_POSIX/sys"
+        "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include"
+        "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include/portable"
+        "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/include/portable/empty_portable"
+
+# 添加Micro-ROS静态库
+        "FineMote_BSP/Micro_ROS/microros_static_library/include"
 )
 
 include_directories(. ${BSP_INCLUDE_DIRS})
@@ -30,6 +46,8 @@ file(GLOB_RECURSE SOURCES ${FINEMOTE_COMMON_SOURCE_FILES}
         "Core/*.*"
         "MDK-ARM/startup_*.s"
         "./*.cpp"
+        "Middlewares/*.*"
+        "FineMote_BSP/POSIX/FreeRTOS-Plus-POSIX/source/*.c"
 )
 
 file(GLOB_RECURSE EXCLUDE_SRCS
@@ -38,6 +56,8 @@ file(GLOB_RECURSE EXCLUDE_SRCS
         "Core/Src/sysmem.c"
         "STM32*_FLASH.ld"
         "STM32*_RAM.ld"
+        # Removing heap4 manager while being polite with STM32CubeMX
+        "Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_*.c"
 )
 
 # 从源文件列表(SOURCES)中剔除干扰文件(EXCLUDE_SRCS)
@@ -55,7 +75,7 @@ set(LINKER_TARGET_FLAG "--cpu=${CMAKE_SYSTEM_PROCESSOR}")
 #*******************************************************************************************#
 # 设置编译选项
 set(CMAKE_C_FLAGS "${C_TARGET_FLAG} ${COMPILE_RULE_FLAG} \
-    -fno-rtti -funsigned-char -fshort-enums -fshort-wchar \
+    -fno-rtti -funsigned-char -fshort-enums \
     -gdwarf-4 -Os -ffunction-sections \
     -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier \
     ")
@@ -82,6 +102,11 @@ add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT})
 set(HEX_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.hex)
 set(BIN_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.bin)
 set(ELF_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.elf)
+
+# 添加micro-ROS静态库
+target_link_libraries(${BOARD_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP/Micro_ROS/microros_static_library/libmicroros.a
+)
 
 # 使用 armclang 自带的 fromelf 工具，实现 elf 转 hex
 set(ARMCC_fromelf fromelf.exe)
