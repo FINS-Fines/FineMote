@@ -408,9 +408,9 @@ void Enable_DoubleMemBuff(DMA_HandleTypeDef *hdma, volatile uint32_t buffer0, vo
         __HAL_DMA_DISABLE(hdma);
     }
     hdma->Instance->PAR = (uint32_t) &(USART3->DR);
-    /* memory buffer 内存缓冲�? 0 */
+    /* memory buffer 内存缓冲 0 */
     hdma->Instance->M0AR = buffer0;
-    /* memory buffer 2 内存缓冲�? 1 */
+    /* memory buffer 2 内存缓冲 1 */
     hdma->Instance->M1AR = buffer1;
     /* data length 数据长度 */
     hdma->Instance->NDTR = buffer_size;

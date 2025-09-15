@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024.
+ * Copyright (c) 2025.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
@@ -9,9 +9,7 @@
 
 #include "BeepMusicBasic.h"
 
-#ifdef FINEMOTE_BEEPMUSIC_C
-
-const MusicNote_t Windmill_s[] = {
+inline const MusicNote_t Windmill_s[] = {
         {M5, 250}, {_0, 50},
         {M6, 250}, {_0, 50},
         {M5, 250}, {_0, 50},
@@ -112,6 +110,5 @@ const MusicNote_t Windmill_s[] = {
         {L6, 100}, {_0, 50},
         {M1, 250}, {_0, 50},
 };
-#endif //FINEMOTE_BEEPMUSIC_C
 
-#endif //FINEMOTE_MUSIC_WINDMILL_H
+#endif

@@ -7,15 +7,20 @@
 
 #ifndef FINEMOTE_LED_H
 #define FINEMOTE_LED_H
+
 #include "ProjectConfig.h"
+
 #ifdef LED_MODULE
 class LED {
 public:
-    static void Toggle(){
+    static void Toggle() {
         HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     }
-    LED(){HALInit::GetInstance();}
+
+    LED() {
+        PeripheralsInit::GetInstance();
+    }
 };
 #endif
 
-#endif //FINEMOTE_LED_H
+#endif

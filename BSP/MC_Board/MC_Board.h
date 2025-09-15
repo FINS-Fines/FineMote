@@ -19,49 +19,73 @@
 #include "iwdg.h"
 #include "stm32f4xx_it.h"
 
+int main();
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class PeripheralsInit {
 
-extern int main();
-
-#ifdef __cplusplus
-}
-#endif
-
-class HALInit {
-/**
- *  @attention 此函数需要与cube生成的保持一致
- */
-    HALInit() {
+    PeripheralsInit() {
         main();
-    };
+    }
 
 public:
-    HALInit(const HALInit &) = delete;
+    PeripheralsInit(const PeripheralsInit &) = delete;
 
-    HALInit &operator=(const HALInit &) = delete;
+    PeripheralsInit &operator=(const PeripheralsInit &) = delete;
 
-    static HALInit &GetInstance() {
-        static HALInit instance;
+    static PeripheralsInit &GetInstance() {
+        static PeripheralsInit instance;
         return instance;
     }
 };
 
-#define HAL_INIT_HANDLE
+/**
+ * UART Definitions
+ */
+constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, &huart5};
+constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UARTList[0]) - 1;
 
-extern UART_HandleTypeDef *uartHandleList[];
-extern GPIO_TypeDef *rs485TxPortList[3];
-extern uint16_t rs485TxPinList[3];
+/**
+ * RS485 Definitions
+ */
+constexpr size_t BSP_RS485UARTIndexList[] = {0, 1, 2};
+constexpr size_t RS485_BUS_MAXIMUM_COUNT = sizeof(BSP_RS485UARTIndexList) / sizeof(BSP_RS485UARTIndexList[0]) - 1;
+
+inline GPIO_TypeDef *const BSP_RS485FlowCtrlPortList[3] = {nullptr, GPIOC, GPIOB};
+constexpr uint16_t BSP_RS485FlowCtrlPinList[3] = {0, GPIO_PIN_15, GPIO_PIN_3};
+
+/**
+ * CAN Definitions
+ */
+constexpr CAN_HandleTypeDef *BSP_CANList[] = {nullptr, &hcan1, &hcan2};
+constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
+
+/**
+ * DHSOT Definitions
+ */
 
 
-#define UART_PERIPHERAL
+/**
+ * PWM Definitions
+ */
+using PWMList_t = struct PWMList_t {
+  uint32_t TIM_CHANNEL;
+  TIM_HandleTypeDef *TIM_Handle = nullptr;
+  uint16_t TIM_Frequency = 168; // Default frequency
+};
 
+constexpr PWMList_t BSP_PWMList[6] = {
+  {0, nullptr, 0},
+  {TIM_CHANNEL_1, &htim8, 168},
+  {TIM_CHANNEL_2, &htim8, 168},
+  {TIM_CHANNEL_3, &htim8, 168},
+  {TIM_CHANNEL_4, &htim8, 168},
+  {TIM_CHANNEL_4, &htim2, 84}  // BUZZER_PWM
+};
 
-#define TIM_Buzzer htim2
-#define TIM_Buzzer_Channel TIM_CHANNEL_4
-#define BUZZER_PERIPHERAL
+/**
+ * BUZZER Definitions
+ */
+constexpr size_t BUZZER_PWM_ID = 5;
 
 #define LED_GPIO_Port   GPIOC
 #define LED_Pin         GPIO_PIN_0
@@ -72,12 +96,6 @@ extern uint16_t rs485TxPinList[3];
 
 #define TIM_Control htim7
 
-#define CAN_PERIPHERAL
-constexpr CAN_HandleTypeDef* CAN_Buses[] = {&hcan1, &hcan2};
-constexpr uint8_t CAN_BUS_MAXIMUM_COUNT = sizeof(CAN_Buses) / sizeof(CAN_HandleTypeDef*);
-
-#define RS485_PERIPHERAL
-
 typedef struct {
     SPI_HandleTypeDef *spiHandle;
     DMA_HandleTypeDef *rxDMAHandle;
@@ -85,7 +103,7 @@ typedef struct {
     TIM_HandleTypeDef *timHandleForHeat;
     uint32_t timChannelForHeat;
 } SPI_WITH_DMA_t;
-extern SPI_WITH_DMA_t spiWithDMA;
-#define IMU_PERIPHERAL
 
-#endif //FINEMOTE_MC_BOARD_H
+extern SPI_WITH_DMA_t spiWithDMA;
+
+#endif

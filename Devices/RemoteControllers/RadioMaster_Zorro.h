@@ -8,16 +8,11 @@
 #define FINEMOTE_RADIOMASTER_ZORRO_H
 
 #include "ProjectConfig.h"
-
-#ifdef RADIOMASTER_ZORRO_MODULE
-
 #include "RemoteControl.h"
 
 class RadioMaster_Zorro : public RemoteControl{
 public:
-    RadioMaster_Zorro() {
-        HALInit::GetInstance();
-    }
+    RadioMaster_Zorro() {}
     void Decode(uint8_t* data, uint16_t length) override;
 
 private:
@@ -26,6 +21,4 @@ private:
     int32_t channel[16] = {};
 };
 
-#endif //RADIOMASTER_ZORRO_MODULE
-
-#endif //FINEMOTE_RADIOMASTER_ZORRO_H
+#endif

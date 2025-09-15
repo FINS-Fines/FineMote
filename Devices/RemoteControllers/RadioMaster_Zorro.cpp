@@ -7,28 +7,26 @@
 #include "RadioMaster_Zorro.h"
 #include <cmath>
 
-#ifdef RADIOMASTER_ZORRO_MODULE
-
 void RadioMaster_Zorro::Decode(uint8_t* data, uint16_t length) {
-
+    if(data[0] != 0x0F || data[24] != 0x00){return;}
     info.rR = (((data[1] | (data[2] << 8)) & 0x07FF) - 1000) / 810.0f;
     info.rC = ((((data[2] >> 3) | (data[3] << 5)) & 0x07FF) - 1000) / 810.0f;
     info.lC = ((((data[3] >> 6) | (data[4] << 2) | (data[5] << 10)) & 0x07FF) - 1000) / 810.0f;
     info.lR = ((((data[5] >> 1) | (data[6] << 7)) & 0x07FF) - 1000) / 810.0f;
     //设置死区
-    if(abs(info.rR) > 0.1)
+    if(fabsf(info.rR) > 0.1)
         info.rightRol = info.rR;
     else
         info.rightRol = 0;
-    if(abs(info.rC) > 0.1)
+    if(fabsf(info.rC) > 0.1)
         info.rightCol = info.rC;
     else
         info.rightCol = 0;
-    if(abs(info.lC) > 0.1)
+    if(fabsf(info.lC) > 0.1)
         info.leftCol = info.lC;
     else
         info.leftCol = 0;
-    if(abs(info.lR) > 0.1)
+    if(fabsf(info.lR) > 0.1)
         info.leftRol = info.lR;
     else
         info.leftRol = 0;
@@ -46,5 +44,3 @@ void RadioMaster_Zorro::Decode(uint8_t* data, uint16_t length) {
                   : DOWN_POS;
     info.sD = ((data[10] >> 5 | data[11] << 3) & 0x07FF) == 191 ? UP_POS : DOWN_POS;
 }
-
-#endif

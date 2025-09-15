@@ -34,7 +34,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib) # 对于静态库
 function(INCLUDE_SUB_DIR_INC root_dir)
         if(IS_DIRECTORY ${root_dir})
                 #找含有.h文件或含有.hpp文件，但该目录不一定是Inc或include目录,则将当前目录添加到头文件搜索路径
-                file(GLOB_RECURSE head_files ${root_dir}/*.h ${root_dir}/*.hpp)
+                file(GLOB_RECURSE head_files ${root_dir}/*.h ${root_dir}/*.h++ ${root_dir}/*.hpp)
                 if(head_files)
                 include_directories(${root_dir})
                 message(STATUS "Add head file search path: ${root_dir}")
@@ -108,6 +108,12 @@ file(GLOB_RECURSE CMSIS_DSP_SOURCE_FILES ${CMSIS_DSP_SOURCE_FILES}
         "ThirdParty/CMSIS-DSP/Source/TransformFunctions/TransformFunctionsF16.c"
 )
 endif()
+
+# 添加ETL(Embedded Template Library)库
+
+include_directories(ThirdParty/etl/include)
+
+# 添加所有ThirdParty库的源文件
 
 file(GLOB_RECURSE FINEMOTE_COMMON_SOURCE_FILES ${FINEMOTE_SOURCE_FILES} ${CMSIS_DSP_SOURCE_FILES})
 
