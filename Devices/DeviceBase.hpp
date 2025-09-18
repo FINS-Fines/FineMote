@@ -64,7 +64,6 @@ inline void DeviceBase::DevicesHandle() {
         cnt = 0;
     }
 
-    // 逆序调用 Handle 方法
     for (auto it = getDeviceList().begin(); it != getDeviceList().end(); ++it) {
         auto devicePtr = *it;
         if (++(devicePtr->cnt) >= devicePtr->divisionFactor) {
@@ -74,7 +73,6 @@ inline void DeviceBase::DevicesHandle() {
         }
     }
 
-    // 正序调用 Update 方法
     for (auto rit = getDeviceList().rbegin(); rit != getDeviceList().rend(); ++rit) {
         auto devicePtr = *rit;
         if(devicePtr->updated) {
