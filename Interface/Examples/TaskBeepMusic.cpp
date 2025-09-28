@@ -38,7 +38,7 @@ void TaskBeepMusic() {
 
     if (buttonStableState != buttonLastState) {
         if (buttonStableState == button_state_e::PRESSED) {
-            songIndex = (songIndex + 1) % 5;
+            songIndex = (songIndex + 1) % 8;
             MusicBuzzer.Play(songIndex);
         }
     }

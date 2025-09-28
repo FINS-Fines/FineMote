@@ -14,11 +14,13 @@
 #include "MultiMedia/Music_Astronomia.h"
 #include "MultiMedia/Music_IronTorrent.h"
 #include "MultiMedia/Music_Senbonzakura.h"
+#include "MultiMedia/Music_GoodnightMeow.h"
 
 struct MusicScript {
     static auto& Get() {
         static const Song_t songs[] = {
             SONG_INIT(SuperMario),
+            SONG_INIT(GoodnightMeow),
             SONG_INIT(LiuSha),
             SONG_INIT(YMCA),
 
@@ -26,6 +28,7 @@ struct MusicScript {
             SONG_INIT(Astronomia),
             SONG_INIT(IronTorrent),
             SONG_INIT(Senbonzakura),
+
         };
         return songs;
     }
