@@ -120,4 +120,5 @@ file(GLOB_RECURSE FINEMOTE_COMMON_SOURCE_FILES ${FINEMOTE_SOURCE_FILES} ${CMSIS_
 #*******************************************************************************************#
 # 添加BSP
 add_subdirectory(BSP/MC_Board)
+add_subdirectory(BSP/MC_Board_02)
 add_subdirectory(BSP/Robomaster_C)
