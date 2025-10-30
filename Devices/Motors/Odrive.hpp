@@ -21,7 +21,6 @@ public:
     }
 
     void Handle() final {
-        Update();
         controller->Calc();
         MessageGenerate();
     }
@@ -91,7 +90,7 @@ private:
         // canAgent.Send(canAgent.addr, CAN_ID_STD | CAN_RTR_REMOTE); //获取反馈数据
     }
 
-    void Update() {
+    void Update() override {
         uint32_t position_data = (canAgent.rxbuf[0] | (canAgent.rxbuf[1] << 8u) | (canAgent.rxbuf[2] << 16u) | (canAgent.rxbuf[3] << 24u));
         float position_float = *reinterpret_cast<float*>(&position_data);
         state.position = position_float;
