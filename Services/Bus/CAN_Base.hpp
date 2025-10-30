@@ -11,8 +11,23 @@
 #include "etl/queue.h"
 #include "BSP_CAN.h"
 
+template<uint8_t ID>
+class BSP_CAN;//前置声明BSP_CAN
+
 #define CAN_MAP_SIZE 20
 #define CAN_TX_QUEUE_SIZE 16
+//以下四个常量复制自HAL库，之后还需要考虑重复定义问题
+#define CAN_ID_STD                  (0x00000000U)  /*!< Standard Id */
+#define CAN_ID_EXT                  (0x00000004U)  /*!< Extended Id */
+#define CAN_RTR_DATA                (0x00000000U)  /*!< Data frame   */
+#define CAN_RTR_REMOTE              (0x00000002U)  /*!< Remote frame */
+
+typedef struct{
+  uint32_t ID;//CAN与FDCAN的ID没有区别
+  uint32_t IDE;//使用CAN_identifier_type
+  uint32_t RTR;//使用CAN_remote_transmission_request
+  uint32_t DLC;//使用0~8的整数
+} FineMote_CAN_HeaderTypeDef;//兼容CAN与FDCAN
 
 /**
  * Todo:
@@ -40,7 +55,8 @@ public:
     CAN_Base &operator=(const CAN_Base &) = delete;
 
     void RxHandle() {
-        uint8_t tempBuf[8];
+        //使用自定义的Header，传入BSP_CAN
+        /*uint8_t tempBuf[8];
         CAN_RxHeaderTypeDef Header;
 
         BSP_CAN<ID>::GetInstance().Receive(&Header, tempBuf);
@@ -49,11 +65,20 @@ public:
             memcpy(rxBufferMap[Header.StdId], tempBuf, Header.DLC);
         } else if (Header.IDE == CAN_ID_EXT) {
             memcpy(rxBufferMap[Header.ExtId], tempBuf, Header.DLC);
+        }*/
+        uint8_t tempBuf[8];
+        FineMote_CAN_HeaderTypeDef Header;
+        BSP_CAN<ID>::GetInstance().Receive(&Header, tempBuf);
+        if (Header.IDE == CAN_ID_STD) {
+            memcpy(rxBufferMap[Header.ID], tempBuf, Header.DLC);
+        } else if (Header.IDE == CAN_ID_EXT) {
+            memcpy(rxBufferMap[Header.ID], tempBuf, Header.DLC);
         }
     }
 
     void TxHandle() {
-        if (!dataQueue.empty()) {
+        //使用自定义的Header，传入BSP_CAN
+        /*if (!dataQueue.empty()) {
             CAN_TxHeaderTypeDef Header;
 
             if (dataQueue.front().IDE == CAN_ID_STD) {
@@ -69,6 +94,19 @@ public:
 
             BSP_CAN<ID>::GetInstance().Transmit(&Header, dataQueue.front().message);
 
+            dataQueue.pop();
+        } else {
+            isTxComplete = true;
+        }*/
+        if (!dataQueue.empty()) {
+            FineMote_CAN_HeaderTypeDef Header;
+            if (dataQueue.front().IDE == CAN_ID_STD || dataQueue.front().IDE == CAN_ID_EXT) {
+                Header.ID = dataQueue.front().addr;
+            }
+            Header.DLC = dataQueue.front().DLC;
+            Header.IDE = dataQueue.front().IDE;
+            Header.RTR = dataQueue.front().RTR;
+            BSP_CAN<ID>::GetInstance().Transmit(&Header, dataQueue.front().message);
             dataQueue.pop();
         } else {
             isTxComplete = true;
