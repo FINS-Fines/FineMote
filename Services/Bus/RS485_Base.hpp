@@ -58,7 +58,7 @@ public:
 
     void RxHandle(uint8_t *data, size_t size) {
         uint8_t id = data[0];
-        if (agentMap[id]) {
+        if (agentMap.contains(id)) {
             agentMap[id]->Decode(data, size);
         }
         waitForResponse = false;
@@ -85,7 +85,7 @@ private:
 
     bool waitForResponse = false;
 
-    UARTBuffer<ID, RS485_RX_BUFFER_LENGTH> buffer;
+    UARTBuffer<BSP_RS485UARTIndexList[ID], RS485_RX_BUFFER_LENGTH> buffer;
     friend class RS485_Agent<ID>;
     etl::map<uint8_t, RS485_Agent<ID> *, RS485_AGENT_SIZE> agentMap;
 };
