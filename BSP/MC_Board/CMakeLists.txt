@@ -77,7 +77,8 @@ set(CMAKE_EXE_LINKER_FLAGS " \
 
 #*******************************************************************************************#
 # 生成可执行文件
-add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT})
+add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT}
+        ../../Services/Bus/CAN_Header.hpp)
 
 set(HEX_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.hex)
 set(BIN_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.bin)
