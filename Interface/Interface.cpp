@@ -7,6 +7,8 @@
 #include "ProjectConfig.h"
 #include "DeviceBase.h"
 #include "Scheduler.h"
+#include "Encoder/MPT_45H.hpp"
+#include "Odrive.hpp"
 
 /**
  * @brief 用户初始化
@@ -16,8 +18,19 @@
 extern "C" {
 #endif
 
-void Setup() {
+#define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
+auto motorControllers = Amplifier<1>();
 
+Odrive<2> motorA(DIRECT_POSITION, motorControllers, 0x01);
+
+void Setup() {
+    RS485_Base<1>::GetInstance().SetDivisionFactor(4);
+    RS485_Base<2>::GetInstance().SetDivisionFactor(100);
+}
+MPT_45H<2> encoderA(0x02);
+
+void MotorTask() {
+    motorA.SetTargetAngle(720.0f);
 }
 
 /**
@@ -36,6 +49,7 @@ void MainRTLoop() {
     HAL_IWDG_Refresh(&hiwdg);
     DeviceBase::DevicesHandle();
     FineMoteScheduler();
+    MotorTask();
 }
 
 /*****  不要修改以下代码 *****/
