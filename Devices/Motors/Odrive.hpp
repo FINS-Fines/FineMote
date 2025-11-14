@@ -9,6 +9,7 @@
 
 #include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
+#include "Clamp.hpp"
 
 template <int busID>
 class Odrive : public MotorBase {
@@ -31,6 +32,8 @@ public:
 private:
     void SetFeedback() final {
         switch (params.targetType) {
+            case Motor_Ctrl_Type_e::Torque:
+                break;
             case Motor_Ctrl_Type_e::Position:
                 controller->SetFeedbacks(&state.position);
                 break;
@@ -88,7 +91,7 @@ private:
                 break;
             }
         }
-        // canAgent.Send(canAgent.addr, CAN_ID_STD | CAN_RTR_REMOTE); //获取反馈数据
+        canAgent.Transmit(canAgent.addr, CAN_ID_STD | CAN_RTR_REMOTE); // 获取反馈数据(远程帧)
     }
 
     void Update() {
