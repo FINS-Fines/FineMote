@@ -26,8 +26,6 @@
 #include "Control/PID.hpp"
 
 constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f};
-// std::array<PID, 4> wheelControllers = {PID(speedPID), PID(speedPID), PID(speedPID), PID(speedPID)};
-// std::array<Amplifier<1>, 4> swerveControllers = {Amplifier<1>{}, Amplifier<1>{}, Amplifier<1>{}, Amplifier<1>{}};
 auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
 
@@ -42,6 +40,7 @@ Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04);
 Motor4315<1> SBLMotor(DIRECT_POSITION, swerveControllers[1], 0x03);
 Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02);
 Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
+
 
 
 
@@ -77,6 +76,7 @@ Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 
 
 
+
 /**
  * Part 2: Chassis definitions.
  */
@@ -98,6 +98,7 @@ auto chassis = POV_ChassisBuilder<PlanarOdom>(
 
 
 
+
 /**
  * Part 3: Command input definitions.
  */
@@ -105,11 +106,11 @@ auto chassis = POV_ChassisBuilder<PlanarOdom>(
 #include "RemoteControllers/RadioMaster_Zorro.h"
 #include "FineWarden/FineSerial.hpp"
 
-
 RadioMaster_Zorro remote;
 UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
     remote.Decode(data, length);
 });
+
 
 
 
