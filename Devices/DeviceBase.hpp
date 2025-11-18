@@ -87,4 +87,4 @@ inline void DeviceBase::SetDivisionFactor(uint32_t divisionFactor) {
     this->divisionFactor = divisionFactor;
 }
 
-#endif // FINEMOTE_DEVICEBASE_HPP
+#endif
