@@ -2,8 +2,11 @@
 // IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
 // All rights reserved.
 
-#include "Scheduler.h"
+#include "ProjectConfig.h"
 
+#ifdef WITH_BEEP_MUSIC_EXAMPLE
+
+#include "Scheduler.h"
 #include "MultiMedia/BeepMusic.hpp"
 
 enum class button_state_e {
@@ -46,3 +49,4 @@ void TaskBeepMusic() {
 }
 TASK_EXPORT(TaskBeepMusic);
 
+#endif
