@@ -50,17 +50,11 @@ public:
      * @param size 数据长度
     */
     void Decode(const uint8_t* data, size_t size) {
-        uint32_t angle_raw = data[4] << 16 | data[3] << 8 | data[2];
-        position =  (float)angle_raw / (float)(1 << 24) * 360.0f;
-        getPos = true;
-        crc_value = data[5];
-        data_byte4 = data[3];
-
-        // if(calcCRC(data, 5) == data[5] && _id == data[0]) {
-        //     uint32_t angle_raw = data[4] << 16 | data[3] << 8 | data[2];
-        //     position = (float)angle_raw / (float)(1 << 24) * 360.0f;
-        //     getPos = true;
-        // }
+        if(calcCRC(data, 5) == data[5] && _id == data[0]) {
+            uint32_t angle_raw = data[4] << 16 | data[3] << 8 | data[2];
+            position = (float)angle_raw / (float)(1 << 24) * 360.0f;
+            getPos = true;
+        }
     }
 
     explicit MPT_45H(uint8_t id) :
@@ -81,7 +75,7 @@ private:
     RS485_Agent<busID> rs485Agent;
 
     uint8_t _id;
-    uint8_t _txbuf{0};
+    uint8_t _txbuf;
 
     void messageGenerate() {
         rs485Agent.Transmit(&_txbuf, 1);
