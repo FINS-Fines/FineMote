@@ -7,7 +7,7 @@
 #include "ProjectConfig.h"
 #include "DeviceBase.h"
 #include "Scheduler.h"
-#include "Encoder/MPT_45H.hpp"
+#include "Encoders/MPT_45H.hpp"
 #include "Odrive.hpp"
 
 /**
@@ -27,7 +27,7 @@ void Setup() {
     RS485_Base<1>::GetInstance().SetDivisionFactor(4);
     RS485_Base<2>::GetInstance().SetDivisionFactor(100);
 }
-MPT_45H<2> encoderA(0x02);
+MPT_45H<2> encoderA(0x03);
 
 void MotorTask() {
     motorA.SetTargetAngle(720.0f);
