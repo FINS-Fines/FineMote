@@ -17,7 +17,6 @@
 #include "EncoderBase.hpp"
 #include "RS485_Base.hpp"
 
-volatile uint32_t callback_count = 0;  // 回调计数器
 
 // 辅助函数
 int bitCount(uint8_t value) {
