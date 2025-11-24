@@ -22,12 +22,11 @@ extern "C" {
 auto motorControllers = Amplifier<1>();
 
 Odrive<2> motorA(DIRECT_POSITION, motorControllers, 0x01);
+MPT_45H<2> encoderA(0x03);
 
 void Setup() {
-    RS485_Base<1>::GetInstance().SetDivisionFactor(4);
-    RS485_Base<2>::GetInstance().SetDivisionFactor(100);
 }
-MPT_45H<2> encoderA(0x03);
+
 
 void MotorTask() {
     motorA.SetTargetAngle(720.0f);
