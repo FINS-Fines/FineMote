@@ -24,6 +24,7 @@ public:
     void Cascade(ImplementControllerBase<NextInputSize, NextOutputSize>& nextController) {
         static_assert(OutputSize == NextInputSize, "Output size of current controller must match input size of the next one.");
         nextController.SetTargets(this->outputs);
+        nextController.SetFeedbackPointersShifted(*this, InputSize);
         nextCalc = std::bind(&ImplementControllerBase<NextInputSize, NextOutputSize>::Calc, &nextController);
     }
 
@@ -39,11 +40,18 @@ public:
         targetPtrs = {args...};
     }
 
+    template <size_t SrcInputSize, size_t SrcOutputSize>
+    void SetFeedbackPointersShifted(const ImplementControllerBase<SrcInputSize, SrcOutputSize>& src,
+                                    size_t offset) {
+			for (size_t i = 0; i < src.feedbackPtrs.size()-offset; ++i)
+            feedbackPtrs.emplace_back(src.feedbackPtrs[offset + i]);
+    }
 
     template <typename... Args>
     void SetFeedbacks(Args... args) {
-        static_assert(sizeof...(args) == InputSize, "Number of feedback pointers must match controller's input size.");
+        static_assert(sizeof...(args) >= InputSize, "Number of feedback pointers must match controller's input size.");
         feedbackPtrs = {args...};
+
     }
 
 
@@ -54,7 +62,7 @@ public:
 protected:
 
     std::array<float*, InputSize> targetPtrs{};
-    std::array<float*, InputSize> feedbackPtrs{};
+    std::vector<float*> feedbackPtrs{};
     std::array<float, OutputSize> outputs{};
 };
 

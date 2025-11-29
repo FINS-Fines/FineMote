@@ -44,21 +44,21 @@ Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 
 
 
-
 /**
  * Part 1 (Case 2): Motor definitions.
  */
-
+//
 // #include "Motors/RMD_L_40xx_v3.hpp"
 //
 // #include "Control/PID.hpp"
 //
-// constexpr PID_Param_t speedPID = {0.15f, 0.00145f, 0.0016f, 8000, 500};
-// constexpr PID_Param_t positionInnerPID = {0.5f, 0.0f, 0.02f, 500, 500};
-// constexpr PID_Param_t positionOuterPID = {35.0f, 0.15f, 0.01f, 800, 800};
+// constexpr PID_Param_t speedPID = {0.15f, 0.00145f, 0.0016f};
+// constexpr PID_Param_t positionInnerPID = {0.5f, 0.0f, 0.02f};
+// constexpr PID_Param_t positionOuterPID = {1.0f, 0.00f, 0.01f};
 //
 // auto wheelControllers = CreateControllers<PID, 4>(speedPID);
-// auto swerveControllers = CreateControllers<CascadePID, 4>(positionOuterPID, positionInnerPID);
+// auto outerControllers = CreateControllers<PID, 4>(positionOuterPID);
+// auto innerControllers = CreateControllers<PID, 4>(positionInnerPID);
 //
 // #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
 // #define TORQUE_2_POSITION {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Position, true}
@@ -68,11 +68,10 @@ Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
 // RMD_L_40xx_v3<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x246);
 // RMD_L_40xx_v3<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x248);
 //
-// RMD_L_40xx_v3<1> SFRMotor(TORQUE_2_POSITION, swerveControllers[0], 0x241);
-// RMD_L_40xx_v3<1> SFLMotor(TORQUE_2_POSITION, swerveControllers[1], 0x243);
-// RMD_L_40xx_v3<1> SBLMotor(TORQUE_2_POSITION, swerveControllers[2], 0x245);
-// RMD_L_40xx_v3<1> SBRMotor(TORQUE_2_POSITION, swerveControllers[3], 0x247);
-
+// RMD_L_40xx_v3<1> SFRMotor(TORQUE_2_POSITION, outerControllers[0], 0x241);
+// RMD_L_40xx_v3<1> SFLMotor(TORQUE_2_POSITION, outerControllers[1], 0x243);
+// RMD_L_40xx_v3<1> SBLMotor(TORQUE_2_POSITION, outerControllers[2], 0x245);
+// RMD_L_40xx_v3<1> SBRMotor(TORQUE_2_POSITION, outerControllers[3], 0x247);
 
 
 
@@ -98,13 +97,13 @@ auto chassis = POV_ChassisBuilder<PlanarOdom>(
 
 
 
-
 /**
  * Part 3: Command input definitions.
  */
 
 #include "RemoteControllers/RadioMaster_Zorro.h"
 #include "FineWarden/FineSerial.hpp"
+
 
 RadioMaster_Zorro remote;
 UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
@@ -114,14 +113,19 @@ UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
 
 
 
-
 /**
  * Part 4: Task definitions.
  */
-
+static bool cascaded=0;
 void TaskPOVChassis() {
     constexpr float SPEED_LIMIT = 2.0f;
-
+//    if(!cascaded){
+//        outerControllers[0].Cascade(innerControllers[0]);
+//        outerControllers[1].Cascade(innerControllers[1]);
+//        outerControllers[2].Cascade(innerControllers[2]);
+//        outerControllers[3].Cascade(innerControllers[3]);
+//        cascaded=1;
+//    }
     if (remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::UP_POS) {
         std::array<float, 3> targetV = {
             remote.GetInfo().rightCol * SPEED_LIMIT,

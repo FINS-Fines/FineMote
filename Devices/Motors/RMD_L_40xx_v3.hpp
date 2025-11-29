@@ -35,7 +35,7 @@ private:
     void SetFeedback() final {
         switch (params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
+                controller->SetFeedbacks(&state.position, &state.speed);
                 break;
             case Motor_Ctrl_Type_e::Speed:
                 controller->SetFeedbacks(&state.speed);
