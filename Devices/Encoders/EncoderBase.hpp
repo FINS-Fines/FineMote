@@ -12,6 +12,12 @@
 
 class EncoderBase : public DeviceBase {
 public:
+     float getPosition() const {
+        if(!getPos) {
+            return NULL; // 如果没有成功读取位置
+        }
+        return position;
+    }
 
 protected:
     float position{0};
