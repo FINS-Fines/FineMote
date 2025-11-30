@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2023.
+* Copyright (c) 2025.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
@@ -9,7 +9,7 @@
 #include "Scheduler.h"
 #include "Encoders/MPT_45H.hpp"
 #include "Odrive.hpp"
-
+#include "Manipulator.hpp"
 /**
  * @brief 用户初始化
  */
@@ -18,18 +18,28 @@
 extern "C" {
 #endif
 
-#define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
-auto motorControllers = Amplifier<1>();
+float initAngle = 0.0f;
 
-Odrive<2> motorA(DIRECT_POSITION, motorControllers, 0x01);
-MPT_45H<2> encoderA(0x03);
+#define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
+auto motorControllers = createAmplifiers<3>();
+
+Odrive<2> motorA(DIRECT_POSITION, motorControllers[0], 0x01);
+Odrive<2> motorB(DIRECT_POSITION, motorControllers[1], 0x02);
+Odrive<2> motorC(DIRECT_POSITION, motorControllers[2], 0x03);
+
+// MPT_45H<2> encoderA(0x03);
 
 void Setup() {
 }
 
 
 void MotorTask() {
-    motorA.SetTargetAngle(720.0f);
+    if(initAngle < 720.0f){
+        motorA.SetTargetAngle(initAngle);
+        motorB.SetTargetAngle(initAngle);
+        motorC.SetTargetAngle(initAngle);
+    }
+    initAngle += 0.2;
 }
 
 /**
