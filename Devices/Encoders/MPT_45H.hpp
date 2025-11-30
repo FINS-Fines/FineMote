@@ -3,11 +3,7 @@
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
-/*******************************************************************************
-* Copyright (c) 2025.
-* IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
-* All rights reserved.
-******************************************************************************/
+
 #ifndef MPT_45H_H
 #define MPT_45H_H
 
