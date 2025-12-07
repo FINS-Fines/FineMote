@@ -44,6 +44,7 @@ private:
 
 // Constructor
 inline DeviceBase::DeviceBase() {
+    PeripheralsInit::GetInstance();
     getDeviceList().push_back(this);
 }
 
