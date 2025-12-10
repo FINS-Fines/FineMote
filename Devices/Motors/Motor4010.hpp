@@ -18,8 +18,8 @@ template <int busID>
 class Motor4010 : public MotorBase {
 public:
     template <typename T>
-    Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr)
-            : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+    Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t id)
+            : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(0x140 + id) {
         ResetController(_controller);
     }
 
