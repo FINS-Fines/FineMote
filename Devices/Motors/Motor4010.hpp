@@ -62,18 +62,33 @@ private:
                 break;
             }
             case Motor_Ctrl_Type_e::Position: {
-                constexpr uint16_t txSpeed = 0x800;
-                ControllerOutputData output = controller->GetOutputs();
-                int32_t txAngle = 100 * output.dataPtr[0];
+                constexpr uint16_t txSpeed = 0x800;                      // 对应实际转速1dps/LSB
+                ControllerOutputData output = controller->GetOutputs();  // 对应实际位置为0.01degree/LSB
+                int32_t txAngle = (int32_t)(output.dataPtr[0] * 100.0f);
 
                 canAgent[0] = 0xA4;
                 canAgent[1] = 0x00;
-                canAgent[2] = txSpeed;
+                canAgent[2] = txSpeed & 0xFF;
                 canAgent[3] = txSpeed >> 8;
-                canAgent[4] = txAngle;
+                canAgent[4] = txAngle & 0xFF;
                 canAgent[5] = txAngle >> 8;
                 canAgent[6] = txAngle >> 16;
                 canAgent[7] = txAngle >> 24;
+                break;
+            }
+            case Motor_Ctrl_Type_e::Speed: {
+                ControllerOutputData output = controller->GetOutputs();
+                int32_t speedControl = (int32_t)(100 * output.dataPtr[0]);  // 对应实际转速为0.01dps/LSB
+
+                canAgent[0] = 0xA2;
+                canAgent[1] = 0x00;
+                canAgent[2] = 0x00;
+                canAgent[3] = 0x00;
+
+                canAgent[4] = speedControl & 0xFF;
+                canAgent[5] = speedControl >> 8;
+                canAgent[6] = speedControl >> 16;
+                canAgent[7] = speedControl >> 24;
                 break;
             }
         }
