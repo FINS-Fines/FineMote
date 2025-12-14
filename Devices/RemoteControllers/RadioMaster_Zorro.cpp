@@ -8,7 +8,26 @@
 #include <cmath>
 
 void RadioMaster_Zorro::Decode(uint8_t* data, uint16_t length) {
-    if(data[0] != 0x0F || data[24] != 0x00){return;}
+    if(length != 25) return;
+
+    // 1. 寻找数据包起始位置
+    volatile int8_t start_idx = -1;
+    for(uint8_t i = 0; i < 25; ++i){
+      if(data[i] == 0x00 && data[(i+1)%25] == 0x0F){
+        start_idx = (i+1)%25;
+        break;  // 找到后立即退出
+      }
+    }
+
+    if(start_idx == -1) return;  // 未找到有效帧
+
+    // 2. 重新排列数据，将起始字节放到索引0位置
+    uint8_t aligned_data[25];
+    for(uint8_t i = 0; i < 25; ++i){
+      aligned_data[i] = data[(start_idx + i) % 25];
+    }
+
+/*    if(data[0] != 0x0F || data[24] != 0x00){return;}
     info.rR = (((data[1] | (data[2] << 8)) & 0x07FF) - 1000) / 810.0f;
     info.rC = ((((data[2] >> 3) | (data[3] << 5)) & 0x07FF) - 1000) / 810.0f;
     info.lC = ((((data[3] >> 6) | (data[4] << 2) | (data[5] << 10)) & 0x07FF) - 1000) / 810.0f;
@@ -42,5 +61,40 @@ void RadioMaster_Zorro::Decode(uint8_t* data, uint16_t length) {
                   : ((data[9] >> 2 | data[10] << 6) & 0x07FF) == 997
                   ? MID_POS
                   : DOWN_POS;
-    info.sD = ((data[10] >> 5 | data[11] << 3) & 0x07FF) == 191 ? UP_POS : DOWN_POS;
+    info.sD = ((data[10] >> 5 | data[11] << 3) & 0x07FF) == 191 ? UP_POS : DOWN_POS;*/
+    if(aligned_data[0] != 0x0F || aligned_data[24] != 0x00){return;}
+    info.rR = (((aligned_data[1] | (aligned_data[2] << 8)) & 0x07FF) - 1000) / 810.0f;
+    info.rC = ((((aligned_data[2] >> 3) | (aligned_data[3] << 5)) & 0x07FF) - 1000) / 810.0f;
+    info.lC = ((((aligned_data[3] >> 6) | (aligned_data[4] << 2) | (aligned_data[5] << 10)) & 0x07FF) - 1000) / 810.0f;
+    info.lR = ((((aligned_data[5] >> 1) | (aligned_data[6] << 7)) & 0x07FF) - 1000) / 810.0f;
+    //设置死区
+    if(fabsf(info.rR) > 0.1)
+      info.rightRol = info.rR;
+    else
+      info.rightRol = 0;
+    if(fabsf(info.rC) > 0.1)
+      info.rightCol = info.rC;
+    else
+      info.rightCol = 0;
+    if(fabsf(info.lC) > 0.1)
+      info.leftCol = info.lC;
+    else
+      info.leftCol = 0;
+    if(fabsf(info.lR) > 0.1)
+      info.leftRol = info.lR;
+    else
+      info.leftRol = 0;
+
+    info.sA = ((aligned_data[6] >> 4 | aligned_data[7] << 4) & 0x07FF) == 191 ? UP_POS : DOWN_POS;
+    info.sB = ((aligned_data[7] >> 7 | aligned_data[8] << 1 | aligned_data[9] << 9) & 0x07FF) == 191
+                  ? UP_POS
+                  : ((aligned_data[7] >> 7 | aligned_data[8] << 1 | aligned_data[9] << 9) & 0x07FF) == 997
+                        ? MID_POS
+                        : DOWN_POS;
+    info.sC = ((aligned_data[9] >> 2 | aligned_data[10] << 6) & 0x07FF) == 191
+                  ? UP_POS
+                  : ((aligned_data[9] >> 2 | aligned_data[10] << 6) & 0x07FF) == 997
+                        ? MID_POS
+                        : DOWN_POS;
+    info.sD = ((aligned_data[10] >> 5 | aligned_data[11] << 3) & 0x07FF) == 191 ? UP_POS : DOWN_POS;
 }
