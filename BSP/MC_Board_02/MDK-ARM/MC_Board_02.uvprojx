@@ -337,7 +337,7 @@
               <MiscControls />
               <Define>USE_HAL_DRIVER,STM32H723xx,USE_PWR_LDO_SUPPLY</Define>
               <Undefine />
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../../../Algorithms;../../../Components;../../../Devices;../../../Eigen;../../../Interface;../../../OpenOCD;../../../Services;../../../ThirdParty;../../../BSP</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -696,6 +696,26 @@
               <FileName>system_stm32h7xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/system_stm32h7xx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>New Group</GroupName>
+          <Files>
+            <File>
+              <FileName>Board.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Board.h</FilePath>
+            </File>
+            <File>
+              <FileName>MC_Board_02.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\MC_Board_02.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>MC_Board_02.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\MC_Board_02.h</FilePath>
             </File>
           </Files>
         </Group>
