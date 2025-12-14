@@ -101,7 +101,6 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM12_Init();
   MX_SPI1_Init();
-  MX_SPI6_Init();
   MX_SPI2_Init();
   MX_TIM3_Init();
   MX_USART1_UART_Init();
@@ -117,8 +116,8 @@ int main(void)
   MX_USB_OTG_HS_PCD_Init();
   MX_IWDG1_Init();
   MX_TIM7_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
-    //HAL_GPIO_WritePin(GPIOC, Power_OUT1_EN_Pin|Power_5V_EN_Pin|RS485_DIR1_Pin|LED1_Pin|GPIO_PIN_1|Power_OUT2_EN_Pin, GPIO_PIN_SET);
 
     firstEnter = 0;
   } else {

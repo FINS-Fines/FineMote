@@ -68,4 +68,8 @@ void BSP_UART<ID>::Receive(uint8_t *data, uint16_t size) {
     HAL_UARTEx_ReceiveToIdle_IT(BSP_UARTList[ID], data, size);
 }
 
+template<> inline void BSP_UART<3>::Receive(uint8_t *data, uint16_t size) {
+  HAL_UARTEx_ReceiveToIdle_DMA(BSP_UARTList[3], data, 25);
+} // SBUS接收端口需要用DMA
+
 #endif
