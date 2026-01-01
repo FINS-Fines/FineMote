@@ -54,13 +54,13 @@ set(LINKER_TARGET_FLAG "--cpu=${CMAKE_SYSTEM_PROCESSOR}")
 
 #*******************************************************************************************#
 # 设置编译选项
-set(CMAKE_C_FLAGS "${C_TARGET_FLAG} ${COMPILE_RULE_FLAG} \
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILE_RULE_FLAG} \
     -fno-rtti -funsigned-char -fshort-enums -fshort-wchar \
     -gdwarf-4 -Os -ffunction-sections \
     -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier \
     ")
 set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
-set(CMAKE_ASM_FLAGS "${ASM_TARGET_FLAG} ${COMPILE_RULE_FLAG} -masm=auto -c -gdwarf-4")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${COMPILE_RULE_FLAG} -masm=auto -c -gdwarf-4")
 
 #*******************************************************************************************#
 # 设置链接选项
@@ -73,7 +73,7 @@ set(CMAKE_EXE_LINKER_FLAGS " \
     --info sizes --info totals --info unused --info veneers \
     --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols \
     --list ${BOARD_NAME}.map \
-    " )
+    ")
 
 #*******************************************************************************************#
 # 生成可执行文件

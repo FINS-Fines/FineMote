@@ -1,0 +1,35 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/armclang.cmake"
+      }
+    },
+    {
+      "name": "Robomaster_C",
+      "displayName": "Robomaster_C",
+      "inherits": "base",
+      "cacheVariables": {
+        "BOARD_NAME": "Robomaster_C",
+        "CHIP_NAME": "STM32F407xx"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "Robomaster_C",
+      "configurePreset": "Robomaster_C"
+    }
+  ]
+}
