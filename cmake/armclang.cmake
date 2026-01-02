@@ -1,6 +1,3 @@
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM_PROCESSOR arm)
-
 set(CMAKE_C_COMPILER armclang)
 set(CMAKE_ASM_COMPILER armclang)
 set(CMAKE_CXX_COMPILER armclang)
@@ -27,4 +24,15 @@ set(CMAKE_EXECUTABLE_SUFFIX_ASM ".elf")
 set(CMAKE_EXECUTABLE_SUFFIX_C ".elf")
 set(CMAKE_EXECUTABLE_SUFFIX_CXX ".elf")
 
+set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES BOARD_NAME)
+if (NOT DEFINED BOARD_NAME OR BOARD_NAME STREQUAL "")
+    message(FATAL_ERROR "BOARD_NAME is not set.")
+endif ()
+
+set(_board_tc "${CMAKE_CURRENT_LIST_DIR}/../BSP/${BOARD_NAME}/cmake/board_toolchain.cmake")
+if (NOT EXISTS "${_board_tc}")
+    message(FATAL_ERROR "Board toolchain file not found: ${_board_tc}")
+endif ()
+
+include("${_board_tc}")
 message(STATUS "Configured for armclang toolchain targeting ${BOARD_NAME}")
