@@ -41,11 +41,15 @@ target_link_libraries(finemote_bsp PRIVATE
         finemote::board
 )
 
+file(GLOB _FINEMOTE_BSP_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_LIST_DIR}/*.c"
+        "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/FineMote_BSP/*.c"
+        "${CMAKE_CURRENT_LIST_DIR}/FineMote_BSP/*.cpp"
+)
+
 target_sources(finemote_bsp PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/MC_Board.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/Semihost.c
-        ${CMAKE_CURRENT_LIST_DIR}/FineMote_BSP/BSP_CAN.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/FineMote_BSP/BSP_UART.cpp
+        ${_FINEMOTE_BSP_SOURCES}
 )
 
 target_compile_options(finemote_bsp PRIVATE

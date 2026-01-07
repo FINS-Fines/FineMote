@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Robomaster_C" type="com.jetbrains.cidr.embedded.openocd.conf.type" factoryName="com.jetbrains.cidr.embedded.openocd.conf.factory" nameIsGenerated="true" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Robomaster_C" TARGET_NAME="Robomaster_C" CONFIG_NAME="Robomaster_C - Robomaster_C-debug" version="1" RUN_TARGET_PROJECT_NAME="Robomaster_C" RUN_TARGET_NAME="Robomaster_C">
+  <configuration default="false" name="Robomaster_C" type="com.jetbrains.cidr.embedded.openocd.conf.type" factoryName="com.jetbrains.cidr.embedded.openocd.conf.factory" nameIsGenerated="true" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MC_Board" TARGET_NAME="Robomaster_C" CONFIG_NAME="Robomaster_C - Robomaster_C-debug" version="1" RUN_TARGET_PROJECT_NAME="MC_Board" RUN_TARGET_NAME="Robomaster_C">
     <openocd version="1" gdb-port="3333" telnet-port="4444" board-config="C:\Users\wfrfred\workspace\FineMote\OpenOCD\stm32f4+st-link.cfg" reset-type="INIT" download-type="UPDATED_ONLY">
       <debugger kind="GDB" isBundled="true" />
     </openocd>

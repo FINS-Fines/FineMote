@@ -11,11 +11,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_compile_options(
-        "$<$<CONFIG:Release>:-Os;-gdwarf-4>"
-        "$<$<CONFIG:Debug>:-O0;-g;-gdwarf-4>"
-)
-
 set(_FINEMOTE_WARNING_FLAGS
         -Wno-packed
         -Wno-missing-variable-declarations
@@ -26,7 +21,8 @@ set(_FINEMOTE_WARNING_FLAGS
         -Wno-reserved-id-macro
         -Wno-unused-macros
         -Wno-documentation-unknown-command
-        -Wno-documentation -Wno-license-management
+        -Wno-documentation
+        -Wno-license-management
         -Wno-parentheses-equality
         -Wno-reserved-identifier
 )
