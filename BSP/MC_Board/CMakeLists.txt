@@ -23,14 +23,15 @@ target_compile_definitions(finemote_board INTERFACE
 )
 
 target_link_options(finemote_board INTERFACE
-        "--scatter=${CMAKE_CURRENT_LIST_DIR}/MDK-ARM/${BOARD_NAME}/${BOARD_NAME}.sct"
+        "--scatter=${CMAKE_CURRENT_SOURCE_DIR}/MDK-ARM/${BOARD_NAME}/${BOARD_NAME}.sct"
         "--cpu=${FINEMOTE_ARMLINK_CPU}"
         "--strict"
 )
 
 target_include_directories(finemote_board INTERFACE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/FineMote_BSP
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP
+        ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS_POSIX
 )
 
 add_library(finemote_bsp OBJECT)
@@ -42,10 +43,10 @@ target_link_libraries(finemote_bsp PRIVATE
 )
 
 file(GLOB _FINEMOTE_BSP_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_LIST_DIR}/*.c"
-        "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
-        "${CMAKE_CURRENT_LIST_DIR}/FineMote_BSP/*.c"
-        "${CMAKE_CURRENT_LIST_DIR}/FineMote_BSP/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP/*.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP/*.cpp"
 )
 
 target_sources(finemote_bsp PRIVATE
