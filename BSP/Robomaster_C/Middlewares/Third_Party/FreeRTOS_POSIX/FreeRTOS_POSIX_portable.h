@@ -34,4 +34,13 @@
 /* This port uses the defaults in FreeRTOS_POSIX_portable_default.h, so this
  * file is empty. */
 
+#include <time.h>
+
+#define posixconfigENABLE_TIME_T 0
+#define posixconfigENABLE_CLOCK_T 0
+
+#ifdef CLOCKS_PER_SEC
+    #undef CLOCKS_PER_SEC
+#endif
+
 #endif /* _FREERTOS_POSIX_PORTABLE_H_ */

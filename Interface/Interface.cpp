@@ -4,7 +4,7 @@
  * All rights reserved.
  ******************************************************************************/
 
-#include "DeviceBase.hpp"
+#include "DeviceBase/DeviceScheduler.hpp"
 #include "ProjectConfig.h"
 #include "Scheduler.h"
 
@@ -16,7 +16,9 @@
 extern "C" {
 #endif
 
-void Setup() {}
+void Setup() {
+    DeviceScheduler::GetInstance().Start();
+}
 
 /**
  * @brief 主循环，优先级低于定时器中断，不确定执行频率
@@ -32,7 +34,6 @@ void Loop() {
 
 void MainRTLoop() {
     HAL_IWDG_Refresh(&hiwdg);
-    DeviceBase::DevicesHandle();
     FineMoteScheduler();
 }
 

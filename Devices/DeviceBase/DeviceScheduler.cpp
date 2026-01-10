@@ -1,0 +1,90 @@
+//
+// Created by wfrfred on 10/13/2025.
+//
+#include "DeviceScheduler.hpp"
+#include "DeviceBase.hpp"
+#include "cmsis_os2.h"
+
+#include <etl/algorithm.h>
+
+void DeviceScheduler::RegisterDevice(DeviceBase* device) {
+    if (running_) {
+        return;
+    }
+
+    const auto period = device->divisionFactor;
+
+    const auto it = etl::find_if(buckets_.begin(), buckets_.end(), [period](const Bucket& b) {
+        return b.period == period;
+    });
+
+    if (it != buckets_.end()) {
+        if (!it->devices.full()) {
+            it->devices.emplace_back(device);
+        } else {
+            // the devices of the bucket are full
+        }
+    } else {
+        if (!buckets_.full()) {
+            Bucket bucket;
+            bucket.period = period;
+            bucket.devices.emplace_back(device);
+            buckets_.emplace_back(etl::move(bucket));
+        } else {
+            // the buckets are full
+        }
+    }
+}
+
+void DeviceScheduler::Start() {
+    if (running_) {
+        return;
+    }
+
+    etl::sort(buckets_.begin(), buckets_.end(), [](const Bucket& a, const Bucket& b) {
+        return a.period < b.period;
+    });
+
+    int priority = MAX_SCHEDULER_PRIORITY;
+
+    for (Bucket& bucket: buckets_) {
+        sched_param param { .sched_priority = priority };
+
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setschedparam(&attr, &param);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+        if (pthread_create(&bucket.thread, &attr, &DeviceScheduler::BucketThreadFunc, &bucket) != 0) {
+            // fail to create thread
+        }
+        pthread_attr_destroy(&attr);
+
+        priority--;
+    }
+
+    running_ = true;
+}
+
+[[noreturn]] void* DeviceScheduler::BucketThreadFunc(void* arg) {
+    auto* bucket = static_cast<Bucket*>(arg);
+    auto& devices = bucket->devices;
+
+    const uint32_t period = bucket->period;
+
+    while (true) {
+        const uint32_t last_wake_time = osKernelGetTickCount();
+        for (const auto device: devices) {
+            device->Update();
+            device->updated = true;
+        }
+
+        for (auto rit = devices.rbegin(); rit != devices.rend(); ++rit) {
+            if (const auto device = *rit; device->updated) {
+                device->Handle();
+                device->updated = false;
+            }
+        }
+        osDelayUntil(last_wake_time + period);
+    }
+}

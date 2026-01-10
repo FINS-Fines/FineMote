@@ -942,6 +942,16 @@
               <FileType>8</FileType>
               <FilePath>..\..\..\Devices\RemoteControllers\RemoteControl.cpp</FilePath>
             </File>
+            <File>
+              <FileName>DeviceBase.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Devices\DeviceBase\DeviceBase.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>DeviceScheduler.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Devices\DeviceBase\DeviceScheduler.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
