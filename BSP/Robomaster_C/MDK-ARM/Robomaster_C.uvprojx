@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx,__ROBOMASTER_C,__KEIL_APP</Define>
               <Undefine></Undefine>
-              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../FineMote_BSP;../../../Interface;../../../Services;../../../Devices;../../../Algorithms;../../../Components;../../../ThirdParty/etl/include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;..\Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM4F</IncludePath>
+              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../FineMote_BSP;../../../Interface;../../../Services;../../../Devices;../../../Algorithms;../../../Components;../../../ThirdParty/etl/include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;..\Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM4F;..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\include;..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\include\portable;..\..\..\ThirdParty\FreeRTOS-POSIX\include;..\..\..\ThirdParty\FreeRTOS-POSIX\include\private;..\Middlewares\Third_Party\FreeRTOS_POSIX</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1371,6 +1371,66 @@
               <FileName>port.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/FreeRTOS_POSIX</GroupName>
+          <Files>
+            <File>
+              <FileName>FreeRTOS_POSIX_clock.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_clock.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_mqueue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_mqueue.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_pthread.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_pthread.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_pthread_barrier.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_pthread_barrier.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_pthread_cond.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_pthread_cond.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_pthread_mutex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_pthread_mutex.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_sched.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_sched.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_semaphore.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_semaphore.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_unistd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_unistd.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOS_POSIX_utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ThirdParty\FreeRTOS-POSIX\FreeRTOS-Plus-POSIX\source\FreeRTOS_POSIX_utils.c</FilePath>
             </File>
           </Files>
         </Group>
