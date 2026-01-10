@@ -4,8 +4,8 @@
  * All rights reserved.
  ******************************************************************************/
 
-#include "ProjectConfig.h"
 #include "DeviceBase.hpp"
+#include "ProjectConfig.h"
 #include "Scheduler.h"
 
 /**
@@ -16,9 +16,7 @@
 extern "C" {
 #endif
 
-void Setup() {
-
-}
+void Setup() {}
 
 /**
  * @brief 主循环，优先级低于定时器中断，不确定执行频率
@@ -44,7 +42,7 @@ void MainRTLoop() {
 extern "C" {
 #endif
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+void MainControlTimCallback(TIM_HandleTypeDef* htim) {
     if (htim == &TIM_Control) {
         MainRTLoop();
     }
