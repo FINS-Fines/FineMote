@@ -9,6 +9,11 @@ target_link_libraries(finemote_board INTERFACE
 
 # Macro definitions for board
 
+# For etl
+target_compile_definitions(finemote_board INTERFACE
+        ETL_TARGET_OS_CMSIS_OS2
+)
+
 # For cmsis dsp
 target_compile_definitions(finemote_board INTERFACE
         ARM_MATH_CM4
