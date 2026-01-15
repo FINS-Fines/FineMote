@@ -19,6 +19,8 @@
 #include "iwdg.h"
 #include "stm32f4xx_it.h"
 
+#include "Bus/CAN_Types.hpp"
+
 int main();
 
 class PeripheralsInit {
@@ -56,6 +58,16 @@ constexpr uint16_t BSP_RS485FlowCtrlPinList[3] = {0, GPIO_PIN_15, GPIO_PIN_3};
 /**
  * CAN Definitions
  */
+template<>
+struct CAN_Traits<1> {
+    using Type = BxCAN;
+};
+
+template<>
+struct CAN_Traits<2> {
+    using Type = BxCAN;
+};
+
 constexpr CAN_HandleTypeDef *BSP_CANList[] = {nullptr, &hcan1, &hcan2};
 constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
 

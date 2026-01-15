@@ -7,12 +7,13 @@
 #ifndef FINEMOTE_CAN_BASE_HPP
 #define FINEMOTE_CAN_BASE_HPP
 
-#include "etl/map.h"
+#include "etl/flat_map.h"
 #include "etl/queue.h"
-#include "BSP_CAN.h"
-#include "CAN_Header.hpp"
+
+#include "Bus/CAN_Types.hpp"
+
 template<uint8_t ID>
-class BSP_CAN;//前置声明BSP_CAN
+class BSP_CAN; //前置声明BSP_CAN
 
 #define CAN_MAP_SIZE 20
 #define CAN_TX_QUEUE_SIZE 16
@@ -22,90 +23,52 @@ class BSP_CAN;//前置声明BSP_CAN
  * 远程帧处理
  */
 
-typedef struct {
-    uint8_t DLC;
-    uint8_t IDE;
-    uint8_t RTR;
-    uint32_t addr;
-    uint8_t message[8];
-} CAN_Package_t;
-
-template<size_t ID>
+template<uint8_t ID>
 class CAN_Base {
+    using HardwareType = typename CAN_Traits<ID>::Type;
+    using PackageType = CAN_Package<HardwareType>;
+
+    struct RxNode {
+        uint8_t* ptr;
+        uint8_t size;
+    };
+
 public:
-    static CAN_Base &GetInstance() {
+    static CAN_Base& GetInstance() {
         static CAN_Base instance;
         return instance;
     }
 
-    CAN_Base(const CAN_Base &) = delete;
-
-    CAN_Base &operator=(const CAN_Base &) = delete;
+    CAN_Base(const CAN_Base&) = delete;
+    CAN_Base& operator=(const CAN_Base&) = delete;
 
     void RxHandle() {
-        //使用自定义的Header，传入BSP_CAN
-        /*uint8_t tempBuf[8];
-        CAN_RxHeaderTypeDef Header;
+        PackageType package;
 
-        BSP_CAN<ID>::GetInstance().Receive(&Header, tempBuf);
+        BSP_CAN<ID>::GetInstance().Receive(package);
 
-        if (Header.IDE == CAN_ID_STD) {
-            memcpy(rxBufferMap[Header.StdId], tempBuf, Header.DLC);
-        } else if (Header.IDE == CAN_ID_EXT) {
-            memcpy(rxBufferMap[Header.ExtId], tempBuf, Header.DLC);
-        }*/
-        uint8_t tempBuf[8];
-        FineMote_CAN_HeaderTypeDef Header;
-        BSP_CAN<ID>::GetInstance().Receive(&Header, tempBuf);
-        if (Header.IDE == CAN_ID_STD) {
-            memcpy(rxBufferMap[Header.ID], tempBuf, Header.DLC);
-        } else if (Header.IDE == CAN_ID_EXT) {
-            memcpy(rxBufferMap[Header.ID], tempBuf, Header.DLC);
+        if (auto it = rxBufferMap.find(package.id); it != rxBufferMap.end()) {
+            if (const auto& node = it->second; package.len <= node.size) {
+                memcpy(node.ptr, package.data, package.len);
+            }
         }
     }
 
     void TxHandle() {
-        //使用自定义的Header，传入BSP_CAN
-        /*if (!dataQueue.empty()) {
-            CAN_TxHeaderTypeDef Header;
-
-            if (dataQueue.front().IDE == CAN_ID_STD) {
-                Header.StdId = dataQueue.front().addr;
-            } else if (dataQueue.front().IDE == CAN_ID_EXT) {
-                Header.ExtId = dataQueue.front().addr;
-            }
-
-            Header.DLC = dataQueue.front().DLC;
-            Header.IDE = dataQueue.front().IDE;
-            Header.RTR = dataQueue.front().RTR;
-            Header.TransmitGlobalTime = DISABLE;
-
-            BSP_CAN<ID>::GetInstance().Transmit(&Header, dataQueue.front().message);
-
-            dataQueue.pop();
-        } else {
-            isTxComplete = true;
-        }*/
         if (!dataQueue.empty()) {
-            FineMote_CAN_HeaderTypeDef Header;
-            if (dataQueue.front().IDE == CAN_ID_STD || dataQueue.front().IDE == CAN_ID_EXT) {
-                Header.ID = dataQueue.front().addr;
-            }
-            Header.DLC = dataQueue.front().DLC;
-            Header.IDE = dataQueue.front().IDE;
-            Header.RTR = dataQueue.front().RTR;
-            BSP_CAN<ID>::GetInstance().Transmit(&Header, dataQueue.front().message);
+            PackageType& package = dataQueue.front();
+            BSP_CAN<ID>::GetInstance().Transmit(package);
             dataQueue.pop();
         } else {
             isTxComplete = true;
         }
     }
 
-    bool Transmit(CAN_Package_t &txbuf) {
+    bool Transmit(PackageType& tx_buf) {
         if (dataQueue.full()) {
             dataQueue.pop();
         }
-        dataQueue.push(txbuf);
+        dataQueue.push(tx_buf);
         if (isTxComplete == true) {
             TxHandle();
             isTxComplete = false;
@@ -113,13 +76,13 @@ public:
         return true;
     }
 
-    void BindRxBuffer(uint8_t *buffer, uint32_t addr) {
-        rxBufferMap[addr] = buffer;
+    void BindRxBuffer(uint8_t* buffer, const uint8_t size, uint32_t addr) {
+        rxBufferMap[addr] = { buffer, size };
     }
 
 private:
-    etl::map<uint32_t, uint8_t *, CAN_MAP_SIZE> rxBufferMap;
-    etl::queue<CAN_Package_t,CAN_TX_QUEUE_SIZE> dataQueue;
+    etl::flat_map<uint32_t, RxNode, CAN_MAP_SIZE> rxBufferMap;
+    etl::queue<PackageType, CAN_TX_QUEUE_SIZE> dataQueue;
     bool isTxComplete = true;
 
     CAN_Base() {
@@ -127,63 +90,96 @@ private:
     }
 };
 
-template<size_t ID>
+template<uint8_t ID, typename AgentType = BxCAN>
 class CAN_Agent {
+    using HardwareType = typename CAN_Traits<ID>::CAN_Type;
+    static_assert(
+        !(etl::is_same_v<HardwareType, BxCAN> && etl::is_same_v<AgentType, FDCAN>),
+        "Fatal: Cannot use FDCAN agent on BxCAN hardware!"
+    );
+
+    static_assert(ID > 0 && ID <= CAN_BUS_MAXIMUM_COUNT && BSP_CANList[ID] != nullptr, "Using illegal CAN BUS");
+
 public:
-    explicit CAN_Agent(uint32_t addr) : addr(addr) {
-        static_assert(ID > 0 && ID <= CAN_BUS_MAXIMUM_COUNT && BSP_CANList[ID] != nullptr, "Using illegal CAN BUS");
-        CAN_Base<ID>::GetInstance().BindRxBuffer(rxbuf, addr);
+    explicit CAN_Agent(uint32_t addr): addr_(addr) {
+        CAN_Base<ID>::GetInstance().BindRxBuffer(rx_buf_, RxBufferSize, addr);
     }
 
-    void SetDLC(uint8_t _DLC) {
-        txbuf.DLC = _DLC;
+    void SetLength(uint8_t _len) {
+        if (_len > RxBufferSize) {
+            _len = RxBufferSize;
+        }
+        tx_buf_.len = _len;
     }
 
     /**
      * @brief CAN发送队列装填
-     * @param _addr
+     * @param addr
      * @param config IDE | RTR
      * @param IDE CAN_ID_STD or CAN_ID_EXT
      * @param RTR CAN_RTR_DATA or CAN_RTR_REMOTE
      */
-    void Transmit(uint32_t _addr, uint8_t config = CAN_ID_STD | CAN_RTR_DATA) {
-        txbuf.addr = _addr;
-        txbuf.IDE = config & CAN_ID_EXT;
-        txbuf.RTR = config & CAN_RTR_REMOTE;
+    template<typename = void>
+    etl::enable_if_t<etl::is_same_v<AgentType, BxCAN>, void>
+    Transmit(const uint32_t addr, const uint8_t config = CAN_ID_STD | CAN_RTR_DATA) {
+        tx_buf_.addr = addr;
+        tx_buf_.flags.is_ext = (config & CAN_ID_EXT) ? 1 : 0;
+        tx_buf_.flags.is_rtr = (config & CAN_RTR_REMOTE) ? 1 : 0;
 
-        CAN_Base<ID>::GetInstance().Transmit(txbuf);
+        if constexpr (etl::is_same_v<HardwareType, FDCAN>) {
+            tx_buf_.flags.is_fd = false;
+            tx_buf_.flags.is_brs = false;
+        }
+
+        CAN_Base<ID>::GetInstance().Transmit(tx_buf_);
     }
 
-    uint8_t &operator[](std::size_t index) {
-        return txbuf.message[index];
+    template<typename = void>
+    etl::enable_if_t<std::is_same_v<AgentType, FDCAN>, void>
+    Transmit(const uint32_t addr, const bool is_brs = true, const uint8_t config = CAN_ID_STD) {
+        tx_buf_.addr = addr;
+
+        tx_buf_.flags.is_ext = (config & CAN_ID_EXT) ? 1 : 0;
+        tx_buf_.flags.is_rtr = 0;
+
+        tx_buf_.flags.is_fd = true;
+        tx_buf_.flags.is_brs = is_brs ? 1 : 0;
+
+        CAN_Base<ID>::GetInstance().Transmit(tx_buf_);
+    }
+
+    uint8_t& operator[](std::size_t index) {
+        return tx_buf_.data[index];
     }
 
     uint8_t operator[](std::size_t index) const {
-        return rxbuf[index];
+        return rx_buf_[index];
     }
 
-    uint32_t addr;
-    uint8_t rxbuf[8] = {0};
+    uint32_t addr_;
+
+    static constexpr std::size_t RxBufferSize = CAN_Package<AgentType>::BufferSize;
+    uint8_t rx_buf_[RxBufferSize] {};
 
 private:
-    CAN_Package_t txbuf = {8};
+    CAN_Package<HardwareType> tx_buf_ {};
 };
 
 template<typename T = decltype(BSP_CANList[0])>
 class FineMoteAux_CAN {
 public:
     static void OnTxComplete(T hcan) {
-        constexpr size_t maxID = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
+        constexpr std::size_t maxID = std::size(BSP_CANList) - 1;
         TxCompleteImpl<maxID>(hcan);
     }
 
     static void OnRxComplete(T hcan) {
-        constexpr size_t maxID = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
+        constexpr std::size_t maxID = std::size(BSP_CANList) - 1;
         RxCompleteImpl<maxID>(hcan);
     }
 
 private:
-    template<size_t ID>
+    template<uint8_t ID>
     static void TxCompleteImpl(T hcan) {
         if constexpr (BSP_CANList[ID] != nullptr) {
             if (hcan == BSP_CANList[ID]) {
@@ -196,7 +192,7 @@ private:
         }
     }
 
-    template<size_t ID>
+    template<uint8_t ID>
     static void RxCompleteImpl(T hcan) {
         if constexpr (BSP_CANList[ID] != nullptr) {
             if (hcan == BSP_CANList[ID]) {

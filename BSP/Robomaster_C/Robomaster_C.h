@@ -18,6 +18,8 @@
 #include "usart.h"
 #include "gpio.h"
 
+#include "Bus/CAN_Types.hpp"
+
 int main();
 
 class PeripheralsInit{
@@ -46,6 +48,16 @@ constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UART
 /**
  * CAN Definitions
  */
+template<>
+struct CAN_Traits<1> {
+    using Type = BxCAN;
+};
+
+template<>
+struct CAN_Traits<2> {
+    using Type = BxCAN;
+};
+
 constexpr CAN_HandleTypeDef *BSP_CANList[] = {nullptr, &hcan1, &hcan2};
 constexpr size_t CAN_BUS_MAXIMUM_COUNT = sizeof(BSP_CANList) / sizeof(BSP_CANList[0]) - 1;
 

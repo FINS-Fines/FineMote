@@ -9,10 +9,9 @@
 
 #include "Board.h"
 #include "Bus/CAN_Base.hpp"
-#include "Bus/CAN_Header.hpp"
 class BSP_CANs {
 public:
-    static BSP_CANs &GetInstance() {
+    static BSP_CANs& GetInstance() {
         static BSP_CANs instance;
         return instance;
     }
@@ -23,21 +22,23 @@ private:
         BSP_CANs_Setup();
     }
 
-    void BSP_CANs_Setup() {
-    }
+    void BSP_CANs_Setup() {}
 };
 
 template<uint8_t ID>
 class BSP_CAN {
+    using HardwareType = typename CAN_Traits<ID>::Type;
+    using PackageType = CAN_Package<HardwareType>;
+
 public:
-    static BSP_CAN &GetInstance() {
+    static BSP_CAN& GetInstance() {
         static BSP_CAN instance;
         return instance;
     }
 
-    void Transmit(FineMote_CAN_HeaderTypeDef *Header, uint8_t *data);
+    void Transmit(PackageType& package);
 
-    void Receive(FineMote_CAN_HeaderTypeDef *Header, uint8_t *data);
+    void Receive(PackageType& package);
 
 private:
     BSP_CAN() {
@@ -60,9 +61,11 @@ private:
         canFilter.FilterFIFOAssignment = CAN_RX_FIFO0;
         canFilter.FilterActivation = ENABLE;
         switch (ID) {
-            case 1: canFilter.FilterBank = 0;
+            case 1:
+                canFilter.FilterBank = 0;
                 break;
-            case 2: canFilter.FilterBank = 14;
+            case 2:
+                canFilter.FilterBank = 14;
                 break;
         }
         canFilter.SlaveStartFilterBank = 14;
@@ -77,36 +80,35 @@ private:
 };
 
 template<uint8_t ID>
-void BSP_CAN<ID>::Receive(FineMote_CAN_HeaderTypeDef *Header, uint8_t *data) {
-  CAN_RxHeaderTypeDef CAN_Header = {0};
-  HAL_CAN_GetRxMessage(BSP_CANList[ID], CAN_RX_FIFO0, &CAN_Header, data);
-  if(CAN_Header.IDE == CAN_ID_STD){
-    Header->IDE = CAN_ID_STD;
-    Header->ID = CAN_Header.StdId;
-  }
-  else if(CAN_Header.IDE == CAN_ID_EXT){
-    Header->IDE = CAN_ID_EXT;
-    Header->ID = CAN_Header.ExtId;
-  }
-  Header->RTR = CAN_Header.RTR;
-  Header->DLC = CAN_Header.DLC;
+void BSP_CAN<ID>::Receive(PackageType& package) {
+    CAN_RxHeaderTypeDef CAN_Header {};
+    HAL_CAN_GetRxMessage(BSP_CANList[ID], CAN_RX_FIFO0, &CAN_Header, package.data);
+    if (CAN_Header.IDE == CAN_ID_STD) {
+        package.flags.is_ext = false;
+        package.id = CAN_Header.StdId;
+    } else if (CAN_Header.IDE == CAN_ID_EXT) {
+        package.flags.is_ext = true;
+        package.id = CAN_Header.ExtId;
+    }
+    package.flags.is_rtr = CAN_Header.RTR == CAN_RTR_REMOTE;
+    package.len = CAN_Header.DLC;
 }
 
 template<uint8_t ID>
-void BSP_CAN<ID>::Transmit(FineMote_CAN_HeaderTypeDef *Header, uint8_t *data) {
-  uint32_t TxMailbox = 0;
-  CAN_TxHeaderTypeDef CAN_Header;
-  if(Header->IDE == CAN_ID_STD){
-    CAN_Header.IDE = CAN_ID_STD;
-    CAN_Header.StdId = Header->ID;
-  }
-  else if(Header->IDE == CAN_ID_EXT){
-    CAN_Header.IDE = CAN_ID_EXT;
-    CAN_Header.ExtId = Header->ID;
-  }
-  CAN_Header.RTR = Header->RTR;
-  CAN_Header.DLC = Header->DLC;
-  HAL_CAN_AddTxMessage(BSP_CANList[ID], &CAN_Header, data, &TxMailbox);
+void BSP_CAN<ID>::Transmit(PackageType& package) {
+    uint32_t TxMailbox = 0;
+    CAN_TxHeaderTypeDef CAN_Header;
+    if (package.flags.is_ext) {
+        CAN_Header.IDE = CAN_ID_EXT;
+        CAN_Header.ExtId = package.id;
+    } else {
+        CAN_Header.IDE = CAN_ID_STD;
+        CAN_Header.StdId = package.id;
+    }
+
+    CAN_Header.RTR = package.flags.is_rtr ? CAN_RTR_REMOTE : CAN_RTR_DATA;
+    CAN_Header.DLC = package.len;
+    HAL_CAN_AddTxMessage(BSP_CANList[ID], &CAN_Header, package.data, &TxMailbox);
 }
 
 #endif
