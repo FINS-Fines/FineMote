@@ -16,7 +16,7 @@ class Odrive : public MotorBase {
 public:
     template <typename T>
     Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr)
-            : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+            : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr << 5 | 0x09) {
         ResetController(_controller);
         this->SetDivisionFactor(20);
     }
@@ -57,7 +57,7 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Transmit(canAgent.addr << 5 | 0x00e, CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr & 0xf0 | 0x00e, CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
             case Motor_Ctrl_Type_e::Position: {
@@ -72,7 +72,7 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Transmit(canAgent.addr << 5 | 0x00c, CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr & 0xf0 | 0x00c, CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
             case Motor_Ctrl_Type_e::Speed: {
@@ -87,7 +87,7 @@ private:
                 canAgent[5] = 0x00;
                 canAgent[6] = 0x00;
                 canAgent[7] = 0x00;
-                canAgent.Transmit(canAgent.addr << 5 | 0x00d, CAN_ID_STD | CAN_RTR_DATA);
+                canAgent.Transmit(canAgent.addr & 0xf0 | 0x00d, CAN_ID_STD | CAN_RTR_DATA);
                 break;
             }
         }
@@ -95,13 +95,15 @@ private:
     }
 
     void Update() {
+        // ODrive 发送的是 Turns
         uint32_t position_data = (canAgent.rxbuf[0] | (canAgent.rxbuf[1] << 8u) | (canAgent.rxbuf[2] << 16u) | (canAgent.rxbuf[3] << 24u));
         float position_float = *reinterpret_cast<float*>(&position_data);
-        state.position = position_float;
+        state.position = position_float * 360;
 
+        // ODrive 发送的是 Turns/s
         uint32_t speed_data = (canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u) | (canAgent.rxbuf[6] << 16u) | (canAgent.rxbuf[7] << 24u));
         float speed_float = *reinterpret_cast<float*>(&speed_data);
-        state.speed = speed_float;
+        state.speed = speed_float * 360;
     }
 };
 
