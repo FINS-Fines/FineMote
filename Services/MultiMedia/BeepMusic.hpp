@@ -8,7 +8,7 @@
 #define FINEMOTE_BEEPMUSIC_HPP
 
 #include "MultiMedia/MusicLibrary.hpp"
-#include "DeviceBase.h"
+#include "DeviceBase.hpp"
 #include "Bus/PWM_Base.hpp"
 
 template <size_t ID>

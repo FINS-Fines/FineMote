@@ -8,7 +8,7 @@
 #define FINEMOTE_RS485_BASE_HPP
 
 #include "etl/map.h"
-#include "DeviceBase.h"
+#include "DeviceBase.hpp"
 #include "UART_Base.hpp"
 #include "BSP_RS485.h"
 

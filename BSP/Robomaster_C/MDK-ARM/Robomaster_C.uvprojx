@@ -673,11 +673,6 @@
               <FilePath>..\..\..\Devices\RemoteControllers\RadioMaster_Zorro.cpp</FilePath>
             </File>
             <File>
-              <FileName>DeviceBase.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Devices\DeviceBase.cpp</FilePath>
-            </File>
-            <File>
               <FileName>RemoteControl.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\Devices\RemoteControllers\RemoteControl.cpp</FilePath>
