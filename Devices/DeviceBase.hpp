@@ -7,8 +7,9 @@
 #ifndef FINEMOTE_DEVICEBASE_HPP
 #define FINEMOTE_DEVICEBASE_HPP
 
-#include <list>
+
 #include "ProjectConfig.h"
+#include <etl/list.h>
 
 class DeviceBase {
 public:
@@ -23,8 +24,8 @@ public:
      * 惰性初始化，避免静态变量初始化顺序问题
      * @return
      */
-    static std::list<DeviceBase*>& getDeviceList() {
-        static std::list<DeviceBase*> deviceList;
+    static etl::list<DeviceBase*, 16>& getDeviceList() {
+        static etl::list<DeviceBase*, 16> deviceList;
         return deviceList;
     }
 
