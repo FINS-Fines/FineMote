@@ -4,8 +4,8 @@
  * All rights reserved.
  ******************************************************************************/
 
+#include "DeviceBase/DeviceScheduler.hpp"
 #include "ProjectConfig.h"
-#include "DeviceBase.hpp"
 #include "Scheduler.h"
 
 /**
@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 void Setup() {
-
+    DeviceScheduler::GetInstance().Start();
 }
 
 /**
@@ -34,7 +34,6 @@ void Loop() {
 
 void MainRTLoop() {
     HAL_IWDG_Refresh(&hiwdg);
-    DeviceBase::DevicesHandle();
     FineMoteScheduler();
 }
 
@@ -44,7 +43,7 @@ void MainRTLoop() {
 extern "C" {
 #endif
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+void MainControlTimCallback(TIM_HandleTypeDef* htim) {
     if (htim == &TIM_Control) {
         MainRTLoop();
     }
