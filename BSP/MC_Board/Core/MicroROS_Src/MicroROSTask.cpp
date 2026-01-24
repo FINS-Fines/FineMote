@@ -2,10 +2,10 @@
 * Copyright (c) 2025.
 * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
 * All rights reserved.
-******************************************************************************/
+*******************************************************************************/
 #include "FreeRTOS.h"
 #include "task.h"
-#include "timers.h"  // FreeRTOS 软件定时器
+#include "timers.h"
 #include "main.h"
 #include "cmsis_os.h"
 
@@ -26,6 +26,42 @@
 #include <stdio.h>
 
 #include "MicroROS.hpp"
+
+extern "C" {
+    // Transport layer functions (assumed to be in main.cpp)
+    bool cubemx_transport_open(struct uxrCustomTransport * transport);
+    bool cubemx_transport_close(struct uxrCustomTransport * transport);
+    size_t cubemx_transport_write(struct uxrCustomTransport* transport, const uint8_t * buf, size_t len, uint8_t * err);
+    size_t cubemx_transport_read(struct uxrCustomTransport* transport, uint8_t* buf, size_t len, int timeout, uint8_t* err);
+
+    // Memory allocator functions (defined in microros_allocators.c)
+    void* microros_allocate(size_t size, void* state);
+    void microros_deallocate(void* pointer, void* state);
+    void* microros_reallocate(void* pointer, size_t size, void* state);
+    void* microros_zero_allocate(size_t number_of_elements, size_t size_of_element, void* state);
+}
+
+
+// --- 内存监视结构体 (用于打断点查看) ---
+typedef struct {
+    size_t free_heap;           // 当前可用堆大小
+    size_t min_ever_heap;       // 历史最低可用堆
+    UBaseType_t stack_watermark; // 任务栈剩余水位线 (单位: 4字节)
+    rcl_ret_t last_ret;         // 最后一个 ROS 函数的返回值
+    int step;                   // 当前运行到哪一步
+} MicroROS_Debug_t;
+
+MicroROS_Debug_t debug_mem;
+
+// 采样宏：更新监视变量
+inline void sample_memory_debug(int s, rcl_ret_t r) {
+    debug_mem.step = s;
+    debug_mem.last_ret = r;
+    debug_mem.free_heap = xPortGetFreeHeapSize();
+    debug_mem.min_ever_heap = xPortGetMinimumEverFreeHeapSize();
+    debug_mem.stack_watermark = uxTaskGetStackHighWaterMark(NULL);
+    __NOP(); // <--- 在这一行打断点，程序每次调用采样都会停在这里
+}
 
 // --- 应用常量定义 ---
 #define STRING_BUFFER_LEN 50
@@ -50,20 +86,20 @@ typedef enum {
 volatile ErrorCode_t g_last_error = ERROR_NONE;  // 全局错误码（可在调试器中查看）
 
 // --- 全局通信对象 ---
-rcl_publisher_t ping_publisher;
-rcl_publisher_t pong_publisher;
-rcl_subscription_t ping_subscriber;
-rcl_subscription_t pong_subscriber;
+static rcl_publisher_t ping_publisher;
+static rcl_publisher_t pong_publisher;
+static rcl_subscription_t ping_subscriber;
+static rcl_subscription_t pong_subscriber;
 
 // --- 消息缓冲区 ---
-std_msgs__msg__Header incoming_ping;
-std_msgs__msg__Header outcoming_ping;
-std_msgs__msg__Header incoming_pong;
+static std_msgs__msg__Header incoming_ping;
+static std_msgs__msg__Header outcoming_ping;
+static std_msgs__msg__Header incoming_pong;
 
 // --- 应用状态变量 ---
-uint32_t device_id;       // 设备唯一标识（启动时随机生成）
-uint32_t seq_no;          // 消息序列号（每次发送递增）
-uint32_t pong_count;      // 当前 ping 收到的 pong 数量
+static int device_id;
+static int seq_no = 0;
+static int pong_count = 0;
 
 // --- 调试计数器 ---
 volatile uint32_t ping_sent_count = 0;
@@ -137,8 +173,8 @@ void ping_subscription_callback(const void * msgin)
     // 检查是否是自己发送的（通过比较 frame_id）
     cmp_result = strcmp(outcoming_ping.frame_id.data, msg->frame_id.data);
 
-    if (cmp_result != 0)
-    {
+    // if (cmp_result != 0)
+    // {
         // 不是自己的 Ping，回复 Pong
         ping_recv_count++;
 
@@ -148,7 +184,7 @@ void ping_subscription_callback(const void * msgin)
         {
             pong_sent_count++;
         }
-    }
+    // }
 }
 
 // ============================================================================
@@ -179,257 +215,114 @@ void pong_subscription_callback(const void * msgin)
     }
 }
 
+static rcl_allocator_t allocator;
+
 // ============================================================================
 // micro-ROS 主任务
 // ============================================================================
-extern "C" void StartMicroROSTask(void *argument)
-{
-    volatile rcl_ret_t ret;
-    uint32_t uid_seed;
+extern "C" void StartMicroROSTask(void *argument) {
+    rcl_ret_t ret;
 
-    // ========================================================================
-    // 1. 初始化随机数种子（使用栈地址）
-    // ========================================================================
-    uid_seed = (uint32_t)&ret;
-    simple_srand(uid_seed);
-    device_id = simple_rand();
-    seq_no = 0;
-
-    // ========================================================================
-    // 2. 获取 RCL 分配器
-    // ========================================================================
-    rcl_allocator_t allocator;
-    allocator = MicroROS<&huart5>::getInstance().getAllocator();
-
-    // ========================================================================
-    // 3. 初始化 RCL 支持结构（带重试机制）
-    // ========================================================================
-    rclc_support_t support;
-
-    do
-    {
-        ret = rclc_support_init(&support, 0, NULL, &allocator);
-
-        if (ret != RCL_RET_OK)
-        {
-            g_last_error = ERROR_SUPPORT_INIT;
-            osDelay(300);
-        }
-    }
-    while (ret != RCL_RET_OK);
-
-    g_last_error = ERROR_NONE;
-
-    // ========================================================================
-    // 4. 初始化节点
-    // ========================================================================
-    rcl_node_t node;
-    ret = rclc_node_init_default(&node, "pingpong_stm32_node", "", &support);
-
-    if (ret != RCL_RET_OK)
-    {
-        g_last_error = ERROR_NODE_INIT;
-
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
-
-    // ========================================================================
-    // 5. 初始化发布者
-    // ========================================================================
-    // Ping 发布者（RELIABLE QoS）
-    ret = rclc_publisher_init_default(&ping_publisher, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "/microROS/ping");
-
-    if (ret != RCL_RET_OK)
-    {
-        g_last_error = ERROR_PING_PUB_INIT;
-
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
-
-    // Pong 发布者（BEST_EFFORT QoS）
-    ret = rclc_publisher_init_best_effort(&pong_publisher, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "/microROS/pong");
-
-    if (ret != RCL_RET_OK)
-    {
-        g_last_error = ERROR_PONG_PUB_INIT;
-
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
-
-    // ========================================================================
-    // 6. 初始化订阅者
-    // ========================================================================
-    // Ping 订阅者（BEST_EFFORT QoS）
-    ret = rclc_subscription_init_best_effort(&ping_subscriber, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "/microROS/ping");
-
-    if (ret != RCL_RET_OK)
-    {
-        g_last_error = ERROR_PING_SUB_INIT;
-
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
-
-    // Pong 订阅者（BEST_EFFORT QoS）
-    ret = rclc_subscription_init_best_effort(&pong_subscriber, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "/microROS/pong");
-
-    if (ret != RCL_RET_OK)
-    {
-        g_last_error = ERROR_PONG_SUB_INIT;
-
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
-
-    // ========================================================================
-    // 7. 初始化执行器（管理 2 个订阅者）
-    // ========================================================================
-
-    // 在 rclc_executor_init 调用前添加：
-
-    // 1. 检查可用堆内存
-    volatile size_t heap_before = xPortGetFreeHeapSize();
-    // 期望值：应该 > 10KB
-
-    // 2. 检查 context 有效性
-    volatile int is_valid = rcl_context_is_valid(&support.context);
-    // 期望值：应该返回 1 (true)
-
-    // 3. 检查 allocator
-    volatile void* alloc_fn = (void*)allocator.allocate;
-    // 期望值：不应该是 NULL 或 0xA5A5A5A5
-
-    rclc_executor_t executor;
-    ret = rclc_executor_init(&executor, &support.context, 3, &allocator);
-
-    if (ret != RCL_RET_OK)
-    {
-        g_last_error = ERROR_EXECUTOR_INIT;
-
-        while(1)
-        {
-            ret = rclc_executor_init(&executor, &support.context, 3, &allocator);
-            osDelay(1000);
-        }
-    }
-
-    // 添加 Ping 订阅者到执行器
-    ret = rclc_executor_add_subscription(&executor, &ping_subscriber, &incoming_ping,
-        &ping_subscription_callback, ON_NEW_DATA);
-
-    if (ret != RCL_RET_OK)
-    {
-        g_last_error = ERROR_EXECUTOR_ADD_PING;
-
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
-
-    // 添加 Pong 订阅者到执行器
-    ret = rclc_executor_add_subscription(&executor, &pong_subscriber, &incoming_pong,
-        &pong_subscription_callback, ON_NEW_DATA);
-
-    if (ret != RCL_RET_OK)
-    {
-        g_last_error = ERROR_EXECUTOR_ADD_PONG;
-
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
-
-    // ========================================================================
-    // 8. 分配消息缓冲区（使用 static 避免栈溢出）
-    // ========================================================================
-    static char outcoming_ping_buffer[STRING_BUFFER_LEN];
-    outcoming_ping.frame_id.data = outcoming_ping_buffer;
-    outcoming_ping.frame_id.capacity = STRING_BUFFER_LEN;
-    outcoming_ping.frame_id.size = 0;
-
-    static char incoming_ping_buffer[STRING_BUFFER_LEN];
-    incoming_ping.frame_id.data = incoming_ping_buffer;
-    incoming_ping.frame_id.capacity = STRING_BUFFER_LEN;
-
-    static char incoming_pong_buffer[STRING_BUFFER_LEN];
-    incoming_pong.frame_id.data = incoming_pong_buffer;
-    incoming_pong.frame_id.capacity = STRING_BUFFER_LEN;
-
-    // ========================================================================
-    // 9. 创建 FreeRTOS 软件定时器（2 秒周期）
-    // ========================================================================
-    xPingTimer = xTimerCreate(
-        "PingTimer",
-        pdMS_TO_TICKS(2000),
-        pdTRUE,
-        (void *)0,
-        vPingTimerCallback
+    rmw_uros_set_custom_transport(
+        true,
+        (void*)&huart5,
+        cubemx_transport_open,
+        cubemx_transport_close,
+        cubemx_transport_write,
+        cubemx_transport_read
     );
 
-    if (xPingTimer == NULL)
-    {
-    g_last_error = ERROR_TIMER_CREATE;
+    // rcl_allocator_t allocator;
+    // allocator.allocate = microros_allocate;
+    // allocator.deallocate = microros_deallocate;
+    // allocator.reallocate = microros_reallocate;
+    // allocator.zero_allocate = microros_zero_allocate;
+    // allocator.state = NULL;
 
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
+    allocator = rcl_get_default_allocator();
 
-    // 启动定时器
-    ret = xTimerStart(xPingTimer, 0);
 
-    if (ret != pdPASS)
-    {
-        g_last_error = ERROR_TIMER_START;
+    // 4. 内存监控起始点
+    sample_memory_debug(0, RCL_RET_OK);
+    // 1. Support 初始化
+    rclc_support_t support;
+        ret = rclc_support_init(&support, 0, NULL, &allocator);
+    sample_memory_debug(1, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_SUPPORT_INIT; goto error_loop; }
 
-        while(1)
-        {
-            osDelay(1000);
-        }
-    }
+    // 2. Node 初始化
+    rcl_node_t node;
+    ret = rclc_node_init_default(&node, "pingpong_node", "", &support);
+    sample_memory_debug(2, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_NODE_INIT; goto error_loop; }
 
-    // ========================================================================
-    // 10. 主循环：持续处理订阅消息
-    // ========================================================================
-    while (1)
-    {
-        // 处理订阅消息（超时 10ms）
+    // 3. Publisher 初始化 (Ping)
+    ret = rclc_publisher_init_best_effort(&ping_publisher, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "ping");
+    sample_memory_debug(3, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_PING_PUB_INIT; goto error_loop; }
+
+    // 4. Publisher 初始化 (Pong)
+    ret = rclc_publisher_init_best_effort(&pong_publisher, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "pong");
+    sample_memory_debug(4, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_PONG_PUB_INIT; goto error_loop; }
+
+    // 5. Subscriber 初始化 (Ping)
+    ret = rclc_subscription_init_best_effort(&ping_subscriber, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "ping");
+    sample_memory_debug(5, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_PING_SUB_INIT; goto error_loop; }
+
+    // 6. Subscriber 初始化 (Pong)
+    ret = rclc_subscription_init_best_effort(&pong_subscriber, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "pong");
+    sample_memory_debug(6, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_PONG_SUB_INIT; goto error_loop; }
+
+    // 7. Executor 初始化 (这里的 2 代表两个订阅者)
+    rclc_executor_t executor;
+    ret = rclc_executor_init(&executor, &support.context, 2, &allocator);
+    sample_memory_debug(7, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_INIT; goto error_loop; }
+
+    // 8. 添加订阅者到执行器
+    ret = rclc_executor_add_subscription(&executor, &ping_subscriber, &incoming_ping,
+        &ping_subscription_callback, ON_NEW_DATA);
+    sample_memory_debug(8, ret);
+
+    ret = rclc_executor_add_subscription(&executor, &pong_subscriber, &incoming_pong,
+        &pong_subscription_callback, ON_NEW_DATA);
+    sample_memory_debug(9, ret);
+
+    // 9. 消息 Buffer 分配
+    static char out_ping_buf[STRING_BUFFER_LEN];
+    outcoming_ping.frame_id.data = out_ping_buf;
+    outcoming_ping.frame_id.capacity = STRING_BUFFER_LEN;
+
+    static char in_ping_buf[STRING_BUFFER_LEN];
+    incoming_ping.frame_id.data = in_ping_buf;
+    incoming_ping.frame_id.capacity = STRING_BUFFER_LEN;
+
+    static char in_pong_buf[STRING_BUFFER_LEN];
+    incoming_pong.frame_id.data = in_pong_buf;
+    incoming_pong.frame_id.capacity = STRING_BUFFER_LEN;
+
+    // 10. 定时器启动
+    device_id = rand() % 1000;
+    xPingTimer = xTimerCreate("PingTimer", pdMS_TO_TICKS(2000), pdTRUE, (void *)0, vPingTimerCallback);
+    if (xPingTimer != NULL) xTimerStart(xPingTimer, 0);
+
+    // 11. 主循环
+    while (1) {
         ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
-
-        // 让出 CPU，避免占用过高
+        sample_memory_debug(100, ret); // 循环采样点
         osDelay(10);
     }
 
-    // ========================================================================
-    // 11. 清理资源（实际不会执行到）
-    // ========================================================================
-    xTimerStop(xPingTimer, 0);
-    xTimerDelete(xPingTimer, 0);
-
-    rcl_publisher_fini(&ping_publisher, &node);
-    rcl_publisher_fini(&pong_publisher, &node);
-    rcl_subscription_fini(&ping_subscriber, &node);
-    rcl_subscription_fini(&pong_subscriber, &node);
-    rcl_node_fini(&node);
-    rclc_support_fini(&support);
+error_loop:
+    while (1) {
+        sample_memory_debug(999, ret); // 错误停留点
+        osDelay(1000);
+    }
 }
