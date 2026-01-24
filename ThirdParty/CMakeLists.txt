@@ -24,3 +24,5 @@ file(GLOB FreeRTOS_POSIX_SOURCES CONFIGURE_DEPENDS
 target_sources(FreeRTOS-POSIX PRIVATE ${FreeRTOS_POSIX_SOURCES})
 
 target_link_libraries(FreeRTOS-POSIX PRIVATE finemote::board)
+
+add_subdirectory(micro-ros)
