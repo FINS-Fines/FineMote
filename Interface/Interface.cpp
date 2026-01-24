@@ -33,7 +33,7 @@ void Loop() {
 #endif
 
 void MainRTLoop() {
-    HAL_IWDG_Refresh(&hiwdg);
+    // HAL_IWDG_Refresh(&hiwdg);
     FineMoteScheduler();
 }
 
