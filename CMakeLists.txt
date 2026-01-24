@@ -90,6 +90,7 @@ target_link_libraries(finemote_core PUBLIC
         CMSISDSP
         etl::etl
         FreeRTOS-POSIX
+        micro-ros
 )
 
 # ------------------ application ------------------
