@@ -4,6 +4,6 @@
 [submodule "ThirdParty/etl"]
 	path = ThirdParty/etl
 	url = https://github.com/ETLCPP/etl.git
-[submodule "ThirdParty/FreeRTOS-POSIX"]
-	path = ThirdParty/FreeRTOS-POSIX
-	url = https://github.com/FreeRTOS/Lab-Project-FreeRTOS-POSIX.git
+; [submodule "ThirdParty/FreeRTOS-POSIX"]
+; 	path = ThirdParty/FreeRTOS-POSIX
+; 	url = https://github.com/FreeRTOS/Lab-Project-FreeRTOS-POSIX.git
