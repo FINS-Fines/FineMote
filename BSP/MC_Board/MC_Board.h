@@ -16,7 +16,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-// #include "iwdg.h"
+#include "iwdg.h"
 #include "stm32f4xx_it.h"
 
 int main();
