@@ -42,7 +42,7 @@ private:
             PWM_Base<ID>::GetInstance().SetDutyCycle(0);
         } else {
             PWM_Base<ID>::GetInstance().SetFrequency(freq);
-            PWM_Base<ID>::GetInstance().SetDutyCycle(0.5);
+            PWM_Base<ID>::GetInstance().SetDutyCycle(0);
         }
     }
 
