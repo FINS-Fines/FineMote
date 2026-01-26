@@ -59,15 +59,15 @@ size_t cubemx_transport_read(struct uxrCustomTransport* transport, uint8_t* buf,
     return wrote;
 }
 
-// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-// {
-//     if(it_tail == UART_IT_BUFFER_SIZE)
-//         it_tail = 0;
-//
-//     it_buffer[it_tail] = it_data;
-//     it_tail++;
-//
-//     HAL_UART_Receive_IT(huart, &it_data, 1);
-// }
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if(it_tail == UART_IT_BUFFER_SIZE)
+        it_tail = 0;
+
+    it_buffer[it_tail] = it_data;
+    it_tail++;
+
+    HAL_UART_Receive_IT(huart, &it_data, 1);
+}
 
 #endif //RMW_UXRCE_TRANSPORT_CUSTOM
