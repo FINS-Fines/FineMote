@@ -33,7 +33,7 @@ void Loop() {
 #endif
 
 void MainRTLoop() {
-    HAL_IWDG_Refresh(&hiwdg);
+    // HAL_IWDG_Refresh(&hiwdg);
     DeviceBase::DevicesHandle();
     FineMoteScheduler();
 }
@@ -44,7 +44,7 @@ void MainRTLoop() {
 extern "C" {
 #endif
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+void MainControlTimCallback(TIM_HandleTypeDef* htim) {
     if (htim == &TIM_Control) {
         MainRTLoop();
     }

@@ -23,7 +23,7 @@ file(GLOB BSP_INCLUDE_DIRS
         "Core/Inc"
         "Middlewares/Third_Party/FreeRTOS/Source/include"
         "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2"
-        "Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F"
+        "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F"
 
 # 添加FreeRTOS-POSIX库
 
