@@ -80,7 +80,7 @@ typedef enum {
     ERROR_EXECUTOR_ADD_PING = 8,
     ERROR_EXECUTOR_ADD_PONG = 9,
     ERROR_TIMER_CREATE = 10,
-    ERROR_TIMER_START = 11
+    ERROR_EXECUTOR_ADD_TIMER = 11
 } ErrorCode_t;
 
 volatile ErrorCode_t g_last_error = ERROR_NONE;  // 全局错误码（可在调试器中查看）
@@ -90,6 +90,7 @@ static rcl_publisher_t ping_publisher;
 static rcl_publisher_t pong_publisher;
 static rcl_subscription_t ping_subscriber;
 static rcl_subscription_t pong_subscriber;
+static rcl_timer_t ping_timer;
 
 // --- 消息缓冲区 ---
 static std_msgs__msg__Header incoming_ping;
@@ -126,38 +127,42 @@ void simple_srand(uint32_t s)
 }
 
 // ============================================================================
-// FreeRTOS 定时器回调：每 2 秒发送一次 Ping
+// micro-ROS 定时器回调：每 2 秒发送一次 Ping
 // ============================================================================
-void vPingTimerCallback(TimerHandle_t xTimer)
+void ping_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
-    volatile rcl_ret_t ret;
-    TickType_t ticks;
-    const TickType_t ticks_per_second = configTICK_RATE_HZ;
+    RCLC_UNUSED(last_call_time);
 
-    // 1. 生成新的序列号
-    seq_no++;
+    if (timer != NULL) {
+        volatile rcl_ret_t ret;
+        TickType_t ticks;
+        const TickType_t ticks_per_second = configTICK_RATE_HZ;
 
-    // 2. 构造唯一消息 ID：格式 "STM32_<device_id>_<seq_no>"
-    snprintf(outcoming_ping.frame_id.data, STRING_BUFFER_LEN,
-             "%s_%lu_%lu", DEVICE_ID_PREFIX,
-             (unsigned long)device_id, (unsigned long)seq_no);
-    outcoming_ping.frame_id.size = strlen(outcoming_ping.frame_id.data);
+        // 1. 生成新的序列号
+        seq_no++;
 
-    // 3. 获取时间戳（使用 FreeRTOS Tick）
-    ticks = xTaskGetTickCount();
-    outcoming_ping.stamp.sec = ticks / ticks_per_second;
-    outcoming_ping.stamp.nanosec = (ticks % ticks_per_second) * (1000000000UL / ticks_per_second);
+        // 2. 构造唯一消息 ID：格式 "STM32_<device_id>_<seq_no>"
+        snprintf(outcoming_ping.frame_id.data, STRING_BUFFER_LEN,
+                 "%s_%lu_%lu", DEVICE_ID_PREFIX,
+                 (unsigned long)device_id, (unsigned long)seq_no);
+        outcoming_ping.frame_id.size = strlen(outcoming_ping.frame_id.data);
 
-    // 4. 重置 pong 计数器
-    pong_count = 0;
+        // 3. 获取时间戳（继续使用 FreeRTOS Tick，因为 STM32 上通常没有 clock_gettime）
+        ticks = xTaskGetTickCount();
+        outcoming_ping.stamp.sec = ticks / ticks_per_second;
+        outcoming_ping.stamp.nanosec = (ticks % ticks_per_second) * (1000000000UL / ticks_per_second);
 
-    // 5. 发布 Ping 消息
-    ret = rcl_publish(&ping_publisher, (const void*)&outcoming_ping, NULL);
+        // 4. 重置 pong 计数器
+        pong_count = 0;
 
-    // 6. 更新统计（用于调试）
-    if (ret == RCL_RET_OK)
-    {
-        ping_sent_count++;
+        // 5. 发布 Ping 消息
+        ret = rcl_publish(&ping_publisher, (const void*)&outcoming_ping, NULL);
+
+        // 6. 更新统计（用于调试）
+        if (ret == RCL_RET_OK)
+        {
+            ping_sent_count++;
+        }
     }
 }
 
@@ -241,8 +246,9 @@ extern "C" void StartMicroROSTask(void *argument) {
 
     allocator = rcl_get_default_allocator();
 
+    simple_srand(xTaskGetTickCount());
+    device_id = simple_rand() % 1000;
 
-    // 4. 内存监控起始点
     sample_memory_debug(0, RCL_RET_OK);
     // 1. Support 初始化
     rclc_support_t support;
@@ -280,22 +286,32 @@ extern "C" void StartMicroROSTask(void *argument) {
     sample_memory_debug(6, ret);
     if (ret != RCL_RET_OK) { g_last_error = ERROR_PONG_SUB_INIT; goto error_loop; }
 
-    // 7. Executor 初始化 (这里的 2 代表两个订阅者)
-    rclc_executor_t executor;
-    ret = rclc_executor_init(&executor, &support.context, 2, &allocator);
+    // 7. Timer 初始化 (2000ms = 2s)
+    ret = rclc_timer_init_default(&ping_timer, &support, RCL_MS_TO_NS(2000), ping_timer_callback);
     sample_memory_debug(7, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_TIMER_CREATE; goto error_loop; }
+
+    // 8. Executor 初始化 (这里的 2 代表两个订阅者)
+    rclc_executor_t executor;
+    ret = rclc_executor_init(&executor, &support.context, 3, &allocator);
+    sample_memory_debug(8, ret);
     if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_INIT; goto error_loop; }
 
-    // 8. 添加订阅者到执行器
+    // 9. 添加订阅者到执行器
     ret = rclc_executor_add_subscription(&executor, &ping_subscriber, &incoming_ping,
         &ping_subscription_callback, ON_NEW_DATA);
-    sample_memory_debug(8, ret);
+    sample_memory_debug(9, ret);
 
     ret = rclc_executor_add_subscription(&executor, &pong_subscriber, &incoming_pong,
         &pong_subscription_callback, ON_NEW_DATA);
-    sample_memory_debug(9, ret);
+    sample_memory_debug(10, ret);
 
-    // 9. 消息 Buffer 分配
+    // 10. 添加定时器到执行器
+    ret = rclc_executor_add_timer(&executor, &ping_timer);
+    sample_memory_debug(11, ret);
+    if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_ADD_TIMER; goto error_loop; }
+
+    // 11. 消息 Buffer 分配
     static char out_ping_buf[STRING_BUFFER_LEN];
     outcoming_ping.frame_id.data = out_ping_buf;
     outcoming_ping.frame_id.capacity = STRING_BUFFER_LEN;
@@ -308,12 +324,7 @@ extern "C" void StartMicroROSTask(void *argument) {
     incoming_pong.frame_id.data = in_pong_buf;
     incoming_pong.frame_id.capacity = STRING_BUFFER_LEN;
 
-    // 10. 定时器启动
-    device_id = rand() % 1000;
-    xPingTimer = xTimerCreate("PingTimer", pdMS_TO_TICKS(2000), pdTRUE, (void *)0, vPingTimerCallback);
-    if (xPingTimer != NULL) xTimerStart(xPingTimer, 0);
-
-    // 11. 主循环
+    // 12. 主循环
     while (1) {
         ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
         sample_memory_debug(100, ret); // 循环采样点
