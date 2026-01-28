@@ -66,6 +66,9 @@ inline void sample_memory_debug(int s, rcl_ret_t r) {
 // --- 应用常量定义 ---
 #define STRING_BUFFER_LEN 50
 #define DEVICE_ID_PREFIX "STM32"  // 设备前缀
+#define AGENT_RECONNECT_TIMEOUT_MS 500  // 重连重试间隔
+#define AGENT_PING_TIMEOUT_MS      100  // Ping 超时时间
+#define HEARTBEAT_CHECK_MS         2000 // 运行时心跳检测间隔
 
 // --- 错误码定义（用于调试） ---
 typedef enum {
@@ -80,7 +83,8 @@ typedef enum {
     ERROR_EXECUTOR_ADD_PING = 8,
     ERROR_EXECUTOR_ADD_PONG = 9,
     ERROR_TIMER_CREATE = 10,
-    ERROR_EXECUTOR_ADD_TIMER = 11
+    ERROR_EXECUTOR_ADD_TIMER = 11,
+    ERROR_DISCONNECTED = 99
 } ErrorCode_t;
 
 volatile ErrorCode_t g_last_error = ERROR_NONE;  // 全局错误码（可在调试器中查看）
@@ -91,7 +95,10 @@ static rcl_publisher_t pong_publisher;
 static rcl_subscription_t ping_subscriber;
 static rcl_subscription_t pong_subscriber;
 static rcl_timer_t ping_timer;
-
+static rcl_node_t node;
+static rclc_support_t support;
+static rclc_executor_t executor;
+static rcl_allocator_t allocator;
 // --- 消息缓冲区 ---
 static std_msgs__msg__Header incoming_ping;
 static std_msgs__msg__Header outcoming_ping;
@@ -220,14 +227,13 @@ void pong_subscription_callback(const void * msgin)
     }
 }
 
-static rcl_allocator_t allocator;
-
 // ============================================================================
 // micro-ROS 主任务
 // ============================================================================
 extern "C" void StartMicroROSTask(void *argument) {
     rcl_ret_t ret;
 
+    // 0. 配置传输层 (只需一次)
     rmw_uros_set_custom_transport(
         true,
         (void*)&huart5,
@@ -237,81 +243,12 @@ extern "C" void StartMicroROSTask(void *argument) {
         cubemx_transport_read
     );
 
-    // rcl_allocator_t allocator;
-    // allocator.allocate = microros_allocate;
-    // allocator.deallocate = microros_deallocate;
-    // allocator.reallocate = microros_reallocate;
-    // allocator.zero_allocate = microros_zero_allocate;
-    // allocator.state = NULL;
-
     allocator = rcl_get_default_allocator();
 
     simple_srand(xTaskGetTickCount());
     device_id = simple_rand() % 1000;
 
-    sample_memory_debug(0, RCL_RET_OK);
-    // 1. Support 初始化
-    rclc_support_t support;
-        ret = rclc_support_init(&support, 0, NULL, &allocator);
-    sample_memory_debug(1, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_SUPPORT_INIT; goto error_loop; }
-
-    // 2. Node 初始化
-    rcl_node_t node;
-    ret = rclc_node_init_default(&node, "pingpong_node", "", &support);
-    sample_memory_debug(2, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_NODE_INIT; goto error_loop; }
-
-    // 3. Publisher 初始化 (Ping)
-    ret = rclc_publisher_init_best_effort(&ping_publisher, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "ping");
-    sample_memory_debug(3, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_PING_PUB_INIT; goto error_loop; }
-
-    // 4. Publisher 初始化 (Pong)
-    ret = rclc_publisher_init_best_effort(&pong_publisher, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "pong");
-    sample_memory_debug(4, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_PONG_PUB_INIT; goto error_loop; }
-
-    // 5. Subscriber 初始化 (Ping)
-    ret = rclc_subscription_init_best_effort(&ping_subscriber, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "ping");
-    sample_memory_debug(5, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_PING_SUB_INIT; goto error_loop; }
-
-    // 6. Subscriber 初始化 (Pong)
-    ret = rclc_subscription_init_best_effort(&pong_subscriber, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "pong");
-    sample_memory_debug(6, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_PONG_SUB_INIT; goto error_loop; }
-
-    // 7. Timer 初始化 (2000ms = 2s)
-    ret = rclc_timer_init_default(&ping_timer, &support, RCL_MS_TO_NS(2000), ping_timer_callback);
-    sample_memory_debug(7, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_TIMER_CREATE; goto error_loop; }
-
-    // 8. Executor 初始化 (这里的 2 代表两个订阅者)
-    rclc_executor_t executor;
-    ret = rclc_executor_init(&executor, &support.context, 3, &allocator);
-    sample_memory_debug(8, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_INIT; goto error_loop; }
-
-    // 9. 添加订阅者到执行器
-    ret = rclc_executor_add_subscription(&executor, &ping_subscriber, &incoming_ping,
-        &ping_subscription_callback, ON_NEW_DATA);
-    sample_memory_debug(9, ret);
-
-    ret = rclc_executor_add_subscription(&executor, &pong_subscriber, &incoming_pong,
-        &pong_subscription_callback, ON_NEW_DATA);
-    sample_memory_debug(10, ret);
-
-    // 10. 添加定时器到执行器
-    ret = rclc_executor_add_timer(&executor, &ping_timer);
-    sample_memory_debug(11, ret);
-    if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_ADD_TIMER; goto error_loop; }
-
-    // 11. 消息 Buffer 分配
+    // --- 内存预分配 ---
     static char out_ping_buf[STRING_BUFFER_LEN];
     outcoming_ping.frame_id.data = out_ping_buf;
     outcoming_ping.frame_id.capacity = STRING_BUFFER_LEN;
@@ -324,16 +261,126 @@ extern "C" void StartMicroROSTask(void *argument) {
     incoming_pong.frame_id.data = in_pong_buf;
     incoming_pong.frame_id.capacity = STRING_BUFFER_LEN;
 
-    // 12. 主循环
-    while (1) {
-        ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
-        sample_memory_debug(100, ret); // 循环采样点
-        osDelay(10);
-    }
+    // ==========================================
+    // 外层大循环：负责 重连 - 运行 - 清理
+    // ==========================================
+    while(1) {
+        TickType_t last_check_tick = xTaskGetTickCount();
 
-error_loop:
-    while (1) {
-        sample_memory_debug(999, ret); // 错误停留点
-        osDelay(1000);
+        // --- 阶段 A: 阻塞等待 Agent 连接 ---
+        // step = -1 表示正在等待连接
+        sample_memory_debug(-1, RCL_RET_OK);
+
+        while (rmw_uros_ping_agent(AGENT_PING_TIMEOUT_MS, 1) != RMW_RET_OK) {
+            // 延时让出 CPU，避免死锁
+            osDelay(AGENT_RECONNECT_TIMEOUT_MS);
+            sample_memory_debug(-1, RCL_RET_ERROR);
+        }
+
+        // --- 阶段 B: 初始化 micro-ROS 实体 ---
+        sample_memory_debug(0, RCL_RET_OK);
+
+        // 1. Support Init
+        ret = rclc_support_init(&support, 0, NULL, &allocator);
+        sample_memory_debug(1, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_SUPPORT_INIT; goto cleanup; }
+
+        // 2. Node Init
+        ret = rclc_node_init_default(&node, "pingpong_node", "", &support);
+        sample_memory_debug(2, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_NODE_INIT; goto cleanup; }
+
+        // 3. Publisher Init (Ping)
+        ret = rclc_publisher_init_best_effort(&ping_publisher, &node,
+            ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "ping");
+        sample_memory_debug(3, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_PING_PUB_INIT; goto cleanup; }
+
+        // 4. Publisher Init (Pong)
+        ret = rclc_publisher_init_best_effort(&pong_publisher, &node,
+            ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "pong");
+        sample_memory_debug(4, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_PONG_PUB_INIT; goto cleanup; }
+
+        // 5. Subscriber Init (Ping)
+        ret = rclc_subscription_init_best_effort(&ping_subscriber, &node,
+            ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "ping");
+        sample_memory_debug(5, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_PING_SUB_INIT; goto cleanup; }
+
+        // 6. Subscriber Init (Pong)
+        ret = rclc_subscription_init_best_effort(&pong_subscriber, &node,
+            ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Header), "pong");
+        sample_memory_debug(6, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_PONG_SUB_INIT; goto cleanup; }
+
+        // 7. Timer Init
+        ret = rclc_timer_init_default(&ping_timer, &support, RCL_MS_TO_NS(2000), ping_timer_callback);
+        sample_memory_debug(7, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_TIMER_CREATE; goto cleanup; }
+
+        // 8. Executor Init
+        ret = rclc_executor_init(&executor, &support.context, 3, &allocator);
+        sample_memory_debug(8, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_INIT; goto cleanup; }
+
+        // 9. Executor Add Subscriptions
+        ret = rclc_executor_add_subscription(&executor, &ping_subscriber, &incoming_ping,
+            &ping_subscription_callback, ON_NEW_DATA);
+        sample_memory_debug(9, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_ADD_PING; goto cleanup; }
+
+        ret = rclc_executor_add_subscription(&executor, &pong_subscriber, &incoming_pong,
+            &pong_subscription_callback, ON_NEW_DATA);
+        sample_memory_debug(10, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_ADD_PONG; goto cleanup; }
+
+        // 10. Executor Add Timer
+        ret = rclc_executor_add_timer(&executor, &ping_timer);
+        sample_memory_debug(11, ret);
+        if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_ADD_TIMER; goto cleanup; }
+
+        // --- 阶段 C: 业务主循环 (Spin) ---
+        // for (int i=0; i < 200; i++) {
+        while (1) {
+            // 处理任务
+            ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
+            sample_memory_debug(100, ret);
+
+            // 简单延时
+            osDelay(10);
+
+            // --- 心跳检测 ---
+            // 每隔 HEARTBEAT_CHECK_MS 检查一次 Agent 是否在线
+            if ((xTaskGetTickCount() - last_check_tick) > pdMS_TO_TICKS(HEARTBEAT_CHECK_MS)) {
+                last_check_tick = xTaskGetTickCount();
+
+                // 如果 Ping 失败，说明断连，跳出循环进入清理流程
+                if (rmw_uros_ping_agent(AGENT_PING_TIMEOUT_MS, 1) != RMW_RET_OK) {
+                    g_last_error = ERROR_DISCONNECTED;
+                    break; // Break inner loop -> Go to cleanup
+                }
+            }
+        }
+        // }
+        // osDelay(5000);
+
+        // --- 阶段 D: 资源清理 (Cleanup) ---
+        cleanup:
+        sample_memory_debug(99, RCL_RET_ERROR);
+
+        // 必须按初始化相反的顺序销毁资源，并尽可能忽略返回值(因为是清理阶段)
+        // 实际上 rcl 函数会对未初始化的句柄返回错误，这在 cleanup 中是安全的
+        rclc_executor_fini(&executor);
+        rcl_timer_fini(&ping_timer);
+        rcl_subscription_fini(&pong_subscriber, &node);
+        rcl_subscription_fini(&ping_subscriber, &node);
+        rcl_publisher_fini(&pong_publisher, &node);
+        rcl_publisher_fini(&ping_publisher, &node);
+        rcl_node_fini(&node);
+        rclc_support_fini(&support);
+
+        // 稍微延时后重新进入大循环，开始重新寻找 Agent
+        osDelay(5000);
     }
 }
