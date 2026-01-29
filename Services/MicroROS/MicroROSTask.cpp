@@ -66,9 +66,9 @@ inline void sample_memory_debug(int s, rcl_ret_t r) {
 // --- 应用常量定义 ---
 #define STRING_BUFFER_LEN 50
 #define DEVICE_ID_PREFIX "STM32"  // 设备前缀
-#define AGENT_RECONNECT_TIMEOUT_MS 500  // 重连重试间隔
-#define AGENT_PING_TIMEOUT_MS      100  // Ping 超时时间
-#define HEARTBEAT_CHECK_MS         2000 // 运行时心跳检测间隔
+#define AGENT_RECONNECT_TIMEOUT_MS  500  // 重连重试间隔
+#define AGENT_PING_TIMEOUT_MS       100  // Ping 超时时间
+#define WATCHDOG_TIMEOUT_MS         2000 // 运行时心跳检测间隔
 
 // --- 错误码定义（用于调试） ---
 typedef enum {
@@ -108,6 +108,7 @@ static std_msgs__msg__Header incoming_pong;
 static int device_id;
 static int seq_no = 0;
 static int pong_count = 0;
+static TickType_t last_comm_tick = 0;
 
 // --- 调试计数器 ---
 volatile uint32_t ping_sent_count = 0;
@@ -169,6 +170,7 @@ void ping_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
         if (ret == RCL_RET_OK)
         {
             ping_sent_count++;
+            last_comm_tick = xTaskGetTickCount();
         }
     }
 }
@@ -225,6 +227,8 @@ void pong_subscription_callback(const void * msgin)
         rtt_ticks = current_ticks - sent_ticks;
         last_rtt_ms = (rtt_ticks * 1000) / configTICK_RATE_HZ;
     }
+
+    last_comm_tick = xTaskGetTickCount();
 }
 
 // ============================================================================
@@ -271,8 +275,6 @@ extern "C" void StartMicroROSTask(void *argument) {
     // 外层大循环：负责 重连 - 运行 - 清理
     // ==========================================
     while(1) {
-        TickType_t last_check_tick = xTaskGetTickCount();
-
         // --- 阶段 A: 阻塞等待 Agent 连接 ---
         // step = -1 表示正在等待连接
         sample_memory_debug(-1, RCL_RET_OK);
@@ -353,22 +355,26 @@ extern "C" void StartMicroROSTask(void *argument) {
             ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
             sample_memory_debug(100, ret);
 
-            // 简单延时
             osDelay(10);
+            // 如果 Executor 报错（非超时），可能是内存问题，跳出重启
+            if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
+                goto cleanup;
+            }
 
-            // --- 心跳检测 ---
-            // 每隔 HEARTBEAT_CHECK_MS 检查一次 Agent 是否在线
-            if ((xTaskGetTickCount() - last_check_tick) > pdMS_TO_TICKS(HEARTBEAT_CHECK_MS)) {
-                last_check_tick = xTaskGetTickCount();
+            // 2. 看门狗检测逻辑 (Watchdog)
+            // 只有当长时间（2秒）没有任何通信（没发也没收）时，才主动 Ping
+            if ((xTaskGetTickCount() - last_comm_tick) > pdMS_TO_TICKS(WATCHDOG_TIMEOUT_MS)) {
 
-                // 如果 Ping 失败，说明断连，跳出循环进入清理流程
-                if (rmw_uros_ping_agent(AGENT_PING_TIMEOUT_MS, 1) != RMW_RET_OK) {
-                    g_last_error = ERROR_DISCONNECTED;
-                    break; // Break inner loop -> Go to cleanup
+                // 尝试 Ping Agent
+                if (rmw_uros_ping_agent(AGENT_PING_TIMEOUT_MS, 1) == RMW_RET_OK) {
+                    // Agent 还在，只是没数据交互，更新时间戳避免频繁 Ping
+                    last_comm_tick = xTaskGetTickCount();
+                } else {
+                    // Ping 失败，确认断连 -> 跳出循环进入 Cleanup
+                    break;
                 }
             }
         }
-        osDelay(5000);
 
         // --- 阶段 D: 资源清理 (Cleanup) ---
         cleanup:
