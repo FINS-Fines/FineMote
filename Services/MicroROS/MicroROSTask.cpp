@@ -185,8 +185,8 @@ void ping_subscription_callback(const void * msgin)
     // 检查是否是自己发送的（通过比较 frame_id）
     cmp_result = strcmp(outcoming_ping.frame_id.data, msg->frame_id.data);
 
-    // if (cmp_result != 0)
-    // {
+    if (cmp_result != 0)
+    {
         // 不是自己的 Ping，回复 Pong
         ping_recv_count++;
 
@@ -196,7 +196,7 @@ void ping_subscription_callback(const void * msgin)
         {
             pong_sent_count++;
         }
-    // }
+    }
 }
 
 // ============================================================================
@@ -243,7 +243,13 @@ extern "C" void StartMicroROSTask(void *argument) {
         cubemx_transport_read
     );
 
-    allocator = rcl_get_default_allocator();
+    allocator.allocate = microros_allocate;
+    allocator.deallocate = microros_deallocate;
+    allocator.reallocate = microros_reallocate;
+    allocator.zero_allocate = microros_zero_allocate;
+    allocator.state = NULL;
+
+    // allocator = rcl_get_default_allocator();
 
     simple_srand(xTaskGetTickCount());
     device_id = simple_rand() % 1000;
@@ -341,7 +347,7 @@ extern "C" void StartMicroROSTask(void *argument) {
         if (ret != RCL_RET_OK) { g_last_error = ERROR_EXECUTOR_ADD_TIMER; goto cleanup; }
 
         // --- 阶段 C: 业务主循环 (Spin) ---
-        // for (int i=0; i < 200; i++) {
+        // for (int i=0; i < 500; i++) {
         while (1) {
             // 处理任务
             ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
@@ -362,8 +368,7 @@ extern "C" void StartMicroROSTask(void *argument) {
                 }
             }
         }
-        // }
-        // osDelay(5000);
+        osDelay(5000);
 
         // --- 阶段 D: 资源清理 (Cleanup) ---
         cleanup:
@@ -381,6 +386,6 @@ extern "C" void StartMicroROSTask(void *argument) {
         rclc_support_fini(&support);
 
         // 稍微延时后重新进入大循环，开始重新寻找 Agent
-        osDelay(5000);
+        osDelay(1000);
     }
 }
