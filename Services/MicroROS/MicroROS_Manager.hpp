@@ -1,27 +1,46 @@
 /*******************************************************************************
 * Copyright (c) 2026.
- * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
- * All rights reserved.
- ******************************************************************************/
-
+* IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+* All rights reserved.
+******************************************************************************/
 
 #ifndef FINEMOTE_MICROROS_MANAGER_HPP
 #define FINEMOTE_MICROROS_MANAGER_HPP
 
-#include "MicroROS_App.hpp"
-#include "MicroROSPort.hpp"
+#include "FreeRTOS.h"
+#include "task.h"
+
+// Micro-ROS includes
+#include <rcl/rcl.h>
+#include <rclc/rclc.h>
+#include <rclc/executor.h>
 #include <rmw_microros/rmw_microros.h>
+
+// Project includes
+#include "MicroROS_Entities.hpp" // 包含实体定义
+#include "etl/vector.h"          // 使用 ETL 容器
+
+// 配置参数
+#define MAX_MICROROS_ENTITIES 20 // 系统允许的最大实体数量
+#define MICROROS_NODE_NAME "STM32_FineMote_Node"
+#define WATCHDOG_TIMEOUT_MS 2000
 
 // 状态机定义
 enum class MicroROSState {
-    WAITING_AGENT,  // 等待 Agent 上线 (Ping)
-    INITIALIZING,   // 正在创建 Node/Pub/Sub
-    RUNNING,        // 正常运行 (Spin)
-    ERROR_RECOVERY, // 出错，准备清理
-    CLEANUP         // 清理资源中
+    WAITING_AGENT,  // 等待 Agent 上线
+    INITIALIZING,   // 正在初始化 Node 和 Entities
+    RUNNING,        // 正常运行 (Spinning)
+    ERROR_RECOVERY, // 发生错误，准备重置
+    DISCONNECTED    // 断开连接 (中间态)
 };
 
-template <typename TransportType> // 例如 MicroROSPort<5>
+/**
+ * @brief Micro-ROS 中心管理器
+ * 负责管理生命周期、资源分配以及所有发布者/订阅者的注册
+ *
+ * @tparam TransportType 传输层类 (例如 MicroROSPort<UART_NUM>)
+ */
+template <typename TransportType>
 class MicroROSManager {
 public:
     static MicroROSManager &GetInstance() {
@@ -29,26 +48,38 @@ public:
         return instance;
     }
 
-    // 注册用户的业务逻辑
-    void RegisterApp(MicroROSApp *app) {
-        currentApp = app;
+    /**
+     * @brief 注册实体 (由 MicroROSEntity 构造函数自动调用)
+     * @param entity 实体指针
+     */
+    void RegisterEntity(MicroROSEntity* entity) {
+        if (!entity_list_.full()) {
+            entity_list_.push_back(entity);
+        } else {
+            // 错误处理：实体数量超过 MAX_MICROROS_ENTITIES
+            // 可以打印日志或闪灯
+        }
     }
 
-    // FreeRTOS 任务主循环调用的入口
+    /**
+     * @brief 主循环，应在 FreeRTOS 任务中通过 while(1) 调用
+     */
     void RunLoop() {
-        // 状态机逻辑
-        switch (currentState) {
+        switch (current_state_) {
             case MicroROSState::WAITING_AGENT:
                 HandleWaitingAgent();
                 break;
+
             case MicroROSState::INITIALIZING:
                 HandleInitializing();
                 break;
+
             case MicroROSState::RUNNING:
                 HandleRunning();
                 break;
+
             case MicroROSState::ERROR_RECOVERY:
-            case MicroROSState::CLEANUP:
+            case MicroROSState::DISCONNECTED:
                 HandleCleanup();
                 break;
         }
@@ -56,103 +87,128 @@ public:
 
 private:
     MicroROSManager() {
-        // 1. 设置分配器 (引用 microros_allocators.c 中的实现)
-        allocator = rcl_get_default_allocator();
+        // 1. 设置内存分配器
+        allocator_ = rcl_get_default_allocator();
 
-        // 2. 设置传输层 (使用 TransportType 提供的静态函数)
+        // 2. 设置传输层
+        // 假设 TransportType 提供了符合 micro-ROS 要求的静态接口
         rmw_uros_set_custom_transport(
             true,
-            nullptr, // args 可以为空，因为 TransportType 是单例
+            nullptr, // cookies
             TransportType::TransportOpen,
             TransportType::TransportClose,
             TransportType::TransportWrite,
             TransportType::TransportRead
         );
+
+        current_state_ = MicroROSState::WAITING_AGENT;
     }
 
-    // --- 状态处理函数 ---
+    // --- 状态处理逻辑 ---
 
     void HandleWaitingAgent() {
-        // 尝试 Ping Agent
+        // 尝试 Ping Agent，超时时间 100ms，尝试 1 次
         if (rmw_uros_ping_agent(100, 1) == RMW_RET_OK) {
-            currentState = MicroROSState::INITIALIZING;
+            current_state_ = MicroROSState::INITIALIZING;
         } else {
-            // 延时由外部 Task 控制，或者在这里 osDelay
+            // 没连上，稍微延时，避免死循环占用 CPU
+            // 注意：外层循环最好也有 osDelay
         }
     }
 
     void HandleInitializing() {
-        if (!currentApp) return;
-
         rcl_ret_t ret;
-        // 1. Init Support
-        ret = rclc_support_init(&support, 0, nullptr, &allocator);
-        if (ret != RCL_RET_OK) { currentState = MicroROSState::CLEANUP; return; }
 
-        // 2. Init Node
-        ret = rclc_node_init_default(&node, "FineMote_node", "", &support);
-        if (ret != RCL_RET_OK) { currentState = MicroROSState::CLEANUP; return; }
+        // 1. 初始化 Support
+        ret = rclc_support_init(&support_, 0, nullptr, &allocator_);
+        if (ret != RCL_RET_OK) { current_state_ = MicroROSState::ERROR_RECOVERY; return; }
 
-        // 3. Init Executor
-        // 假设最大句柄数为 10，可配置
-        ret = rclc_executor_init(&executor, &support.context, 10, &allocator);
-        if (ret != RCL_RET_OK) { currentState = MicroROSState::CLEANUP; return; }
+        // 2. 初始化 Node
+        ret = rclc_node_init_default(&node_, MICROROS_NODE_NAME, "", &support_);
+        if (ret != RCL_RET_OK) { current_state_ = MicroROSState::ERROR_RECOVERY; return; }
 
-        // 4. 用户应用初始化
-        if (currentApp->OnInit(node, support, executor)) {
-            currentState = MicroROSState::RUNNING;
-            last_comm_tick = xTaskGetTickCount();
-        } else {
-            currentState = MicroROSState::CLEANUP;
+        // 3. 遍历注册表，初始化所有实体 (Publisher/Subscriber/Timer)
+        size_t handles_needed = 0;
+        for (auto* entity : entity_list_) {
+            if (!entity->Init(&node_, &support_)) {
+                // 如果某个实体初始化失败，整个系统回滚
+                current_state_ = MicroROSState::ERROR_RECOVERY;
+                return;
+            }
+
+            handles_needed += entity->GetExecutorHandleCount();
         }
+
+        // 4. 初始化 Executor
+        // 句柄数 = 实体数 + 额外保留数 (GUARD_CONDITIONS etc.)
+        size_t executor_handles = (handles_needed > 0) ? handles_needed : 1;
+
+        ret = rclc_executor_init(&executor_, &support_.context, executor_handles, &allocator_);
+        if (ret != RCL_RET_OK) { current_state_ = MicroROSState::ERROR_RECOVERY; return; }
+
+        // 5. 将实体加入 Executor
+        for (auto* entity : entity_list_) {
+            if (!entity->AddToExecutor(&executor_)) {
+                current_state_ = MicroROSState::ERROR_RECOVERY;
+                return;
+            }
+        }
+
+        // 初始化成功，进入运行态
+        current_state_ = MicroROSState::RUNNING;
+        last_comm_tick_ = xTaskGetTickCount();
     }
 
     void HandleRunning() {
-        // 处理一次任务
-        rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10)); // 10ms timeout
+        // 执行一次 Spin (处理订阅回调和定时器)
+        // timeout 设为 0 或很小的值，非阻塞
+        rcl_ret_t ret = rclc_executor_spin_some(&executor_, RCL_MS_TO_NS(5));
 
         if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
-            currentState = MicroROSState::ERROR_RECOVERY;
+            current_state_ = MicroROSState::ERROR_RECOVERY;
             return;
         }
 
-        if ((xTaskGetTickCount() - last_comm_tick) > pdMS_TO_TICKS(WATCHDOG_TIMEOUT)) {
-
-            rcl_ret_t ping_ret = rmw_uros_ping_agent(100, 1);
-
-            if (ping_ret == RMW_RET_OK) {
-                // Agent 还在，只是比较安静。喂狗，继续运行。
-                last_comm_tick = xTaskGetTickCount();
+        // 简单的看门狗逻辑：定期 Ping 确保连接存活
+        if ((xTaskGetTickCount() - last_comm_tick_) > pdMS_TO_TICKS(WATCHDOG_TIMEOUT_MS)) {
+            if (rmw_uros_ping_agent(50, 1) == RMW_RET_OK) {
+                last_comm_tick_ = xTaskGetTickCount();
             } else {
-                // 切换状态到 CLEANUP，这将触发资源销毁和重连流程
-                currentState = MicroROSState::ERROR_RECOVERY; // 或者直接 CLEANUP
+                // Ping 失败，认为连接断开
+                current_state_ = MicroROSState::ERROR_RECOVERY;
             }
         }
     }
 
     void HandleCleanup() {
-        if (currentApp) {
-            currentApp->OnDestroy(node);
+        // 1. 清理所有实体 (释放 Pub/Sub 句柄)
+        for (auto* entity : entity_list_) {
+            entity->Reset();
         }
 
-        rclc_executor_fini(&executor);
-        rcl_node_fini(&node);
-        rclc_support_fini(&support);
+        // 2. 清理 Micro-ROS 核心资源
+        rclc_executor_fini(&executor_);
+        rcl_node_fini(&node_);
+        rclc_support_fini(&support_);
 
-        currentState = MicroROSState::WAITING_AGENT;
+        // 3. 回到等待状态
+        current_state_ = MicroROSState::WAITING_AGENT;
     }
 
     // --- 成员变量 ---
-    MicroROSApp *currentApp = nullptr;
-    MicroROSState currentState = MicroROSState::WAITING_AGENT;
 
-    rcl_allocator_t allocator;
-    rclc_support_t support;
-    rcl_node_t node;
-    rclc_executor_t executor;
+    // Micro-ROS 句柄
+    rcl_allocator_t allocator_;
+    rclc_support_t support_;
+    rcl_node_t node_;
+    rclc_executor_t executor_;
 
-    TickType_t last_comm_tick = 0;
-    const uint32_t WATCHDOG_TIMEOUT = 2000;
+    // 状态管理
+    MicroROSState current_state_;
+    TickType_t last_comm_tick_;
+
+    // 实体注册表
+    etl::vector<MicroROSEntity*, MAX_MICROROS_ENTITIES> entity_list_;
 };
 
-#endif //FINEMOTE_MICROROS_MANAGER_HPP
+#endif // FINEMOTE_MICROROS_MANAGER_HPP
