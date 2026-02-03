@@ -12,7 +12,7 @@ set(_FINEMOTE_ABI_FLAGS
         ${_FINEMOTE_ARCH_FLAGS}
         -funsigned-char
         -fshort-enums
-        -fshort-wchar
+#        -fshort-wchar
 )
 
 set(_FINEMOTE_SECTION_FLAGS
