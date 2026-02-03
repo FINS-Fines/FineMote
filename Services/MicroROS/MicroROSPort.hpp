@@ -53,7 +53,7 @@ public:
         return true;
     }
 
-        static size_t TransportWrite(struct uxrCustomTransport *transport, const uint8_t *buf, size_t len, uint8_t *err) {
+    static size_t TransportWrite(struct uxrCustomTransport *transport, const uint8_t *buf, size_t len, uint8_t *err) {
         // 为了稳定性，直接调用 HAL 库的阻塞发送。
 
         UART_HandleTypeDef* huart = BSP_UARTList[UART_ID];
