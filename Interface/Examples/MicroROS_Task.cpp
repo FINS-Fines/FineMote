@@ -15,7 +15,9 @@
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/bool.h>
 #include <std_msgs/msg/header.h>
-
+#include <geometry_msgs/msg/twist.h>
+#include <nav_msgs/msg/odometry.h>
+// #include  <geometry_msgs/msg/pose_stamped.h>
 Timer* Timer::head_ = nullptr;
 
 // =============================================================================
@@ -45,6 +47,9 @@ DEFINE_MICROROS_MSG_TYPE(std_msgs__msg__Int32, std_msgs, msg, Int32)
 DEFINE_MICROROS_MSG_TYPE(std_msgs__msg__Bool, std_msgs, msg, Bool)
 DEFINE_MICROROS_MSG_TYPE(std_msgs__msg__Header, std_msgs, msg, Header)
 
+DEFINE_MICROROS_MSG_TYPE(geometry_msgs__msg__Twist, geometry_msgs, msg, Twist)
+DEFINE_MICROROS_MSG_TYPE(nav_msgs__msg__Odometry, nav_msgs, msg, Odometry)
+// DEFINE_MICROROS_MSG_TYPE(geometry_msgs__msg__PoseStamped, geometry_msgs, msg, PoseStamped) // <--- 新增
 
 // =============================================================================
 // 3. 用户业务逻辑 (User Application)
@@ -54,6 +59,8 @@ DEFINE_MICROROS_MSG_TYPE(std_msgs__msg__Header, std_msgs, msg, Header)
 // 声明后自动注册，无需 Init 代码
 Publisher<std_msgs__msg__Int32> pub_heartbeat("heartbeat");
 Publisher<std_msgs__msg__Header> pub_sensor("sensor_info");
+Publisher<nav_msgs__msg__Odometry> pub_odom("odom");
+// Publisher<geometry_msgs__msg__PoseStamped> pub_odom("odom");
 
 // --- 3.2 定义回调函数 ---
 void OnLedCommand(const std_msgs__msg__Bool& msg) {
@@ -64,9 +71,15 @@ void OnLedCommand(const std_msgs__msg__Bool& msg) {
     }
 }
 
+void OnCmdVel(const geometry_msgs__msg__Twist& msg) {
+    // 从 ROS 消息中提取线速度(x, y)和角速度(z)
+    // 直接传给桥接函数，写入底盘任务
+    // POVChassis_SetTargetSpeed_Safe(msg.linear.x, msg.linear.y, msg.angular.z);
+}
 // --- 3.3 定义订阅者 ---
 // 传入 Topic 名称和回调函数
 Subscriber<std_msgs__msg__Bool> sub_led("led_cmd", OnLedCommand);
+Subscriber<geometry_msgs__msg__Twist> sub_cmd_vel("cmd_vel", OnCmdVel);
 
 // --- 3.4 定义定时器回调 ---
 void OnTimerCallback() {
@@ -92,6 +105,79 @@ void OnTimerCallback() {
     msg_sensor.frame_id.capacity = sizeof(frame_id);
 
     pub_sensor.publish();
+
+    auto& msg_odom = pub_odom.load_msg();
+
+    ticks = xTaskGetTickCount();
+    msg_odom.header.stamp.sec = ticks / configTICK_RATE_HZ;
+    msg_odom.header.stamp.nanosec = (ticks % configTICK_RATE_HZ) * (1000000000UL / configTICK_RATE_HZ);
+
+    static char frame_id_odom[] = "odom";
+    msg_odom.header.frame_id.data = frame_id_odom;
+    msg_odom.header.frame_id.size = strlen(frame_id_odom);
+    msg_odom.header.frame_id.capacity = sizeof(frame_id_odom);
+
+    static char frame_id_base[] = "base_link";
+    msg_odom.child_frame_id.data = frame_id_base;
+    msg_odom.child_frame_id.size = strlen(frame_id_base);
+    msg_odom.child_frame_id.capacity = sizeof(frame_id_base);
+
+    // 3. 从底盘任务获取数据
+    float chassis_data[6] = {0}; // [x, y, theta, vx, vy, omega]
+    // POVChassis_GetState_Safe(chassis_data);
+
+    // 4. 填充位姿 (Pose)
+    msg_odom.pose.pose.position.x = chassis_data[0];
+    msg_odom.pose.pose.position.y = chassis_data[1];
+    msg_odom.pose.pose.position.z = 0.0;
+
+    // 简单的欧拉角转四元数 (仅 Z 轴旋转)
+    // qz = sin(theta/2), qw = cos(theta/2)
+    float half_theta = chassis_data[2] * 0.5f;
+    msg_odom.pose.pose.orientation.z = sinf(half_theta);
+    msg_odom.pose.pose.orientation.w = cosf(half_theta);
+    msg_odom.pose.pose.orientation.x = 0.0;
+    msg_odom.pose.pose.orientation.y = 0.0;
+
+    // 5. 填充速度 (Twist)
+    msg_odom.twist.twist.linear.x = chassis_data[3];
+    msg_odom.twist.twist.linear.y = chassis_data[4];
+    msg_odom.twist.twist.angular.z = chassis_data[5];
+
+    pub_odom.publish();
+
+    // new
+    // auto& msg_odom = pub_odom.load_msg();
+    //
+    // // 1. 填充 Header
+    // ticks = xTaskGetTickCount();
+    // msg_odom.header.stamp.sec = ticks / configTICK_RATE_HZ;
+    // msg_odom.header.stamp.nanosec = (ticks % configTICK_RATE_HZ) * (1000000000UL / configTICK_RATE_HZ);
+    //
+    // static char frame_id_odom[] = "odom";
+    // msg_odom.header.frame_id.data = frame_id_odom;
+    // msg_odom.header.frame_id.size = strlen(frame_id_odom);
+    // msg_odom.header.frame_id.capacity = sizeof(frame_id_odom);
+    //
+    // // 2. 从底盘任务获取数据 (模拟数据)
+    // float chassis_data[6] = {0}; // [x, y, theta, vx, vy, omega]
+    // // POVChassis_GetState_Safe(chassis_data);
+    //
+    // // 3. 填充位姿 (Pose)
+    //
+    // msg_odom.pose.position.x = chassis_data[0];
+    // msg_odom.pose.position.y = chassis_data[1];
+    // msg_odom.pose.position.z = 0.0;
+    //
+    // // 四元数计算
+    // float half_theta = chassis_data[2] * 0.5f;
+    // msg_odom.pose.orientation.z = sinf(half_theta);
+    // msg_odom.pose.orientation.w = cosf(half_theta);
+    // msg_odom.pose.orientation.x = 0.0;
+    // msg_odom.pose.orientation.y = 0.0;
+    //
+    // // 发布
+    // pub_odom.publish();
 }
 
 // --- 3.5 定义定时器 ---
