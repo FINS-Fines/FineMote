@@ -30,7 +30,7 @@ typedef struct geometry_msgs__msg__Inertia
   double m;
   /// Center of mass
   geometry_msgs__msg__Vector3 com;
-  /// Inertia Tensor
+  /// Inertia Tensor about the center of mass
   ///     | ixx ixy ixz |
   /// I = | ixy iyy iyz |
   ///     | ixz iyz izz |
