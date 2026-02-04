@@ -57,7 +57,7 @@ const osThreadAttr_t defaultTask_attributes = {
 };
 /* Definitions for MicroROSTask */
 osThreadId_t MicroROSTaskHandle;
-uint32_t MicroROSTaskBuffer[ 7000 ];
+uint32_t MicroROSTaskBuffer[ 3000 ];
 osStaticThreadDef_t MicroROSTaskControlBlock;
 const osThreadAttr_t MicroROSTask_attributes = {
   .name = "MicroROSTask",
