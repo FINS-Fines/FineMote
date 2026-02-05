@@ -51,10 +51,9 @@ template <uint8_t BusID>
 class Motor4315 : public MotorBase {
 public:
     template <typename T>
-    Motor4315(const Motor_Param_t&& params, T& _controller, uint8_t addr)
-            : MotorBase(std::forward<const Motor_Param_t>(params)), id(addr), commuAgent(this, addr) { // Todo: ID和地址分离逻辑
+    Motor4315(const Motor_Param_t&& params, T& _controller, uint8_t addr, uint8_t divisionFactor=5)
+            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), id(addr), commuAgent(this, addr) { // Todo: ID和地址分离逻辑
         ResetController(_controller);
-        this->SetDivisionFactor(20);
     }
 
     void Handle() override {

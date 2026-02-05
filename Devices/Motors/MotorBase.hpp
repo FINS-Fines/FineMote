@@ -27,9 +27,11 @@ using Motor_Param_t = struct Motor_Param_t {
 
 class MotorBase : public DeviceBase {
 public:
-    explicit MotorBase(const Motor_Param_t&& params) : params(params) {
+    explicit MotorBase(const Motor_Param_t& params, uint8_t divisionFactor = 1)
+        : DeviceBase(divisionFactor), params(params) {
 
     }
+
 
 
     void ResetController(ImplementControllerBase<1,1>& _controller) {
