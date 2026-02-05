@@ -25,6 +25,15 @@
       }
     },
     {
+      "name": "Robomaster_A",
+      "inherits": [
+        "base"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "Robomaster_A"
+      }
+    },
+    {
       "name": "MC_Board",
       "inherits": [
         "base"
@@ -43,6 +52,16 @@
     {
       "name": "Robomaster_C-release",
       "configurePreset": "Robomaster_C",
+      "configuration": "Release"
+    },
+    {
+      "name": "Robomaster_A-debug",
+      "configurePreset": "Robomaster_A",
+      "configuration": "Debug"
+    },
+    {
+      "name": "Robomaster_A-release",
+      "configurePreset": "Robomaster_A",
       "configuration": "Release"
     },
     {
