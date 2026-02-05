@@ -14,10 +14,9 @@ template <int busID>
 class Odrive : public MotorBase {
 public:
     template <typename T>
-    Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr)
-            : MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+    Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=5)
+            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
         ResetController(_controller);
-        this->SetDivisionFactor(20);
     }
 
     void Handle() final {

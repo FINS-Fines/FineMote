@@ -36,10 +36,10 @@ Motor4010<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
 Motor4010<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
 
 #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position, true}
-Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04);
-Motor4315<1> SBLMotor(DIRECT_POSITION, swerveControllers[1], 0x03);
-Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02);
-Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01);
+Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04, 20);
+Motor4315<1> SBLMotor(DIRECT_POSITION, swerveControllers[1], 0x03, 20);
+Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02, 20);
+Motor4315<1> SFRMotor(DIRECT_POSITION, swerveControllers[3], 0x01, 20);
 
 
 

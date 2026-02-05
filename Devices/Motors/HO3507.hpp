@@ -17,11 +17,10 @@ template <int busID>
 class HO3507 : public MotorBase {
 public:
     template <typename T>
-    HO3507(const Motor_Param_t&& params, T& _controller, uint32_t addr) :
-            MotorBase(std::forward<const Motor_Param_t>(params)), canAgent(addr) {
+    HO3507(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=5) :
+            MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
         ResetController(_controller);
         initTick = HAL_GetTick();
-        this->SetDivisionFactor(20);
     }
 
     void Handle() final {
