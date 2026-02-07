@@ -176,12 +176,12 @@ standard names. */
 // #define configUSE_POSIX_ERRNO 1
 // #define configUSE_APPLICATION_TASK_TAG 1
 
-#define pvPortMalloc                          pvPortMallocMicroROS
-#define vPortFree                             vPortFreeMicroROS
-#define pvPortRealloc                         pvPortReallocMicroROS
-#define pvPortCalloc                          pvPortCallocMicroROS
-#define xPortGetFreeHeapSize                  xPortGetFreeHeapSizeMicroROS
-#define xPortGetMinimumEverFreeHeapSize       xPortGetMinimumEverFreeHeapSizeMicroROS
+// #define pvPortMalloc                          pvPortMallocMicroROS
+// #define vPortFree                             vPortFreeMicroROS
+// #define pvPortRealloc                         pvPortReallocMicroROS
+// #define pvPortCalloc                          pvPortCallocMicroROS
+// #define xPortGetFreeHeapSize                  xPortGetFreeHeapSizeMicroROS
+// #define xPortGetMinimumEverFreeHeapSize       xPortGetMinimumEverFreeHeapSizeMicroROS
 
 /* USER CODE END Defines */
 

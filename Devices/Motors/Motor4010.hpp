@@ -10,16 +10,29 @@
 #include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
 #include "Control/Clamp.hpp"
+#include <type_traits>
 
 /**
  * Todo: Reduction ratio
  */
-template <int busID>
+template <int busID, typename RosMode = DisableRos>
 class Motor4010 : public MotorBase {
 public:
-    template <typename T>
+    template <typename T, typename U = RosMode, typename std::enable_if_t<!U::enabled, int> = 0>
     Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=1)
-            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
+            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+              canAgent(addr)
+    {
+        ResetController(_controller);
+    }
+
+    template <typename T, typename Converter, typename U = RosMode, typename std::enable_if_t<U::enabled, int> = 0>
+    Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr,
+              const char* topic, Converter&& converter, uint8_t divisionFactor=1)
+            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+              canAgent(addr),
+              ros_module_(topic, std::forward<Converter>(converter))
+    {
         ResetController(_controller);
     }
 
@@ -31,6 +44,8 @@ public:
     CAN_Agent<busID> canAgent;
 
 private:
+    [[no_unique_address]] RosMode ros_module_;
+
     void SetFeedback() final {
         switch (this->params.targetType) {
             case Motor_Ctrl_Type_e::Position:
@@ -84,7 +99,9 @@ private:
         state.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
         state.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
         state.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
+
+        ros_module_.Update(this->state);
     }
 };
 
-#endif
+#endif // FINEMOTE_MOTOR4010_H
