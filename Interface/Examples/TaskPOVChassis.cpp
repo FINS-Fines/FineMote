@@ -28,24 +28,20 @@
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/float32.h>
 
-DEFINE_MICROROS_MSG_TYPE(std_msgs__msg__Int32, std_msgs, msg, Int32)
-
 constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f};
 auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
 
 #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
 
-using MotorRosPolicy = EnableRosPublisher<std_msgs__msg__Int32, Motor_State_t>;
-
 auto speed_converter = [](std_msgs__msg__Int32& msg, const Motor_State_t& state) {
     msg.data = static_cast<int32_t>(state.speed);
 };
 
-Motor4010<1, MotorRosPolicy> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144, "motor/cbr/speed", speed_converter);
-Motor4010<1, MotorRosPolicy> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143, "motor/cbl/speed", speed_converter);
-Motor4010<1, MotorRosPolicy> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142, "motor/cfl/speed", speed_converter);
-Motor4010<1, MotorRosPolicy> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141, "motor/cfr/speed", speed_converter);
+Motor4010<1, 5> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
+Motor4010<1, 5> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143);
+Motor4010<1, 5> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
+Motor4010<1, 5> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
 
 #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position, true}
 Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04, 20);

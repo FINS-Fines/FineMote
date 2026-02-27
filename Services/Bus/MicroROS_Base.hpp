@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2026.
+ * Copyright (c) 2026.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
 ******************************************************************************/
@@ -7,233 +7,260 @@
 #ifndef FINEMOTE_MICROROS_BASE_HPP
 #define FINEMOTE_MICROROS_BASE_HPP
 
+#include "Board.h"
+#include "FreeRTOS.h"
+#include "cmsis_os.h"
+#include "task.h"
+#include "etl/queue.h"
+
 #include <rcl/rcl.h>
-#include <rclc/rclc.h>
 #include <rclc/executor.h>
-#include <rosidl_runtime_c/message_type_support_struct.h>
-#include <functional>
-#include <concepts>
+#include <rclc/rclc.h>
+#include <rmw_microros/rmw_microros.h>
+#include <uxr/client/transport.h>
 
-template<typename T> struct RosMsgTypeTraits {
-    static const rosidl_message_type_support_t* GetTypeSupport() { return nullptr; }
-};
+#include "BSP_MicroROS.hpp"
+#include "Bus/UART_Base.hpp"
 
-#define DEFINE_MICROROS_MSG_TYPE(CppType, PkgName, MsgSub, MsgName) \
-    template<> struct RosMsgTypeTraits<CppType> { \
-        static const rosidl_message_type_support_t* GetTypeSupport() { \
-            return ROSIDL_GET_MSG_TYPE_SUPPORT(PkgName, MsgSub, MsgName); \
-        } \
+#ifndef MICROROS_BUF_SIZE
+#define MICROROS_BUF_SIZE 2048
+#endif
+
+#ifndef MICROROS_DMA_BUF_SIZE
+#define MICROROS_DMA_BUF_SIZE 512
+#endif
+
+#ifndef MICROROS_NODE_NAME
+#define MICROROS_NODE_NAME "FineMote"
+#endif
+
+template <uint8_t UART_ID>
+class MicroROS_Base {
+public:
+    enum class State {
+        WAITING_AGENT,
+        INITIALIZING,
+        RUNNING,
+        ERROR
     };
 
-class ROSAgent {
-public:
-    ROSAgent() {
-
-        this->next_ = head_;
-        head_ = this;
+    static MicroROS_Base& GetInstance() {
+        static MicroROS_Base instance;
+        return instance;
     }
 
-    virtual ~ROSAgent() = default;
+    void Init() {
+        state_ = State::WAITING_AGENT;
+    }
 
-    virtual bool Init(rcl_node_t* node, rclc_support_t* support) = 0;
-
-    virtual bool AddToExecutor(rclc_executor_t* executor) { return true; }
-
-    virtual size_t GetHandleCount() const { return 0; }
-
-    virtual void Reset() = 0;
-
-    virtual rcl_timer_t* GetTimerHandle() { return nullptr; }
-
-    static ROSAgent* GetHead() { return head_; }
-    ROSAgent* GetNext() const { return next_; }
-
-protected:
-    static ROSAgent* head_;
-
-    ROSAgent* next_;
-};
-
-template<typename MsgT>
-class RosPublisher : public ROSAgent {
-public:
-    RosPublisher(const char* topic, bool best_effort = true)
-        : topic_(topic), best_effort_(best_effort), initialized_(false) {}
-
-    MsgT& load_msg() { return msg_; }
-
-    void publish() {
-        if (initialized_) {
-            rcl_publish(&pub_, &msg_, nullptr);
+    void Handle() {
+        switch (state_) {
+            case State::WAITING_AGENT:
+                HandleWaiting();
+                break;
+            case State::INITIALIZING:
+                HandleInitializing();
+                break;
+            case State::RUNNING:
+                HandleRunning();
+                break;
+            case State::ERROR:
+                osDelay(1000);
+                state_ = State::WAITING_AGENT;
+                break;
         }
     }
 
-    void publish(const MsgT& external_msg) {
-        if (initialized_) {
-            rcl_publish(&pub_, &external_msg, nullptr);
-        }
-    }
-
-    bool Init(rcl_node_t* node, rclc_support_t* support) override {
-        const auto* ts = RosMsgTypeTraits<MsgT>::GetTypeSupport();
-        if (!ts) return false;
-
-        rcl_ret_t rc = best_effort_
-            ? rclc_publisher_init_best_effort(&pub_, node, ts, topic_)
-            : rclc_publisher_init_default(&pub_, node, ts, topic_);
-
-        initialized_ = (rc == RCL_RET_OK);
-        return initialized_;
-    }
-
-    void Reset() override {
-        if (initialized_) {
-            rcl_publisher_fini(&pub_, nullptr);
-            initialized_ = false;
-        }
-    }
+    rcl_node_t* GetNode() { return &node_; }
+    rclc_support_t* GetSupport() { return &support_; }
+    bool IsRunning() const { return state_ == State::RUNNING; }
 
 private:
-    const char* topic_;
-    bool best_effort_;
-    bool initialized_;
-    rcl_publisher_t pub_;
-    MsgT msg_;
-};
 
-template<typename MsgT>
-class RosSubscriber : public ROSAgent {
-public:
-    using CallbackFunc = std::function<void(const MsgT&)>;
+    MicroROS_Base()
+        : state_(State::WAITING_AGENT),
+          last_tick_(0),
+          dma_buffer_([this](uint8_t* data, size_t size) { this->PushRxData(data, size); }) {
+        allocator_ = rcl_get_default_allocator();
 
-    RosSubscriber(const char* topic, CallbackFunc callback, bool best_effort = true)
-        : topic_(topic), callback_(callback), best_effort_(best_effort), initialized_(false) {}
+        rx_sem_ = osSemaphoreNew(1, 0, nullptr);
+        tx_sem_ = osSemaphoreNew(1, 1, nullptr);
 
-    size_t GetHandleCount() const override { return 1; }
+        UART_Base<UART_ID>::GetInstance().BindTxHandle([this]() {
+            osSemaphoreRelease(this->tx_sem_);
+            return true;
+        });
 
-    bool Init(rcl_node_t* node, rclc_support_t* support) override {
-        const auto* ts = RosMsgTypeTraits<MsgT>::GetTypeSupport();
-        if (!ts) return false;
-
-        rcl_ret_t rc = best_effort_
-            ? rclc_subscription_init_best_effort(&sub_, node, ts, topic_)
-            : rclc_subscription_init_default(&sub_, node, ts, topic_);
-
-        initialized_ = (rc == RCL_RET_OK);
-        return initialized_;
-    }
-
-    bool AddToExecutor(rclc_executor_t* executor) override {
-        if (!initialized_) return false;
-
-        return (rclc_executor_add_subscription_with_context(
-            executor, &sub_, &msg_, &StaticCallback, this, ON_NEW_DATA
-        ) == RCL_RET_OK);
-    }
-
-    void Reset() override {
-        if (initialized_) {
-            rcl_subscription_fini(&sub_, nullptr);
-            initialized_ = false;
-        }
-    }
-
-private:
-    static void StaticCallback(const void * msgin, void * context) {
-        auto* self = static_cast<RosSubscriber<MsgT>*>(context);
-        if (self && self->callback_) {
-            self->callback_(self->msg_);
-        }
-    }
-
-    const char* topic_;
-    CallbackFunc callback_;
-    bool best_effort_;
-    bool initialized_;
-    rcl_subscription_t sub_;
-    MsgT msg_;
-};
-
-class Timer : public ROSAgent {
-public:
-    using TimerCallback = std::function<void()>;
-
-    Timer(unsigned int period_ms, TimerCallback callback)
-        : period_ms_(period_ms), callback_(callback), initialized_(false) {
-    }
-
-    size_t GetHandleCount() const override { return 1; }
-
-    rcl_timer_t* GetTimerHandle() override { return &timer_; }
-
-    bool Init(rcl_node_t* node, rclc_support_t* support) override {
-        rcl_ret_t rc = rclc_timer_init_default(
-            &timer_,
-            support,
-            RCL_MS_TO_NS(period_ms_),
-            StaticTimerCallback
+        rmw_uros_set_custom_transport(
+            true,
+            nullptr,
+            TransportOpen,
+            TransportClose,
+            TransportWrite,
+            TransportRead
         );
-        initialized_ = (rc == RCL_RET_OK);
-        return initialized_;
     }
 
-    bool AddToExecutor(rclc_executor_t* executor) override {
-        if (!initialized_) return false;
-        return (rclc_executor_add_timer(executor, &timer_) == RCL_RET_OK);
+    ~MicroROS_Base() = default;
+
+    void PushRxData(uint8_t* data, size_t size) {
+        for (size_t i = 0; i < size; ++i) {
+            if (!rx_queue_.full()) {
+                rx_queue_.push(data[i]);
+            }
+        }
+        osSemaphoreRelease(rx_sem_);
     }
 
-    void Reset() override {
-        if (initialized_) {
-            rcl_timer_fini(&timer_);
-            initialized_ = false;
+    void HandleWaiting() {
+        if (rmw_uros_ping_agent(100, 1) == RMW_RET_OK) {
+            state_ = State::INITIALIZING;
         }
     }
 
-private:
-    static void StaticTimerCallback(rcl_timer_t * timer, int64_t last_call_time) {
-        (void)last_call_time;
+    void HandleInitializing() {
+        rcl_ret_t ret;
 
-        ROSAgent* curr = ROSAgent::GetHead();
-        while (curr) {
-            if (curr->GetTimerHandle() == timer) {
-                static_cast<Timer*>(curr)->callback_();
+        ret = rclc_support_init(&support_, 0, nullptr, &allocator_);
+        if (ret != RCL_RET_OK) { GotoError(); return; }
+
+        ret = rclc_node_init_default(&node_, MICROROS_NODE_NAME, "", &support_);
+        if (ret != RCL_RET_OK) { GotoError(); return; }
+
+        size_t handle_count = 0;
+        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
+            if (!agent->Init(&node_, &support_)) {
+                GotoError();
                 return;
             }
-            curr = curr->GetNext();
+            handle_count += agent->GetHandleCount();
+        }
+
+        handle_count = (handle_count > 0) ? handle_count : 1;
+        ret = rclc_executor_init(&executor_, &support_.context, handle_count, &allocator_);
+        if (ret != RCL_RET_OK) { GotoError(); return; }
+
+        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
+            if (!agent->AddToExecutor(&executor_)) {
+                GotoError();
+                return;
+            }
+        }
+
+        last_tick_ = xTaskGetTickCount();
+        state_ = State::RUNNING;
+    }
+
+    void HandleRunning() {
+        rcl_ret_t ret = rclc_executor_spin_some(&executor_, RCL_MS_TO_NS(1));
+
+        if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
+            GotoError();
+            return;
+        }
+
+        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
+            agent->Execute();
+        }
+
+        if ((xTaskGetTickCount() - last_tick_) > pdMS_TO_TICKS(1000)) {
+            last_tick_ = xTaskGetTickCount();
+            if (rmw_uros_ping_agent(10, 1) != RMW_RET_OK) {
+                GotoError();
+            }
         }
     }
 
-    unsigned int period_ms_;
-    TimerCallback callback_;
-    rcl_timer_t timer_;
-    bool initialized_;
-};
-
-struct DisableRos {
-    static constexpr bool enabled = false;
-    template<typename StateT> void Update(const StateT&) const {}
-};
-
-template<typename _MsgT, typename _StateT>
-class EnableRosPublisher {
-public:
-    static constexpr bool enabled = true;
-    using MsgT = _MsgT;
-    using StateT = _StateT;
-    using ConverterFunc = std::function<void(MsgT&, const StateT&)>;
-
-    EnableRosPublisher(const char* topic, ConverterFunc converter)
-        : publisher_(topic), converter_(converter) {}
-
-    void Update(const StateT& state) {
-        MsgT& msg = publisher_.load_msg();
-        if (converter_) converter_(msg, state);
-        publisher_.publish();
+    void GotoError() {
+        Cleanup();
+        state_ = State::ERROR;
     }
 
-private:
-    RosPublisher<MsgT> publisher_;
-    ConverterFunc converter_;
+    void Cleanup() {
+        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
+            agent->Reset();
+        }
+        rclc_executor_fini(&executor_);
+        rcl_node_fini(&node_);
+        rclc_support_fini(&support_);
+    }
+
+    static bool TransportOpen(struct uxrCustomTransport* t) {
+        auto& self = GetInstance();
+        taskENTER_CRITICAL();
+        while (!self.rx_queue_.empty()) {
+            self.rx_queue_.pop();
+        }
+        taskEXIT_CRITICAL();
+        return true;
+    }
+
+    static bool TransportClose(struct uxrCustomTransport* t) {
+        return true;
+    }
+
+    static size_t TransportWrite(struct uxrCustomTransport* t, const uint8_t* buf, size_t len, uint8_t* err) {
+        auto& self = GetInstance();
+        auto& uart = UART_Base<UART_ID>::GetInstance();
+
+        if (len > MICROROS_BUF_SIZE) {
+            len = MICROROS_BUF_SIZE;
+        }
+
+        if (osSemaphoreAcquire(self.tx_sem_, 100) == osOK) {
+            memcpy(self.tx_buffer_, buf, len);
+
+            uart.Transmit(self.tx_buffer_, static_cast<uint16_t>(len));
+
+            return len;
+        }
+
+        return 0;
+    }
+
+    static size_t TransportRead(struct uxrCustomTransport* t, uint8_t* buf, size_t len, int timeout, uint8_t* err) {
+        auto& self = GetInstance();
+        size_t read_count = 0;
+
+        uint32_t timeout_ms = (timeout <= 0) ? 0 : static_cast<uint32_t>(timeout);
+        uint32_t start_tick = osKernelGetTickCount();
+
+        while (read_count < len) {
+            taskENTER_CRITICAL();
+            while (read_count < len && !self.rx_queue_.empty()) {
+                buf[read_count++] = self.rx_queue_.front();
+                self.rx_queue_.pop();
+            }
+            taskEXIT_CRITICAL();
+
+            if (read_count >= len || timeout_ms == 0) {
+                break;
+            }
+
+            uint32_t elapsed = osKernelGetTickCount() - start_tick;
+            if (elapsed >= timeout_ms) {
+                break;
+            }
+
+            osSemaphoreAcquire(self.rx_sem_, timeout_ms - elapsed);
+        }
+
+        return read_count;
+    }
+
+    State state_;
+    rcl_allocator_t allocator_;
+    rclc_support_t support_;
+    rcl_node_t node_;
+    rclc_executor_t executor_;
+    uint32_t last_tick_;
+
+    osSemaphoreId_t rx_sem_;
+    osSemaphoreId_t tx_sem_;
+
+    uint8_t tx_buffer_[MICROROS_BUF_SIZE];
+    etl::queue<uint8_t, MICROROS_BUF_SIZE> rx_queue_;
+    UARTBuffer<UART_ID, MICROROS_DMA_BUF_SIZE> dma_buffer_;
 };
 
-#endif // FINEMOTE_MICROROS_BASE_HPP
+#endif
