@@ -7,221 +7,233 @@
 #ifndef FINEMOTE_BSP_MICROROS_HPP
 #define FINEMOTE_BSP_MICROROS_HPP
 
-#include "Board.h"
-#include "FreeRTOS.h"
-#include "task.h"
+ #include <functional>
+
 #include "cmsis_os.h"
-#include "etl/queue.h"
-
 #include <rcl/rcl.h>
-#include <rclc/rclc.h>
 #include <rclc/executor.h>
-#include <uxr/client/transport.h>
+#include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
+#include <rosidl_runtime_c/message_type_support_struct.h>
 
-#include "Bus/MicroROS_Base.hpp"
-#include "Bus/UART_Base.hpp"
-
-#ifndef MICROROS_RX_BUF_SIZE
-#define MICROROS_RX_BUF_SIZE 2048
-#endif
-
-#ifndef MICROROS_DMA_BUF_SIZE
-#define MICROROS_DMA_BUF_SIZE 512
-#endif
-
-#ifndef MICROROS_NODE_NAME
-#define MICROROS_NODE_NAME "STM32_FineMote_Node"
-#endif
-
-template <uint8_t UART_ID>
-class BSP_MicroROS {
-public:
-    static BSP_MicroROS& GetInstance() {
-        static BSP_MicroROS instance;
-        return instance;
-    }
-
-    void Init() {
-        state_ = State::WAITING_AGENT;
-    }
-
-    void Spin() {
-        switch (state_) {
-            case State::WAITING_AGENT:
-                HandleWaiting();
-                break;
-            case State::INITIALIZING:
-                HandleInit();
-                break;
-            case State::RUNNING:
-                HandleRunning();
-                break;
-            case State::ERROR_RECOVERY:
-                HandleError();
-                break;
-        }
-    }
-
-    rcl_node_t* GetNode() { return &node_; }
-    rclc_support_t* GetSupport() { return &support_; }
-    bool IsRunning() const { return state_ == State::RUNNING; }
-
-private:
-    BSP_MicroROS()
-        : state_(State::WAITING_AGENT),
-          last_tick_(0),
-          dmaBuffer_([this](uint8_t* data, size_t size) {
-              this->PushRxData(data, size);
-          })
-    {
-        allocator_ = rcl_get_default_allocator();
-    }
-
-    ~BSP_MicroROS() = default;
-
-    enum class State {
-        WAITING_AGENT,
-        INITIALIZING,
-        RUNNING,
-        ERROR_RECOVERY
-    };
-
-    void PushRxData(uint8_t* data, size_t size) {
-        for (size_t i = 0; i < size; ++i) {
-            if (!rx_queue_.full()) {
-                rx_queue_.push(data[i]);
-            }
-        }
-    }
-
-    void HandleWaiting() {
-        rmw_uros_set_custom_transport(
-            true, nullptr,
-            TransportOpen, TransportClose, TransportWrite, TransportRead
-        );
-
-        if (rmw_uros_ping_agent(100, 1) == RMW_RET_OK) {
-            state_ = State::INITIALIZING;
-        }
-    }
-
-    void HandleInit() {
-        rcl_ret_t rc;
-
-        rc = rclc_support_init(&support_, 0, nullptr, &allocator_);
-        if (rc != RCL_RET_OK) { state_ = State::ERROR_RECOVERY; return; }
-
-        rc = rclc_node_init_default(&node_, MICROROS_NODE_NAME, "", &support_);
-        if (rc != RCL_RET_OK) { state_ = State::ERROR_RECOVERY; return; }
-
-        size_t handle_count = 0;
-        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
-            if (!agent->Init(&node_, &support_)) {
-                state_ = State::ERROR_RECOVERY;
-                return;
-            }
-            handle_count += agent->GetHandleCount();
-        }
-
-        handle_count = (handle_count > 0) ? handle_count : 1;
-        rc = rclc_executor_init(&executor_, &support_.context, handle_count, &allocator_);
-        if (rc != RCL_RET_OK) { state_ = State::ERROR_RECOVERY; return; }
-
-        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
-            if (!agent->AddToExecutor(&executor_)) {
-                 state_ = State::ERROR_RECOVERY;
-                 return;
-            }
-        }
-
-        last_tick_ = xTaskGetTickCount();
-        state_ = State::RUNNING;
-    }
-
-    void HandleRunning() {
-        rclc_executor_spin_some(&executor_, RCL_MS_TO_NS(1));
-
-        if (xTaskGetTickCount() - last_tick_ > 1000) {
-            last_tick_ = xTaskGetTickCount();
-            if (rmw_uros_ping_agent(10, 1) != RMW_RET_OK) {
-                state_ = State::ERROR_RECOVERY;
-            }
-        }
-    }
-
-    void HandleError() {
-        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
-            agent->Reset();
-        }
-        rclc_executor_fini(&executor_);
-        rcl_node_fini(&node_);
-        rclc_support_fini(&support_);
-
-        state_ = State::WAITING_AGENT;
-    }
-
-    static bool TransportOpen(struct uxrCustomTransport* t) {
-        auto& self = GetInstance();
-        taskENTER_CRITICAL();
-        while(!self.rx_queue_.empty()) {
-            self.rx_queue_.pop();
-        }
-        taskEXIT_CRITICAL();
-        return true;
-    }
-
-    static bool TransportClose(struct uxrCustomTransport* t) {
-        return true;
-    }
-
-    static size_t TransportWrite(struct uxrCustomTransport* t, const uint8_t* buf, size_t len, uint8_t* err) {
-        UART_HandleTypeDef* huart = BSP_UARTList[UART_ID];
-
-        if (huart == nullptr) return 0;
-
-        HAL_StatusTypeDef status = HAL_UART_Transmit(huart, (uint8_t*)buf, len, 10);
-        return (status == HAL_OK) ? len : 0;
-    }
-
-    static size_t TransportRead(struct uxrCustomTransport* t, uint8_t* buf, size_t len, int timeout, uint8_t* err) {
-        auto& self = GetInstance();
-        size_t read_count = 0;
-
-        TickType_t timeout_ticks = (timeout > 0) ? pdMS_TO_TICKS(timeout) : 0;
-        TickType_t start_tick = xTaskGetTickCount();
-
-        do {
-            taskENTER_CRITICAL();
-            while (read_count < len && !self.rx_queue_.empty()) {
-                buf[read_count++] = self.rx_queue_.front();
-                self.rx_queue_.pop();
-            }
-            taskEXIT_CRITICAL();
-
-            if (read_count >= len || timeout == 0) {
-                break;
-            }
-
-            if ((xTaskGetTickCount() - start_tick) < timeout_ticks) {
-                 osDelay(1);
-            }
-
-        } while ((xTaskGetTickCount() - start_tick) < timeout_ticks);
-
-        return read_count;
-    }
-
-    State state_;
-    rcl_allocator_t allocator_;
-    rclc_support_t support_;
-    rcl_node_t node_;
-    rclc_executor_t executor_;
-    uint32_t last_tick_;
-
-    etl::queue<uint8_t, MICROROS_RX_BUF_SIZE> rx_queue_;
-
-    UARTBuffer<UART_ID, MICROROS_DMA_BUF_SIZE> dmaBuffer_;
+template <typename T>
+struct RosMsgTypeTraits {
+  static const rosidl_message_type_support_t* GetTypeSupport() {
+    return nullptr;
+  }
 };
 
-#endif // FINEMOTE_BSP_MICROROS_HPP
+#define DEFINE_MICROROS_MSG_TYPE(CppType, PkgName, MsgSub, MsgName)          \
+  template <>                                                                \
+  struct RosMsgTypeTraits<CppType> {                                         \
+    static const rosidl_message_type_support_t* GetTypeSupport() {           \
+      return ROSIDL_GET_MSG_TYPE_SUPPORT(PkgName, MsgSub, MsgName);          \
+    }                                                                        \
+  };
+
+class ROSAgent {
+ public:
+  ROSAgent() {
+    next_ = head_;
+    head_ = this;
+  }
+
+  virtual ~ROSAgent() = default;
+
+  virtual bool Init(rcl_node_t* node, rclc_support_t* support) = 0;
+  virtual bool AddToExecutor(rclc_executor_t* executor) { return true; }
+  virtual size_t GetHandleCount() const { return 0; }
+  virtual void Execute() = 0;
+  virtual void Reset() = 0;
+  virtual rcl_timer_t* GetTimerHandle() { return nullptr; }
+
+  static ROSAgent* GetHead() { return head_; }
+  ROSAgent* GetNext() const { return next_; }
+
+ protected:
+  static ROSAgent* head_;
+  ROSAgent* next_ = nullptr;
+  bool initialized_ = false;
+};
+
+template <typename MsgT, typename StateT>
+class RosPublisher : public ROSAgent {
+ public:
+  static constexpr bool enabled = true;
+  using ConverterFunc = std::function<void(MsgT&, const StateT&)>;
+
+  RosPublisher(const char* topic_name, ConverterFunc converter)
+      : topic_name_(topic_name), converter_(converter) {}
+
+  void Update(const StateT& state) {
+      taskENTER_CRITICAL();
+      last_state_ = state;
+      taskEXIT_CRITICAL();
+    }
+
+    void Execute() override {
+      if (!initialized_) {
+          return;
+      }
+
+      StateT local_state;
+
+      taskENTER_CRITICAL();
+      local_state = last_state_;
+      taskEXIT_CRITICAL();
+
+      if (converter_) {
+          converter_(msg_, local_state);
+      }
+
+      rcl_publish(&publisher_, &msg_, nullptr);
+  }
+
+  bool Init(rcl_node_t* node, rclc_support_t* support) override {
+    const auto* type_support = RosMsgTypeTraits<MsgT>::GetTypeSupport();
+    if (!type_support) {
+      return false;
+    }
+
+    rcl_ret_t ret = rclc_publisher_init_best_effort(
+        &publisher_, node, type_support, topic_name_);
+
+    initialized_ = (ret == RCL_RET_OK);
+    return initialized_;
+  }
+
+  void Reset() override {
+    if (initialized_) {
+      rcl_publisher_fini(&publisher_, nullptr);
+      initialized_ = false;
+    }
+  }
+
+ private:
+  const char* topic_name_;
+  ConverterFunc converter_;
+  rcl_publisher_t publisher_;
+  MsgT msg_{};
+  StateT last_state_{};
+};
+
+template <typename MsgT>
+class RosSubscriber : public ROSAgent {
+ public:
+  static constexpr bool enabled = true;
+  using CallbackFunc = std::function<void(const MsgT&)>;
+
+  RosSubscriber(const char* topic_name, CallbackFunc callback)
+      : topic_name_(topic_name), callback_(callback) {}
+
+  size_t GetHandleCount() const override { return 1; }
+
+  bool Init(rcl_node_t* node, rclc_support_t* support) override {
+    const auto* type_support = RosMsgTypeTraits<MsgT>::GetTypeSupport();
+    if (!type_support) {
+      return false;
+    }
+
+    rcl_ret_t ret = rclc_subscription_init_best_effort(
+        &subscriber_, node, type_support, topic_name_);
+    initialized_ = (ret == RCL_RET_OK);
+    return initialized_;
+  }
+
+  bool AddToExecutor(rclc_executor_t* executor) override {
+    if (!initialized_) {
+      return false;
+    }
+
+    rcl_ret_t ret = rclc_executor_add_subscription_with_context(
+        executor, &subscriber_, &msg_, &StaticCallback, this, ON_NEW_DATA);
+    return (ret == RCL_RET_OK);
+  }
+
+  void Execute() override {}
+
+  void Reset() override {
+    if (initialized_) {
+      rcl_subscription_fini(&subscriber_, nullptr);
+      initialized_ = false;
+    }
+  }
+
+ private:
+  static void StaticCallback(const void* msgin, void* context) {
+    auto* self = static_cast<RosSubscriber<MsgT>*>(context);
+    if (self && self->callback_) {
+      self->callback_(self->msg_);
+    }
+  }
+
+  const char* topic_name_;
+  CallbackFunc callback_;
+  rcl_subscription_t subscriber_;
+  MsgT msg_{};
+};
+
+class Timer : public ROSAgent {
+ public:
+  static constexpr bool enabled = true;
+  using TimerCallback = std::function<void()>;
+
+  Timer(unsigned int period_ms, TimerCallback callback)
+      : period_ms_(period_ms), callback_(callback) {}
+
+  size_t GetHandleCount() const override { return 1; }
+
+  rcl_timer_t* GetTimerHandle() override { return &timer_; }
+
+  bool Init(rcl_node_t* node, rclc_support_t* support) override {
+    rcl_ret_t ret = rclc_timer_init_default(
+        &timer_, support, RCL_MS_TO_NS(period_ms_), StaticTimerCallback);
+    initialized_ = (ret == RCL_RET_OK);
+    return initialized_;
+  }
+
+  bool AddToExecutor(rclc_executor_t* executor) override {
+    if (!initialized_) {
+      return false;
+    }
+    return (rclc_executor_add_timer(executor, &timer_) == RCL_RET_OK);
+  }
+
+  void Execute() override {}
+
+  void Reset() override {
+    if (initialized_) {
+      rcl_timer_fini(&timer_);
+      initialized_ = false;
+    }
+  }
+
+ private:
+  static void StaticTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
+    (void)last_call_time;
+    ROSAgent* curr = ROSAgent::GetHead();
+    while (curr) {
+      if (curr->GetTimerHandle() == timer) {
+        static_cast<Timer*>(curr)->callback_();
+        return;
+      }
+      curr = curr->GetNext();
+    }
+  }
+
+  unsigned int period_ms_;
+  TimerCallback callback_;
+  rcl_timer_t timer_;
+};
+
+struct DisableRos {
+  static constexpr bool enabled = false;
+
+  void Execute() {}
+
+  template <typename StateT>
+  void Update(const StateT&) const {}
+};
+
+#endif
+
