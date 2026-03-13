@@ -3,6 +3,7 @@
 
 #include "../DeviceBase/DeviceBase.hpp"
 #include "Control/ImplementControlBase.hpp"
+#include "DoubleBuffer.hpp"
 #include <cstdint>
 
 enum class Motor_Ctrl_Type_e: uint16_t {
@@ -28,10 +29,10 @@ using Motor_Param_t = struct Motor_Param_t {
 class MotorBase : public DeviceBase {
 public:
     explicit MotorBase(const Motor_Param_t& params, uint8_t divisionFactor = 1)
-        : DeviceBase(divisionFactor), params(params) {
-
+         : DeviceBase(divisionFactor),
+           params(params),
+           stateBuffer([](uint8_t*, size_t){}) {
     }
-
 
 
     void ResetController(ImplementControllerBase<1,1>& _controller) {
@@ -42,9 +43,12 @@ public:
     }
 
     void Stop() {
+        Motor_State_t current_s;
+        UpdateSnapshot(current_s);
+
         switch (params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                SetTargetAngle(state.position);
+                SetTargetAngle(current_s.position);
                 break;
             case Motor_Ctrl_Type_e::Speed:
                 SetTargetSpeed(0);
@@ -77,29 +81,43 @@ public:
         }
         target = targetAngle * params.reductionRatio; //多圈目标，减速后
 
+        Motor_State_t current_s;
+        UpdateSnapshot(current_s);
+
         if (params.multiTurnSamePosition) {
-            while (target - state.position < -180.f * params.reductionRatio){
+            while (target - current_s.position < -180.f * params.reductionRatio){
                 target += 360.f * params.reductionRatio;
             }
-            while (target - state.position > 180.f * params.reductionRatio){
+            while (target - current_s.position > 180.f * params.reductionRatio){
                 target -= 360.f * params.reductionRatio;
             }
         }
     }
 
-    Motor_State_t& GetState(){
-        return state;
+    void UpdateSnapshot(Motor_State_t& dest) {
+        memcpy(&dest, stateBuffer.GetBuffer(), sizeof(Motor_State_t));
+    }
+
+    Motor_State_t& GetInternalState() {
+        return *reinterpret_cast<Motor_State_t*>(stateBuffer.GetBuffer());
     }
 
     const float GetMultiTurnPosition() {
-        return state.position / params.reductionRatio;
-    }
+        Motor_State_t current_s;
+        UpdateSnapshot(current_s);
+        return current_s.position / params.reductionRatio;    }
 
 protected:
     virtual void SetFeedback() = 0;
 
+    void CommitState(const Motor_State_t& new_state) {
+            uint8_t* raw_buf = stateBuffer.GetBuffer();
+        memcpy(raw_buf, &new_state, sizeof(Motor_State_t));
+        stateBuffer.CommitBuffer(sizeof(Motor_State_t));
+    }
+
     float target = 0; //多圈目标，减速后
-    Motor_State_t state = {0, 0, 0, 0}; //单圈状态，不考虑减速
+    DoubleBuffer<sizeof(Motor_State_t)> stateBuffer; //单圈状态，不考虑减速
     Motor_Param_t params;
     ImplementControllerBase<1,1>* controller = nullptr;
 };

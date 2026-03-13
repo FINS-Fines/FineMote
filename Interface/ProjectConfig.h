@@ -70,4 +70,6 @@ static_assert(is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed
 
 // #define WITH_POV_EXAMPLE
 
+static constexpr bool WITH_MICRO_ROS = true;
+
 #endif
