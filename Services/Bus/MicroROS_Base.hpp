@@ -12,6 +12,7 @@
 #include "cmsis_os.h"
 #include "task.h"
 #include "etl/queue.h"
+#include "etl/list.h"
 
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
@@ -34,7 +35,11 @@
 #define MICROROS_NODE_NAME "FineMote"
 #endif
 
-template <uint8_t UART_ID>
+#ifndef MICROROS_MAX_AGENTS
+#define MICROROS_MAX_AGENTS 10
+#endif
+
+template<bool enable>
 class MicroROS_Base {
 public:
     enum class State {
@@ -51,6 +56,16 @@ public:
 
     void Init() {
         state_ = State::WAITING_AGENT;
+    }
+
+    void RegisterAgent(ROSAgent<>* agent) {
+        if (!agents_.full()) {
+            agents_.push_back(agent);
+        }
+    }
+
+    etl::list<ROSAgent<>*, MICROROS_MAX_AGENTS>& GetAgents() {
+        return agents_;
     }
 
     void Handle() {
@@ -79,14 +94,19 @@ private:
 
     MicroROS_Base()
         : state_(State::WAITING_AGENT),
-          last_tick_(0),
-          dma_buffer_([this](uint8_t* data, size_t size) { this->PushRxData(data, size); }) {
+        last_tick_(0),
+        dma_buffer_([this](uint8_t* data, size_t size) { this->PushRxData(data, size); })
+    {
+        setup();
+    }
+
+    void setup() {
         allocator_ = rcl_get_default_allocator();
 
         rx_sem_ = osSemaphoreNew(1, 0, nullptr);
         tx_sem_ = osSemaphoreNew(1, 1, nullptr);
 
-        UART_Base<UART_ID>::GetInstance().BindTxHandle([this]() {
+        UART_Base<5>::GetInstance().BindTxHandle([this]() {
             osSemaphoreRelease(this->tx_sem_);
             return true;
         });
@@ -128,7 +148,7 @@ private:
         if (ret != RCL_RET_OK) { GotoError(); return; }
 
         size_t handle_count = 0;
-        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
+        for (auto* agent : agents_) {
             if (!agent->Init(&node_, &support_)) {
                 GotoError();
                 return;
@@ -140,7 +160,7 @@ private:
         ret = rclc_executor_init(&executor_, &support_.context, handle_count, &allocator_);
         if (ret != RCL_RET_OK) { GotoError(); return; }
 
-        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
+        for (auto* agent : agents_) {
             if (!agent->AddToExecutor(&executor_)) {
                 GotoError();
                 return;
@@ -159,7 +179,7 @@ private:
             return;
         }
 
-        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
+        for (auto* agent : agents_) {
             agent->Execute();
         }
 
@@ -177,7 +197,7 @@ private:
     }
 
     void Cleanup() {
-        for (ROSAgent* agent = ROSAgent::GetHead(); agent != nullptr; agent = agent->GetNext()) {
+        for (auto* agent : agents_) {
             agent->Reset();
         }
         rclc_executor_fini(&executor_);
@@ -187,11 +207,9 @@ private:
 
     static bool TransportOpen(struct uxrCustomTransport* t) {
         auto& self = GetInstance();
-        taskENTER_CRITICAL();
         while (!self.rx_queue_.empty()) {
             self.rx_queue_.pop();
         }
-        taskEXIT_CRITICAL();
         return true;
     }
 
@@ -201,7 +219,7 @@ private:
 
     static size_t TransportWrite(struct uxrCustomTransport* t, const uint8_t* buf, size_t len, uint8_t* err) {
         auto& self = GetInstance();
-        auto& uart = UART_Base<UART_ID>::GetInstance();
+        auto& uart = UART_Base<5>::GetInstance();
 
         if (len > MICROROS_BUF_SIZE) {
             len = MICROROS_BUF_SIZE;
@@ -226,12 +244,10 @@ private:
         uint32_t start_tick = osKernelGetTickCount();
 
         while (read_count < len) {
-            taskENTER_CRITICAL();
             while (read_count < len && !self.rx_queue_.empty()) {
                 buf[read_count++] = self.rx_queue_.front();
                 self.rx_queue_.pop();
             }
-            taskEXIT_CRITICAL();
 
             if (read_count >= len || timeout_ms == 0) {
                 break;
@@ -258,9 +274,11 @@ private:
     osSemaphoreId_t rx_sem_;
     osSemaphoreId_t tx_sem_;
 
-    uint8_t tx_buffer_[MICROROS_BUF_SIZE];
     etl::queue<uint8_t, MICROROS_BUF_SIZE> rx_queue_;
-    UARTBuffer<UART_ID, MICROROS_DMA_BUF_SIZE> dma_buffer_;
+    etl::list<ROSAgent<>*, MICROROS_MAX_AGENTS> agents_;
+
+    uint8_t tx_buffer_[MICROROS_BUF_SIZE];
+    UARTBuffer<5, MICROROS_DMA_BUF_SIZE> dma_buffer_;
 };
 
 #endif

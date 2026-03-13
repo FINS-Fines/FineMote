@@ -9,7 +9,6 @@
 
 #include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
-#include "Bus/MicroROS_Base.hpp"
 #include <sensor_msgs/msg/joint_state.h>
 #include "Control/Clamp.hpp"
 #include <type_traits>
@@ -17,29 +16,17 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-DEFINE_MICROROS_MSG_TYPE(sensor_msgs__msg__JointState, sensor_msgs, msg, JointState)
-
 /**
  * Todo: Reduction ratio
  */
-template <int CanBusId, uint8_t RosUartID = 0>
+template <uint8_t busID>
 class Motor4010 : public MotorBase {
 public:
-    using RosModule_t = std::conditional_t<
-        RosUartID == 0,
-        DisableRos,
-        RosPublisher<sensor_msgs__msg__JointState, Motor_State_t>
-    >;
-
     template <typename T>
-    Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 1)
-        : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
-          canAgent(addr),
-          ros_module_(CreateRosModule(addr))
+        Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 1)
+            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+              canAgent(addr)
     {
-        if constexpr (RosUartID != 0) {
-            auto& RosManager = MicroROS_Base<RosUartID>::GetInstance();
-        }
         ResetController(_controller);
     }
 
@@ -48,11 +35,43 @@ public:
         MessageGenerate();
     }
 
-    CAN_Agent<CanBusId> canAgent;
+    auto GetRosBinder()
+    {
+        return [this](sensor_msgs__msg__JointState& msg)
+        {
+            this->UpdateToRos(msg);
+        };
+    }
+
+    CAN_Agent<busID> canAgent;
 
 private:
+    void UpdateToRos(sensor_msgs__msg__JointState& msg) {
+        if constexpr (!WITH_MICRO_ROS) return;
+
+        Motor_State_t s;
+        this->UpdateSnapshot(s);
+
+        uint32_t ticks = xTaskGetTickCount();
+        msg.header.stamp.sec = ticks / configTICK_RATE_HZ;
+        msg.header.stamp.nanosec = (ticks % configTICK_RATE_HZ) * (1000000000 / configTICK_RATE_HZ);
+
+        if (msg.position.capacity >= 1) {
+            msg.position.data[0] = s.position;
+            msg.position.size = 1;
+        }
+        if (msg.velocity.capacity >= 1) {
+            msg.velocity.data[0] = s.speed;
+            msg.velocity.size = 1;
+        }
+        if (msg.effort.capacity >= 1) {
+            msg.effort.data[0] = s.torque;
+            msg.effort.size = 1;
+        }
+    }
 
     void SetFeedback() final {
+        Motor_State_t& state = GetInternalState();
         switch (this->params.targetType) {
             case Motor_Ctrl_Type_e::Position:
                 controller->SetFeedbacks(&state.position);
@@ -101,50 +120,14 @@ private:
     }
 
     void Update() override {
-        state.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
-        state.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
-        state.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
-        state.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
+        Motor_State_t newState;
+        newState.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
+        newState.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
+        newState.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
+        newState.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
 
-        if constexpr (RosUartID != 0) {
-            ros_module_.Update(this->state);
-        }
+        this->CommitState(newState);
     }
-
-    static RosModule_t CreateRosModule(uint32_t addr) {
-        if constexpr (RosUartID == 0) {
-            return DisableRos();
-        }
-        else {
-        static  char topic_name_[32];
-
-        snprintf(topic_name_, sizeof(topic_name_), "motor/can%d/id_0x%x", CanBusId, addr);
-
-            auto converter = [](sensor_msgs__msg__JointState& msg, const Motor_State_t& s) {
-                uint32_t ticks = xTaskGetTickCount();
-
-                msg.header.stamp.sec = ticks / configTICK_RATE_HZ;
-                msg.header.stamp.nanosec = (ticks % configTICK_RATE_HZ) * (1000000000 / configTICK_RATE_HZ);
-
-                if (msg.position.capacity >= 1) {
-                    msg.position.data[0] = s.position;
-                    msg.position.size = 1;
-                }
-                if (msg.velocity.capacity >= 1) {
-                    msg.velocity.data[0] = s.speed;
-                    msg.velocity.size = 1;
-                }
-                if (msg.effort.capacity >= 1) {
-                    msg.effort.data[0] = s.torque;
-                    msg.effort.size = 1;
-                }
-            };
-
-            return RosModule_t(topic_name_, converter);
-        }
-    }
-
-    RosModule_t ros_module_;
 };
 
 #endif
