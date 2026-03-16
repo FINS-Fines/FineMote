@@ -37,6 +37,7 @@ set(CORE_MODULE
         Algorithms
         Components
         Devices
+        Eigen
         Interface
         Services
 )
