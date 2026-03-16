@@ -9,7 +9,7 @@
 
 #include <array>
 #include <cstdint>
-#include <functional>
+
 
 using ControllerOutputData = struct ControllerOutputData{
     float* dataPtr;
@@ -21,20 +21,20 @@ public:
     ControllerBase() = default;
     virtual ~ControllerBase() = default;
 
-    ControllerOutputData Calc() {
+    virtual ControllerOutputData Calc() {
         PerformCalc();
-        if (nextCalc) {
-            return nextCalc();
-        }
         return GetOutputs();
     }
 
 protected:
 
     virtual void PerformCalc() = 0;
-    virtual ControllerOutputData GetOutputs() = 0;
+    virtual ControllerOutputData GetOutputs() = 0; // 注：仅返回当前环的结果，不是整个链的结果！！！
+    // TODO: 后续可能需要提供两个GetOutputs，一个返回当前环的结果，一个返回整个链的结果
 
-    std::function<ControllerOutputData()> nextCalc = nullptr;
+    // std::function<ControllerOutputData()> nextCalc = nullptr;
+    // 由于连接机制的更改，因此所有与nextCalc有关的代码都被移除了
+    // 新的连接机制见ControllerChain.hpp
 };
 
 template<typename T, size_t M, typename... Args, size_t... I>
@@ -46,7 +46,7 @@ template<typename T, size_t M, typename... Args>
 auto CreateControllers(Args&&... args) {
     static_assert(!std::is_same<T, ControllerBase>::value, "ControllerBase is not allowed");
     static_assert(std::is_base_of<ControllerBase, T>::value, "T must be a derivative of ControllerBase.");
-    static_assert(sizeof...(Args) <= 1, "Only one parameter is allowed");
+    //static_assert(sizeof...(Args) <= 1, "Only one parameter is allowed");
     return CreateControllersImpl<T, M>(std::make_index_sequence<M>{}, std::forward<Args>(args)...);
 }
 

@@ -15,7 +15,7 @@ typedef struct PID_Param_t {
     float kd;
 } PID_Param_t;
 
-class PID : public ImplementControllerBase<1, 1> {
+class PID : public ImplementControllerBase<1, 1, 1> {
 public:
     constexpr explicit PID(const PID_Param_t& params) : params(params) {}
 
