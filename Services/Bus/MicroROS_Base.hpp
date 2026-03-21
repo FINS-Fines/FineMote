@@ -10,9 +10,9 @@
 #include "Board.h"
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
-#include "task.h"
-#include "etl/queue.h"
 #include "etl/list.h"
+#include "etl/queue.h"
+#include "task.h"
 
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
@@ -24,30 +24,25 @@
 #include "Bus/UART_Base.hpp"
 
 #ifndef MICROROS_BUF_SIZE
-#define MICROROS_BUF_SIZE 2048
+    #define MICROROS_BUF_SIZE 2048
 #endif
 
 #ifndef MICROROS_DMA_BUF_SIZE
-#define MICROROS_DMA_BUF_SIZE 512
+    #define MICROROS_DMA_BUF_SIZE 512
 #endif
 
-#ifndef MICROROS_NODE_NAME
-#define MICROROS_NODE_NAME "FineMote"
+#ifndef MICROROS_MAX_HANDLES
+    #define MICROROS_MAX_HANDLES 10
 #endif
 
 #ifndef MICROROS_MAX_AGENTS
-#define MICROROS_MAX_AGENTS 10
+    #define MICROROS_MAX_AGENTS 10
 #endif
 
 template<bool enable>
 class MicroROS_Base {
 public:
-    enum class State {
-        WAITING_AGENT,
-        INITIALIZING,
-        RUNNING,
-        ERROR
-    };
+    enum class State { WAITING_AGENT, INITIALIZING, RUNNING, ERROR };
 
     static MicroROS_Base& GetInstance() {
         static MicroROS_Base instance;
@@ -64,9 +59,9 @@ public:
         }
     }
 
-    etl::list<ROSAgent<>*, MICROROS_MAX_AGENTS>& GetAgents() {
-        return agents_;
-    }
+    // etl::list<ROSAgent<>*, MICROROS_MAX_AGENTS>& GetAgents() {
+    //     return agents_;
+    // }
 
     void Handle() {
         switch (state_) {
@@ -86,17 +81,17 @@ public:
         }
     }
 
-    rcl_node_t* GetNode() { return &node_; }
-    rclc_support_t* GetSupport() { return &support_; }
-    bool IsRunning() const { return state_ == State::RUNNING; }
+    // rcl_node_t* GetNode() { return &node_; }
+    // rclc_support_t* GetSupport() { return &support_; }
+    // bool IsRunning() const { return state_ == State::RUNNING; }
 
 private:
-
-    MicroROS_Base()
-        : state_(State::WAITING_AGENT),
+    MicroROS_Base():
+        state_(State::WAITING_AGENT),
         last_tick_(0),
-        dma_buffer_([this](uint8_t* data, size_t size) { this->PushRxData(data, size); })
-    {
+        dma_buffer_([this](uint8_t* data, size_t size) {
+            this->PushRxData(data, size);
+        }) {
         setup();
     }
 
@@ -111,14 +106,7 @@ private:
             return true;
         });
 
-        rmw_uros_set_custom_transport(
-            true,
-            nullptr,
-            TransportOpen,
-            TransportClose,
-            TransportWrite,
-            TransportRead
-        );
+        rmw_uros_set_custom_transport(true, nullptr, TransportOpen, TransportClose, TransportWrite, TransportRead);
     }
 
     ~MicroROS_Base() = default;
@@ -142,26 +130,25 @@ private:
         rcl_ret_t ret;
 
         ret = rclc_support_init(&support_, 0, nullptr, &allocator_);
-        if (ret != RCL_RET_OK) { GotoError(); return; }
-
-        ret = rclc_node_init_default(&node_, MICROROS_NODE_NAME, "", &support_);
-        if (ret != RCL_RET_OK) { GotoError(); return; }
-
-        size_t handle_count = 0;
-        for (auto* agent : agents_) {
-            if (!agent->Init(&node_, &support_)) {
-                GotoError();
-                return;
-            }
-            handle_count += agent->GetHandleCount();
+        if (ret != RCL_RET_OK) {
+            GotoError();
+            return;
         }
 
-        handle_count = (handle_count > 0) ? handle_count : 1;
-        ret = rclc_executor_init(&executor_, &support_.context, handle_count, &allocator_);
-        if (ret != RCL_RET_OK) { GotoError(); return; }
+        ret = rclc_node_init_default(&node_, MICROROS_NODE_NAME, "", &support_);
+        if (ret != RCL_RET_OK) {
+            GotoError();
+            return;
+        }
 
-        for (auto* agent : agents_) {
-            if (!agent->AddToExecutor(&executor_)) {
+        ret = rclc_executor_init(&executor_, &support_.context, MICROROS_MAX_HANDLES, &allocator_);
+        if (ret != RCL_RET_OK) {
+            GotoError();
+            return;
+        }
+
+        for (auto* agent: agents_) {
+            if (!agent->Init(&node_, &support_, &executor_)) {
                 GotoError();
                 return;
             }
@@ -179,7 +166,7 @@ private:
             return;
         }
 
-        for (auto* agent : agents_) {
+        for (auto* agent: agents_) {
             agent->Execute();
         }
 
@@ -197,8 +184,8 @@ private:
     }
 
     void Cleanup() {
-        for (auto* agent : agents_) {
-            agent->Reset();
+        for (auto* agent: agents_) {
+            agent->Final();
         }
         rclc_executor_fini(&executor_);
         rcl_node_fini(&node_);
@@ -279,6 +266,19 @@ private:
 
     uint8_t tx_buffer_[MICROROS_BUF_SIZE];
     UARTBuffer<5, MICROROS_DMA_BUF_SIZE> dma_buffer_;
+};
+
+template<>
+class MicroROS_Base<false> {
+public:
+    static MicroROS_Base& GetInstance() {
+        static_assert(
+            WITH_MICRO_ROS,
+            "MicroROS is disabled in Board.h. Please set WITH_MICRO_ROS = true to use MicroROS_Base."
+        );
+        static MicroROS_Base instance;
+        return instance;
+    }
 };
 
 #endif
