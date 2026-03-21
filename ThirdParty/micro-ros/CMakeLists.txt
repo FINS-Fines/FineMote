@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 add_library(micro-ros STATIC IMPORTED GLOBAL)
 
 set_property(TARGET micro-ros PROPERTY IMPORTED_LOCATION
-        "${CMAKE_CURRENT_SOURCE_DIR}/libmicroros.a"
+        "${CMAKE_CURRENT_SOURCE_DIR}/libmicroros_m4.a"
 )
 
 target_include_directories(micro-ros INTERFACE
