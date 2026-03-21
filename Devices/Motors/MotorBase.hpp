@@ -117,6 +117,7 @@ protected:
     }
 
     float target = 0; //多圈目标，减速后
+    // ToDo：
     DoubleBuffer<sizeof(Motor_State_t)> stateBuffer; //单圈状态，不考虑减速
     Motor_Param_t params;
     ImplementControllerBase<1,1>* controller = nullptr;
