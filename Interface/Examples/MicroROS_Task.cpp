@@ -24,7 +24,7 @@ DEFINE_MICROROS_MSG(std_msgs__msg__Bool, std_msgs, msg, Bool)
 DEFINE_MICROROS_MSG(sensor_msgs__msg__JointState, sensor_msgs, msg, JointState)
 
 #define TORQUE_2_SPEED { Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed }
-constexpr PID_Param_t speedPID = { 0.23f, 0.008f, 0.3f };
+constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f};
 auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 
 Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
