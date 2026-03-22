@@ -41,6 +41,15 @@
       "cacheVariables": {
         "BOARD_NAME": "MC_Board"
       }
+    },
+    {
+      "name": "MC_Board_02",
+      "inherits": [
+        "base"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "MC_Board_02"
+      }
     }
   ],
   "buildPresets": [
@@ -72,6 +81,16 @@
     {
       "name": "MC_Board-release",
       "configurePreset": "MC_Board",
+      "configuration": "Release"
+    },
+    {
+      "name": "MC_Board_02-debug",
+      "configurePreset": "MC_Board_02",
+      "configuration": "Debug"
+    },
+    {
+      "name": "MC_Board_02-release",
+      "configurePreset": "MC_Board_02",
       "configuration": "Release"
     }
   ]
