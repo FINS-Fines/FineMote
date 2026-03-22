@@ -4,8 +4,8 @@
  * All rights reserved.
 ******************************************************************************/
 
-#ifndef FINEMOTE_MICROROS_BASE_HPP
-#define FINEMOTE_MICROROS_BASE_HPP
+#ifndef FINEMOTE_MICROROS_MANAGER_HPP
+#define FINEMOTE_MICROROS_MANAGER_HPP
 
 #include "Board.h"
 #include "FreeRTOS.h"
@@ -20,8 +20,8 @@
 #include <rmw_microros/rmw_microros.h>
 #include <uxr/client/transport.h>
 
-#include "BSP_MicroROS.hpp"
 #include "Bus/UART_Base.hpp"
+#include "MicroROS_Agent.hpp"
 
 #ifndef MICROROS_BUF_SIZE
     #define MICROROS_BUF_SIZE 2048
@@ -40,12 +40,12 @@
 #endif
 
 template<bool enable>
-class MicroROS_Base {
+class MicroROS_Manager {
 public:
     enum class State { WAITING_AGENT, INITIALIZING, RUNNING, ERROR };
 
-    static MicroROS_Base& GetInstance() {
-        static MicroROS_Base instance;
+    static MicroROS_Manager& GetInstance() {
+        static MicroROS_Manager instance;
         return instance;
     }
 
@@ -58,10 +58,6 @@ public:
             agents_.push_back(agent);
         }
     }
-
-    // etl::list<ROSAgent<>*, MICROROS_MAX_AGENTS>& GetAgents() {
-    //     return agents_;
-    // }
 
     void Handle() {
         switch (state_) {
@@ -81,12 +77,8 @@ public:
         }
     }
 
-    // rcl_node_t* GetNode() { return &node_; }
-    // rclc_support_t* GetSupport() { return &support_; }
-    // bool IsRunning() const { return state_ == State::RUNNING; }
-
 private:
-    MicroROS_Base():
+    MicroROS_Manager():
         state_(State::WAITING_AGENT),
         last_tick_(0),
         dma_buffer_([this](uint8_t* data, size_t size) {
@@ -109,7 +101,7 @@ private:
         rmw_uros_set_custom_transport(true, nullptr, TransportOpen, TransportClose, TransportWrite, TransportRead);
     }
 
-    ~MicroROS_Base() = default;
+    ~MicroROS_Manager() = default;
 
     void PushRxData(uint8_t* data, size_t size) {
         for (size_t i = 0; i < size; ++i) {
@@ -187,9 +179,9 @@ private:
         for (auto* agent: agents_) {
             agent->Final();
         }
-        rclc_executor_fini(&executor_);
-        rcl_node_fini(&node_);
-        rclc_support_fini(&support_);
+        (void)rclc_executor_fini(&executor_);
+        (void)rcl_node_fini(&node_);
+        (void)rclc_support_fini(&support_);
     }
 
     static bool TransportOpen(struct uxrCustomTransport* t) {
@@ -269,14 +261,14 @@ private:
 };
 
 template<>
-class MicroROS_Base<false> {
+class MicroROS_Manager<false> {
 public:
-    static MicroROS_Base& GetInstance() {
+    static MicroROS_Manager& GetInstance() {
         static_assert(
             WITH_MICRO_ROS,
             "MicroROS is disabled in Board.h. Please set WITH_MICRO_ROS = true to use MicroROS_Base."
         );
-        static MicroROS_Base instance;
+        static MicroROS_Manager instance;
         return instance;
     }
 };
