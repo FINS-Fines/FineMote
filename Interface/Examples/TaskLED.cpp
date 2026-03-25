@@ -14,4 +14,4 @@ void TaskLED() {
         LED::Toggle();
     }
 }
-// TASK_EXPORT(TaskLED);
+TASK_EXPORT(TaskLED);
