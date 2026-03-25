@@ -96,7 +96,7 @@ private:
         rx_sem_ = osSemaphoreNew(1, 0, nullptr);
         tx_sem_ = osSemaphoreNew(1, 1, nullptr);
 
-        UART_Base<5>::GetInstance().BindTxHandle([this]()
+        UART_Base<MICRO_ROS_UART_ID>::GetInstance().BindTxHandle([this]()
         {
             osSemaphoreRelease(this->tx_sem_);
             return true;
@@ -225,7 +225,7 @@ private:
     static size_t TransportWrite(struct uxrCustomTransport* t, const uint8_t* buf, size_t len, uint8_t* err)
     {
         auto& self = GetInstance();
-        auto& uart = UART_Base<5>::GetInstance();
+        auto& uart = UART_Base<MICRO_ROS_UART_ID>::GetInstance();
 
         if (len > MICROROS_BUF_SIZE)
         {
@@ -291,7 +291,7 @@ private:
     etl::list<ROSAgent<>*, MICROROS_MAX_AGENTS> agents_;
 
     uint8_t tx_buffer_[MICROROS_BUF_SIZE];
-    UARTBuffer<5, MICROROS_DMA_BUF_SIZE> dma_buffer_;
+    UARTBuffer<MICRO_ROS_UART_ID, MICROROS_DMA_BUF_SIZE> dma_buffer_;
 };
 
 template <>
