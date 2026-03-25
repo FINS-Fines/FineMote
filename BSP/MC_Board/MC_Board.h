@@ -110,6 +110,6 @@ extern SPI_WITH_DMA_t spiWithDMA;
  * MICRO_ROS Definitions
  */
 static constexpr bool WITH_MICRO_ROS = true;
-
+static constexpr size_t MICRO_ROS_UART_ID = 5;
 
 #endif
