@@ -11,6 +11,7 @@
 #include "Odrive.hpp"
 #include "Manipulator.hpp"
 #include "Motor4010.hpp"
+//#include "RMD_L_40xx_v3.hpp"
 /**
  * @brief 用户初始化
  */
@@ -19,20 +20,22 @@
 extern "C" {
 #endif
 
+#define UART5_TX_DIVIDER 1000
 #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position}
-auto motorControllers = createAmplifiers<6>();
+auto motorControllers = createAmplifiers<7>();
 
-// 3个C4250电机, CAN通讯
+// C4250电机, CAN通讯
 Odrive<2> motorA(DIRECT_POSITION, motorControllers[0], 0x01);
 Odrive<2> motorB(DIRECT_POSITION, motorControllers[1], 0x02);
 Odrive<2> motorC(DIRECT_POSITION, motorControllers[2], 0x03);
 
-// 3个RMD4010电机, CAN通讯
+// RMD4010电机, CAN通讯
 Motor4010<2> MotorD(DIRECT_POSITION, motorControllers[3],0x04);
 Motor4010<2> MotorE(DIRECT_POSITION, motorControllers[4],0x05);
 Motor4010<2> MotorF(DIRECT_POSITION, motorControllers[5],0x06);
+Motor4010<2> EndEffector(DIRECT_POSITION, motorControllers[6],0x07);
 
-// 6个MPT-45H编码器, RS485通讯
+// MPT-45H编码器, RS485通讯
 MPT_45H<2> encoderA(0x01);
 MPT_45H<2> encoderB(0x02);
 MPT_45H<2> encoderC(0x03);
@@ -40,7 +43,16 @@ MPT_45H<2> encoderD(0x04);
 MPT_45H<2> encoderE(0x05);
 MPT_45H<2> encoderF(0x06);
 
+// 测试用的帧数据
+static uint8_t uart5_tx_frame[] = {
+    0xAA, 0x0B, 0x18, 0xCD, 0xCC, 0xCC, 0x3D, 0xCD, 0xCC, 0x4C,
+    0x3E, 0x9A, 0x99, 0x99, 0xBE, 0xCD, 0xCC, 0xCC, 0x3E, 0x00,
+    0x00, 0x00, 0x3F, 0x9A, 0x99, 0x19, 0x3F, 0xEE, 0xBB
+};
+
+
 void Setup() {
+    static ManipulatorUARTReceiver<5, MANIPULATOR_PAYLOAD_LENGTH> manipulator_uart_receiver;
 }
 
 
@@ -64,10 +76,9 @@ void MotorOdriveTask() {
     }
 }
 
-// static float angleD = 0.0f;
 
 void Motor4010Task() {
-    MotorE.SetTargetAngle(180);
+    MotorD.SetTargetAngle(720);
 }
 
 /**
@@ -83,11 +94,18 @@ void Loop() {
 #endif
 
 void MainRTLoop() {
+    static uint16_t uart5_tx_div_cnt = 0;
     HAL_IWDG_Refresh(&hiwdg);
     DeviceBase::DevicesHandle();
     FineMoteScheduler();
-    MotorOdriveTask();
+//    MotorOdriveTask();
     Motor4010Task();
+
+    // Send UART5 frame at a reduced rate: once every UART5_TX_DIVIDER control loops.
+    if(++uart5_tx_div_cnt >= UART5_TX_DIVIDER){
+        uart5_tx_div_cnt = 0;
+        UART_Base<5>::GetInstance().Transmit(uart5_tx_frame, sizeof(uart5_tx_frame));
+    }
 }
 
 /*****  不要修改以下代码 *****/

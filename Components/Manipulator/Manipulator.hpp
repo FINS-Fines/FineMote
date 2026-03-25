@@ -9,7 +9,9 @@
 
 #include "Control/ImplementControlBase.hpp"
 #include "EncoderBase.hpp"
+#include "CRC.h"
 
+#define MANIPULATOR_PAYLOAD_LENGTH 29
 
 template<size_t N>
 auto createAmplifiers() -> std::array<Amplifier<1>, N> {
@@ -25,8 +27,49 @@ struct ManipulatorAngle{  // 单位为弧度
     float angleD{0};
     float angleE{0};
     float angleF{0};
-    uint8_t endEffector{0};
-}__packed;
+}__packed manipulator_angle;
+
+/**
+ * @brief UART5 的解码回调函数，用于机械臂关节数据接收
+ */
+static uint16_t uart_cnt{};
+
+std::function<void(uint8_t *, size_t)> DecodeManipulatorFrame = [](uint8_t* data, size_t length){
+    // 帧格式: [Header:0xAA] [dataID] [Length] [Payload...] [CRC] [Trailer:0xBB]
+    if (length < 5)
+        return;
+
+    // 验证帧头、帧尾、dataID
+    if(data[0] != 0xAA || data[length - 1] != 0xBB || data[1] != 0x0B){
+        return;
+    }
+    uint8_t payloadLen = data[2];
+
+    // 验证帧长度: 总长 = 1(Header) + 1(dataID) + 1(Length) + payloadLen + 1(CRC) + 1(Trailer)
+    if(length != (size_t)(payloadLen + 5)){
+        return;
+    }
+
+    uint8_t crcPos = 3 + payloadLen;
+    uint8_t expectedCRC = CRC8Calc(data + 3, payloadLen);
+    if(data[crcPos] != expectedCRC){
+        return;
+    }
+
+    memcpy(&manipulator_angle, data + 3, payloadLen);
+
+    uart_cnt++;
+};
+
+template<size_t ID, size_t N>
+class ManipulatorUARTReceiver {
+public:
+    ManipulatorUARTReceiver() : buffer(DecodeManipulatorFrame) {}
+
+private:
+    UARTBuffer<ID, N> buffer;
+};
+
 
 class Manipulator : public DeviceBase{
 public:
