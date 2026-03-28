@@ -42,7 +42,7 @@ struct RosMsgTraits
         } \
     };
 
-#define MAKE_PUBLISHER(obj) RosPublisher(#obj, obj)
+#define PUBLISHER(obj) RosPublisher(#obj, obj)
 
 template <bool enable = true>
 class MicroROS_Manager;
@@ -63,14 +63,6 @@ public:
     virtual void Final() = 0;
 };
 
-template <>
-class ROSAgent<false>
-{
-public:
-    ROSAgent() = default;
-    virtual ~ROSAgent() = default;
-};
-
 template <typename T, typename = void>
 struct has_GetRosBinder : std::false_type
 {
@@ -83,9 +75,6 @@ struct has_GetRosBinder<T, std::void_t<decltype(std::declval<T&>().GetRosBinder(
 
 template <typename T>
 inline constexpr bool has_GetRosBinder_v = has_GetRosBinder<T>::value;
-
-template <typename T>
-using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
 template <typename T, typename = void>
 struct callback_message_type
@@ -100,7 +89,7 @@ struct callback_message_type
 template <typename C, typename Ret, typename Arg>
 struct callback_message_type<Ret (C::*)(Arg) const, void>
 {
-    using type = remove_cvref_t<Arg>;
+    using type = std::remove_cv_t<std::remove_reference_t<Arg>>;
 };
 
 template <typename T>
@@ -224,10 +213,7 @@ private:
     {
         auto* self = static_cast<RosSubscriber*>(untyped_self);
         auto* concrete_msg = static_cast<const MsgT*>(msgin);
-        if (self && self->callback_)
-        {
-            self->callback_(*concrete_msg);
-        }
+        self->callback_(*concrete_msg);
     }
 
     std::string topic_str_;
