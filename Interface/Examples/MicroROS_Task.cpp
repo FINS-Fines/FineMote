@@ -28,7 +28,7 @@ constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f};
 auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 
 Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
-auto pub_motor_state = MAKE_PUBLISHER(CBRMotor);
+auto pub_motor_state = PUBLISHER(CBRMotor);
 
 int32_t count = 0;
 RosPublisher pub_hb("heartbeat", [](std_msgs__msg__Int32& msg) {
@@ -44,7 +44,6 @@ extern "C" void StartMicroROSTask(void* argument) {
 
     for (;;) {
         RosManager.Handle();
-
         osDelay(100);
     }
 }

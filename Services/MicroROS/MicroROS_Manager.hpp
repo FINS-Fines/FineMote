@@ -22,14 +22,7 @@
 
 #include "Bus/UART_Base.hpp"
 #include "MicroROS_Agent.hpp"
-
-#ifndef MICROROS_BUF_SIZE
-#define MICROROS_BUF_SIZE 2048
-#endif
-
-#ifndef MICROROS_DMA_BUF_SIZE
-#define MICROROS_DMA_BUF_SIZE 512
-#endif
+#include "MicroROS_Transport.hpp"
 
 #ifndef MICROROS_MAX_HANDLES
 #define MICROROS_MAX_HANDLES 10
@@ -42,6 +35,8 @@
 template <bool enable>
 class MicroROS_Manager
 {
+    friend class MicroROS_Transport<enable>;
+
 public:
     enum class State { WAITING_AGENT, INITIALIZING, RUNNING, ERROR };
 
@@ -102,7 +97,9 @@ private:
             return true;
         });
 
-        rmw_uros_set_custom_transport(true, nullptr, TransportOpen, TransportClose, TransportWrite, TransportRead);
+        rmw_uros_set_custom_transport(true, nullptr, MicroROS_Transport<enable>::Open,
+                                      MicroROS_Transport<enable>::Close, MicroROS_Transport<enable>::Write,
+                                      MicroROS_Transport<enable>::Read);
     }
 
     ~MicroROS_Manager() = default;
@@ -205,76 +202,6 @@ private:
         (void)rclc_executor_fini(&executor_);
         (void)rcl_node_fini(&node_);
         (void)rclc_support_fini(&support_);
-    }
-
-    static bool TransportOpen(struct uxrCustomTransport* t)
-    {
-        auto& self = GetInstance();
-        while (!self.rx_queue_.empty())
-        {
-            self.rx_queue_.pop();
-        }
-        return true;
-    }
-
-    static bool TransportClose(struct uxrCustomTransport* t)
-    {
-        return true;
-    }
-
-    static size_t TransportWrite(struct uxrCustomTransport* t, const uint8_t* buf, size_t len, uint8_t* err)
-    {
-        auto& self = GetInstance();
-        auto& uart = UART_Base<MICRO_ROS_UART_ID>::GetInstance();
-
-        if (len > MICROROS_BUF_SIZE)
-        {
-            len = MICROROS_BUF_SIZE;
-        }
-
-        if (osSemaphoreAcquire(self.tx_sem_, 100) == osOK)
-        {
-            memcpy(self.tx_buffer_, buf, len);
-
-            uart.Transmit(self.tx_buffer_, static_cast<uint16_t>(len));
-
-            return len;
-        }
-
-        return 0;
-    }
-
-    static size_t TransportRead(struct uxrCustomTransport* t, uint8_t* buf, size_t len, int timeout, uint8_t* err)
-    {
-        auto& self = GetInstance();
-        size_t read_count = 0;
-
-        uint32_t timeout_ms = (timeout <= 0) ? 0 : static_cast<uint32_t>(timeout);
-        uint32_t start_tick = osKernelGetTickCount();
-
-        while (read_count < len)
-        {
-            while (read_count < len && !self.rx_queue_.empty())
-            {
-                buf[read_count++] = self.rx_queue_.front();
-                self.rx_queue_.pop();
-            }
-
-            if (read_count >= len || timeout_ms == 0)
-            {
-                break;
-            }
-
-            uint32_t elapsed = osKernelGetTickCount() - start_tick;
-            if (elapsed >= timeout_ms)
-            {
-                break;
-            }
-
-            osSemaphoreAcquire(self.rx_sem_, timeout_ms - elapsed);
-        }
-
-        return read_count;
     }
 
     State state_ = State::WAITING_AGENT;
