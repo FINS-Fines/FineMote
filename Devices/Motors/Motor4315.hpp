@@ -14,49 +14,67 @@
 #define MOTOR_MAP_LENGTH 10
 
 template <uint8_t ID>
-class HTMotorProxy_RS485 {
+class HTMotorProxy_RS485
+{
 public:
-    HTMotorProxy_RS485(MotorBase* motor, uint8_t addr) {
+    HTMotorProxy_RS485(MotorBase* motor, uint8_t addr)
+    {
         getMotorMap().insert(etl::make_pair(addr, motor));
     }
 
-    static void Transmit(uint8_t* data, size_t size) {
-        static RS485_Agent<ID> rs485Agent(0x3C, [](uint8_t* data, size_t size) {
+    static void Transmit(uint8_t* data, size_t size)
+    {
+        static RS485_Agent<ID> rs485Agent(0x3C, [](uint8_t* data, size_t size)
+        {
             Decode(data, size);
         });
         rs485Agent.Transmit(data, size);
     }
 
 private:
-    static etl::map<uint8_t, MotorBase*, MOTOR_MAP_LENGTH>& getMotorMap() {
+    static etl::map<uint8_t, MotorBase*, MOTOR_MAP_LENGTH>& getMotorMap()
+    {
         static etl::map<uint8_t, MotorBase*, MOTOR_MAP_LENGTH> instance;
         return instance;
     }
 
-    static void Decode(uint8_t* data, size_t size) {
+    static void Decode(uint8_t* data, size_t size)
+    {
         auto& motorMap = getMotorMap();
-        if (CRC16Calc(data, 13) == (data[13] | data[14] << 8u) && motorMap.contains(data[2])) {
+        if (CRC16Calc(data, 13) == (data[13] | data[14] << 8u) && motorMap.contains(data[2]))
+        {
             MotorBase* motor = motorMap[data[2]];
-            if (data[3] == 0x55) {
-                motor->GetState().position = -1 * ((data[7] | (data[8] << 8u) | (data[9] << 16u) | (data[10] << 24u)) * 360.0f / 16384.0f);
-                motor->GetState().speed = -1 * static_cast<int16_t>(data[11] | (data[12] << 8u));
-                motor->GetState().torque = 0; // 电机应答不返回电流值
-                motor->GetState().temperature = 0; // 电机应答不返回温度参数
+            if (data[3] == 0x55)
+            {
+                Motor_State_t newState;
+
+                newState.position = -1 * ((data[7] | (data[8] << 8u) | (data[9] << 16u) | (data[10] << 24u)) * 360.0f /
+                    16384.0f);
+                newState.speed = -1 * static_cast<int16_t>(data[11] | (data[12] << 8u));
+                newState.torque = 0;
+                newState.temperature = 0;
+
+                motor->CommitState(newState);
             }
         }
     }
 };
 
 template <uint8_t BusID>
-class Motor4315 : public MotorBase {
+class Motor4315 : public MotorBase
+{
 public:
     template <typename T>
-    Motor4315(const Motor_Param_t&& params, T& _controller, uint8_t addr, uint8_t divisionFactor=5)
-            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), id(addr), commuAgent(this, addr) { // Todo: ID和地址分离逻辑
+    Motor4315(const Motor_Param_t&& params, T& _controller, uint8_t addr, uint8_t divisionFactor = 5)
+        : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), id(addr), commuAgent(this, addr)
+    {
+        // Todo: ID和地址分离逻辑
         ResetController(_controller);
     }
 
-    void Handle() override {
+    void Handle() final
+    {
+        SetFeedback();
         controller->Calc();
         MessageGenerate();
     }
@@ -64,17 +82,25 @@ public:
 private:
     uint8_t txbuf[11] = {};
 
-    void SetFeedback() override {
-        switch (params.ctrlType) {
-            case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
-                break;
+    void SetFeedback() final
+    {
+        const Motor_State_t* s = GetStatePtr();
+        switch (this->params.ctrlType)
+        {
+        case Motor_Ctrl_Type_e::Position:
+            controller->SetFeedbacks(&s->position);
+            break;
+        default:
+            break;
         }
     }
 
-    void MessageGenerate() {
-        switch (params.ctrlType) {
-            case Motor_Ctrl_Type_e::Position: {
+    void MessageGenerate()
+    {
+        switch (params.ctrlType)
+        {
+        case Motor_Ctrl_Type_e::Position:
+            {
                 ControllerOutputData output = controller->GetOutputs();
                 float targetAngle = -1 * output.dataPtr[0];
                 int32_t txAngle = targetAngle * 16384.0f / 360.0f;

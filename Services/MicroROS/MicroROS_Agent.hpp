@@ -17,32 +17,13 @@
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
-#include <rosidl_runtime_c/message_type_support_struct.h>
+
+#include "MicroROS/MicroROS_MessageTypes.hpp"
 
 #ifndef MICROROS_NODE_NAME
 #define MICROROS_NODE_NAME "FineMote"
 #endif
 
-template <typename>
-inline constexpr bool dependent_false_v = false;
-
-template <typename T>
-struct RosMsgTraits
-{
-    static constexpr bool registered = false;
-};
-
-#define DEFINE_MICROROS_MSG(CppType, PkgName, MsgSub, MsgName) \
-    template<> \
-    struct RosMsgTraits<CppType> { \
-        static constexpr bool registered = true; \
-        static constexpr const char* name = #MsgName; \
-        static const rosidl_message_type_support_t* GetTypeSupport() { \
-            return ROSIDL_GET_MSG_TYPE_SUPPORT(PkgName, MsgSub, MsgName); \
-        } \
-    };
-
-#define PUBLISHER(obj) RosPublisher(#obj, obj)
 
 template <bool enable = true>
 class MicroROS_Manager;
@@ -60,7 +41,7 @@ public:
 
     virtual bool Init(rcl_node_t* node, rclc_support_t* support, rclc_executor_t* executor) = 0;
     virtual void Execute() = 0;
-    virtual void Final() = 0;
+    virtual void Fini() = 0;
 };
 
 template <typename T, typename = void>
@@ -75,6 +56,9 @@ struct has_GetRosBinder<T, std::void_t<decltype(std::declval<T&>().GetRosBinder(
 
 template <typename T>
 inline constexpr bool has_GetRosBinder_v = has_GetRosBinder<T>::value;
+
+template <typename>
+inline constexpr bool dependent_false_v = false;
 
 template <typename T, typename = void>
 struct callback_message_type
@@ -140,7 +124,7 @@ public:
         (void)rcl_publish(&publisher_, &msg_, nullptr);
     }
 
-    void Final() final
+    void Fini() final
     {
         (void)rcl_publisher_fini(&publisher_, nullptr);
     }
@@ -203,7 +187,7 @@ public:
     {
     }
 
-    void Final() final
+    void Fini() final
     {
         (void)rcl_subscription_fini(&subscriber_, nullptr);
     }

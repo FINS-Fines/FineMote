@@ -9,84 +9,57 @@
 
 #include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
-#include <sensor_msgs/msg/joint_state.h>
 #include "Control/Clamp.hpp"
 #include <type_traits>
 #include <cstdio>
-#include "FreeRTOS.h"
-#include "task.h"
 
 /**
  * Todo: Reduction ratio
  */
 template <uint8_t busID>
-class Motor4010 : public MotorBase {
+class Motor4010 : public MotorBase
+{
 public:
     template <typename T>
-        Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 1)
-            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
-              canAgent(addr)
+    Motor4010(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 1)
+        : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+          canAgent(addr)
     {
         ResetController(_controller);
     }
 
-    void Handle() final {
+    void Handle() final
+    {
+        SetFeedback();
         controller->Calc();
         MessageGenerate();
-    }
-
-    auto GetRosBinder()
-    {
-        return [this](sensor_msgs__msg__JointState& msg)
-        {
-            this->UpdateToRos(msg);
-        };
     }
 
     CAN_Agent<busID> canAgent;
 
 private:
-    void UpdateToRos(sensor_msgs__msg__JointState& msg) {
-        if constexpr (!WITH_MICRO_ROS) return;
-
-        Motor_State_t s;
-        this->UpdateSnapshot(s);
-
-        uint32_t ticks = xTaskGetTickCount();
-        msg.header.stamp.sec = ticks / configTICK_RATE_HZ;
-        msg.header.stamp.nanosec = (ticks % configTICK_RATE_HZ) * (1000000000 / configTICK_RATE_HZ);
-
-        if (msg.position.capacity >= 1) {
-            msg.position.data[0] = s.position;
-            msg.position.size = 1;
-        }
-        if (msg.velocity.capacity >= 1) {
-            msg.velocity.data[0] = s.speed;
-            msg.velocity.size = 1;
-        }
-        if (msg.effort.capacity >= 1) {
-            msg.effort.data[0] = s.torque;
-            msg.effort.size = 1;
+    void SetFeedback() final
+    {
+        const Motor_State_t* s = GetStatePtr();
+        switch (this->params.targetType)
+        {
+        case Motor_Ctrl_Type_e::Position:
+            controller->SetFeedbacks(&s->position);
+            break;
+        case Motor_Ctrl_Type_e::Speed:
+            controller->SetFeedbacks(&s->speed);
+            break;
+        default:
+            break;
         }
     }
 
-    void SetFeedback() final {
-        Motor_State_t& state = GetInternalState();
-        switch (this->params.targetType) {
-            case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
-                break;
-            case Motor_Ctrl_Type_e::Speed:
-                controller->SetFeedbacks(&state.speed);
-                break;
-            default:
-                break;
-        }
-    }
-
-    void MessageGenerate() {
-        switch (params.ctrlType) {
-            case Motor_Ctrl_Type_e::Torque: {
+    void MessageGenerate()
+    {
+        switch (params.ctrlType)
+        {
+        case Motor_Ctrl_Type_e::Torque:
+            {
                 ControllerOutputData output = controller->GetOutputs();
                 int16_t txTorque = Clamp(1 * output.dataPtr[0], -500.f, 500.f);
 
@@ -100,7 +73,8 @@ private:
                 canAgent[7] = 0x00;
                 break;
             }
-            case Motor_Ctrl_Type_e::Position: {
+        case Motor_Ctrl_Type_e::Position:
+            {
                 constexpr uint16_t txSpeed = 0x800;
                 ControllerOutputData output = controller->GetOutputs();
                 int32_t txAngle = 100 * output.dataPtr[0];
@@ -119,14 +93,16 @@ private:
         canAgent.Transmit(canAgent.addr);
     }
 
-    void Update() override {
+    void Update() override
+    {
         Motor_State_t newState;
+
         newState.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
         newState.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
         newState.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
         newState.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
 
-        this->CommitState(newState);
+        stateSnapshot_.Commit(newState);
     }
 };
 

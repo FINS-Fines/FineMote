@@ -10,35 +10,51 @@
 #include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
 
-template <int busID>
-class Emm28 : public MotorBase {
+template<int busID>
+class Emm28 : public
+
+MotorBase
+{
 public:
-    template <typename T>
-    Emm28(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=1) :
-            MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
+    template < typename
+    T >
+        Emm28(const Motor_Param_t && params, T & _controller, uint32_t addr, uint8_t divisionFactor = 1)
+    :
+    MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr)
+    {
         ResetController(_controller);
     }
 
-    void Handle() final {
+    void Handle() final
+    {
+        SetFeedback();
         controller->Calc();
         MessageGenerate();
         GetCurrentPosition();
     }
 
-    CAN_Agent<busID> canAgent;
+    CAN_Agent < busID > canAgent;
 
 private:
-    void SetFeedback() final {
-        switch (params.targetType) {
-            case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
-                break;
+    void SetFeedback() final
+    {
+        const Motor_State_t* s = GetStatePtr();
+        switch (this->params.targetType)
+        {
+        case Motor_Ctrl_Type_e::Position:
+            controller->SetFeedbacks(&s->position);
+            break;
+        default:
+            break;
         }
     }
 
-    void MessageGenerate() {
-        switch (params.ctrlType) {
-            case Motor_Ctrl_Type_e::Position: {
+    void MessageGenerate()
+    {
+        switch (params.ctrlType)
+        {
+        case Motor_Ctrl_Type_e::Position:
+            {
                 const uint16_t vel = 0x0100; // 转动速度(RPM)
                 ControllerOutputData output = controller->GetOutputs();
                 float target = output.dataPtr[0];
@@ -66,18 +82,29 @@ private:
         }
     }
 
-    void GetCurrentPosition() {
+    void GetCurrentPosition()
+    {
         canAgent.SetDLC(2);
         canAgent[0] = 0x36;
         canAgent[1] = 0x6B;
         canAgent.Transmit(canAgent.addr, CAN_ID_EXT | CAN_RTR_DATA);
     }
 
-    void Update() override {
-        if (canAgent.rxbuf[2] != 0xEE) {
-            float tmp = ((canAgent.rxbuf[2] << 24u) | (canAgent.rxbuf[3] << 16u) | (canAgent.rxbuf[4] << 8u) | (canAgent.rxbuf[5])) * 360.0f / 65536.0f;
+    void Update() override
+    {
+        if (canAgent.rxbuf[2] != 0xEE)
+        {
+            Motor_State_t newState;
+
+            float tmp = ((canAgent.rxbuf[2] << 24u) | (canAgent.rxbuf[3] << 16u) | (canAgent.rxbuf[4] << 8u) | (canAgent
+                .rxbuf[5])) * 360.0f / 65536.0f;
             tmp *= canAgent.rxbuf[1] == 0x00 ? -1 : 1;
-            state.position = fmod(tmp, 360.);
+            newState.position = fmod(tmp, 360.);
+            newState.speed = 0;
+            newState.torque = 0;
+            newState.temperature = 0;
+
+            stateSnapshot_.Commit(newState);
         }
     }
 };

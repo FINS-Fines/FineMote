@@ -13,46 +13,63 @@
 /**
  * Todo: Reduction ratio
  */
-template <int busID>
-class HO3507 : public MotorBase {
+template<int busID>
+class HO3507 : public
+
+MotorBase
+{
 public:
-    template <typename T>
-    HO3507(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=5) :
-            MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
+    template < typename
+    T >
+        HO3507(const Motor_Param_t && params, T & _controller, uint32_t addr, uint8_t divisionFactor = 5)
+    :
+    MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr)
+    {
         ResetController(_controller);
         initTick = HAL_GetTick();
     }
 
-    void Handle() final {
+    void Handle() final
+    {
+        SetFeedback();
         controller->Calc();
-        if (HAL_GetTick() - initTick < 5000) {
+        if (HAL_GetTick() - initTick < 5000)
+        {
             ChooseCtrlType();
             Start();
-        } else {
+        }
+        else
+        {
             MessageGenerate();
         }
     }
 
-    CAN_Agent<busID> canAgent;
+    CAN_Agent < busID > canAgent;
 
 private:
     uint32_t initTick;
 
-    void SetFeedback() final {
-        switch (params.targetType) {
-            case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
-                break;
-            case Motor_Ctrl_Type_e::Speed:
-                controller->SetFeedbacks(&state.speed);
-                break;
+    void SetFeedback() final
+    {
+        const Motor_State_t* s = GetStatePtr();
+        switch (this->params.targetType)
+        {
+        case Motor_Ctrl_Type_e::Position:
+            controller->SetFeedbacks(&s->position);
+            break;
+        case Motor_Ctrl_Type_e::Speed:
+            controller->SetFeedbacks(&s->speed);
+            break;
+        default:
+            break;
         }
     }
 
     /**
      * Todo: 放到构造函数里面
      */
-    void Start() {
+    void Start()
+    {
         canAgent[0] = 0xFF;
         canAgent[1] = 0xFF;
         canAgent[2] = 0xFF;
@@ -67,10 +84,13 @@ private:
     /**
      * Todo: 放到构造函数里面
      */
-    void ChooseCtrlType() {
-        switch (params.ctrlType) {
-            //力矩环下，力矩（电流）代表电机在该力矩下运行
-            case Motor_Ctrl_Type_e::Torque: {
+    void ChooseCtrlType()
+    {
+        switch (params.ctrlType)
+        {
+        //力矩环下，力矩（电流）代表电机在该力矩下运行
+        case Motor_Ctrl_Type_e::Torque:
+            {
                 canAgent[0] = 0xFF;
                 canAgent[1] = 0xFF;
                 canAgent[2] = 0xFF;
@@ -81,8 +101,9 @@ private:
                 canAgent[7] = 0xF9;
                 break;
             }
-                //位置速度力矩三闭环模式下,速度命令代表电机在位置控制下可达到的最大速度,力矩命令代表电机可达到的最大力矩
-            case Motor_Ctrl_Type_e::Position: {
+        //位置速度力矩三闭环模式下,速度命令代表电机在位置控制下可达到的最大速度,力矩命令代表电机可达到的最大力矩
+        case Motor_Ctrl_Type_e::Position:
+            {
                 canAgent[0] = 0xFF;
                 canAgent[1] = 0xFF;
                 canAgent[2] = 0xFF;
@@ -93,8 +114,9 @@ private:
                 canAgent[7] = 0xFB;
                 break;
             }
-                //速度力矩环下，速度命令代表电机运行速度，力矩（电流）代表电机在该速度下运行，能提供的最大电流
-            case Motor_Ctrl_Type_e::Speed: {
+        //速度力矩环下，速度命令代表电机运行速度，力矩（电流）代表电机在该速度下运行，能提供的最大电流
+        case Motor_Ctrl_Type_e::Speed:
+            {
                 canAgent[0] = 0xFF;
                 canAgent[1] = 0xFF;
                 canAgent[2] = 0xFF;
@@ -109,9 +131,12 @@ private:
         canAgent.Transmit(canAgent.addr);
     }
 
-    void MessageGenerate() {
-        switch (params.ctrlType) {
-            case Motor_Ctrl_Type_e::Speed: {
+    void MessageGenerate()
+    {
+        switch (params.ctrlType)
+        {
+        case Motor_Ctrl_Type_e::Speed:
+            {
                 ControllerOutputData output = controller->GetOutputs();
                 float txSpeed = -output.dataPtr[0]; //方向取CCW
                 int32_t txSpeedCode = txSpeed / 58.639f * 0x800 + 0x800;
@@ -125,7 +150,8 @@ private:
                 canAgent[7] = 0x00;
                 break;
             }
-            case Motor_Ctrl_Type_e::Position: {
+        case Motor_Ctrl_Type_e::Position:
+            {
                 ControllerOutputData output = controller->GetOutputs();
                 float txPosition = -output.dataPtr[0]; //方向取CCW
                 uint16_t txPositionCode = txPosition / 360.0f * 0x8000 + 0x8000;
@@ -145,13 +171,20 @@ private:
         canAgent.Transmit(canAgent.addr);
     }
 
-    void Update() override { //正方向取CCW
+    void Update() override
+    {
+        //正方向取CCW
+        Motor_State_t newState;
+
         int16_t position_code = (canAgent.rxbuf[1] << 8) | canAgent.rxbuf[2];
-        state.position = -static_cast<float>(position_code - 0x8000) / 32768.0f * 360.0f;
+        newState.position = -static_cast<float>(position_code - 0x8000) / 32768.0f * 360.0f;
         int16_t speed_code = (canAgent.rxbuf[3] << 4) | ((canAgent.rxbuf[4] >> 4) & 0x0F);
-        state.speed = -static_cast<float>(speed_code - 0x800) / 2048.0f * 58.639f;
+        newState.speed = -static_cast<float>(speed_code - 0x800) / 2048.0f * 58.639f;
         int16_t torque_code = (((canAgent.rxbuf[4]) & 0xF0) << 4) | canAgent.rxbuf[5];
-        state.torque = -static_cast<float>(torque_code - 0x800) / 2048.0f * 4.0f;
+        newState.torque = -static_cast<float>(torque_code - 0x800) / 2048.0f * 4.0f;
+        newState.temperature = 0;
+
+        stateSnapshot_.Commit(newState);
     }
 };
 

@@ -62,7 +62,7 @@ public:
 protected:
 
     std::array<float*, InputSize> targetPtrs{};
-    std::vector<float*> feedbackPtrs{};
+    std::vector<const float*> feedbackPtrs{};
     std::array<float, OutputSize> outputs{};
 };
 
