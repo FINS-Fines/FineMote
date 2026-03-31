@@ -25,23 +25,15 @@
 
 #include "Control/PID.hpp"
 
-#include <std_msgs/msg/int32.h>
-#include <std_msgs/msg/float32.h>
-
 constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f};
 auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
 
 #define TORQUE_2_SPEED {Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed}
-
-auto speed_converter = [](std_msgs__msg__Int32& msg, const Motor_State_t& state) {
-    msg.data = static_cast<int32_t>(state.speed);
-};
-
-Motor4010<1, 5> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
-Motor4010<1, 5> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143);
-Motor4010<1, 5> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
-Motor4010<1, 5> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
+Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
+Motor4010<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143);
+Motor4010<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
+Motor4010<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
 
 #define DIRECT_POSITION {Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position, true}
 Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04, 20);
@@ -122,7 +114,26 @@ UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
 
 
 /**
- * Part 4: Task definitions.
+ * Part 4: Micro-ROs definitions.
+ */
+
+#include "MicroROS/MicroROS_Agent.hpp"
+#include "MicroROS/MicroROS_Manager.hpp"
+#include "MicroROS/MicroROS_MessageTypes.hpp"
+
+int32_t count_1 = 700;
+RosPublisher pub_hb_1("heartbeat_1", [](std_msgs__msg__Int32& msg) {
+    msg.data = count_1++;
+});
+
+auto pub_motor_state = PUBLISHER(CBRMotor);
+auto pub_chassis_odom = PUBLISHER(chassis);
+
+
+
+
+/**
+ * Part 5: Task definitions.
  */
 static bool cascaded=0;
 void TaskPOVChassis() {
