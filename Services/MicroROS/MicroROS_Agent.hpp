@@ -114,7 +114,7 @@ public:
     bool Init(rcl_node_t* node, rclc_support_t* support, rclc_executor_t* executor) final
     {
         const auto* type_support = RosMsgTraits<MsgT>::GetTypeSupport();
-        rcl_ret_t ret = rclc_publisher_init_best_effort(&publisher_, node, type_support, topic_str_.c_str());
+        rcl_ret_t ret = rclc_publisher_init_default(&publisher_, node, type_support, topic_str_.c_str());
         return (ret == RCL_RET_OK);
     }
 
