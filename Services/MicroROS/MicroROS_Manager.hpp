@@ -118,7 +118,7 @@ private:
 
     void HandleWaiting()
     {
-        if (rmw_uros_ping_agent(100, 1) == RMW_RET_OK)
+        if (rmw_uros_ping_agent(500, 1) == RMW_RET_OK)
         {
             state_ = State::INITIALIZING;
         }
@@ -180,7 +180,7 @@ private:
         if ((xTaskGetTickCount() - last_tick_) > pdMS_TO_TICKS(1000))
         {
             last_tick_ = xTaskGetTickCount();
-            if (rmw_uros_ping_agent(10, 1) != RMW_RET_OK)
+            if (rmw_uros_ping_agent(500, 1) != RMW_RET_OK)
             {
                 GotoError();
             }
@@ -197,7 +197,7 @@ private:
     {
         for (auto* agent : agents_)
         {
-            agent->Final();
+            agent->Fini();
         }
         (void)rclc_executor_fini(&executor_);
         (void)rcl_node_fini(&node_);
