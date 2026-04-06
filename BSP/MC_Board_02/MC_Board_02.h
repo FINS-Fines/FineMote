@@ -37,6 +37,34 @@ public:
         return instance;
     }
 };
+
+/** SPI Definitions **/
+constexpr SPI_HandleTypeDef *BSP_SPIList[] = {
+    nullptr,
+    &hspi1,
+    &hspi2
+};
+constexpr size_t SPI_BUS_MAXIMUM_COUNT = sizeof(BSP_SPIList) / sizeof(BSP_SPIList[0]) - 1;
+
+/*
+ * SPI CS Definitions
+ */
+struct SPI_CS {
+    GPIO_TypeDef* port;
+    uint16_t pin;
+};
+
+const SPI_CS SPI_CSList[] = {
+    {nullptr, 0},
+    {GPIOC, GPIO_PIN_0},
+    {GPIOC,  GPIO_PIN_3},
+};
+constexpr size_t SPI_DEVICE_MAXIMUM_COUNT = sizeof(SPI_CSList) / sizeof(SPI_CSList[0]) - 1;
+
+constexpr size_t BMI088_SPI_ID = 2; // BMI088使用SPI2
+constexpr size_t BMI088_ACCEL_DEV_ID = 1;
+constexpr size_t BMI088_GYRO_DEV_ID  = 2;
+
 /**
  * UART Definitions
  */
@@ -73,19 +101,21 @@ using PWMList_t = struct PWMList_t {
   uint16_t TIM_Frequency = 168; // Default frequency
 };
 
-constexpr PWMList_t BSP_PWMList[6] = {
+constexpr PWMList_t BSP_PWMList[7] = {
   {0, nullptr, 0},
   {TIM_CHANNEL_1, &htim2, 240},
   {TIM_CHANNEL_3, &htim2, 240},
   {TIM_CHANNEL_1, &htim1, 240},
   {TIM_CHANNEL_3, &htim1, 240},
-  {TIM_CHANNEL_2, &htim12, 240}  // BUZZER_PWM
+  {TIM_CHANNEL_2, &htim12, 240},  // BUZZER_PWM
+  {TIM_CHANNEL_4, &htim3, 240}    // BMI088_HEAT_PWM
 };
 
 /**
  * BUZZER Definitions
  */
 constexpr size_t BUZZER_PWM_ID = 5;
+constexpr size_t BMI088_HEAT_PWM_ID = 6;
 
 #define LED_GPIO_Port   GPIOA
 #define LED_Pin         GPIO_PIN_7
