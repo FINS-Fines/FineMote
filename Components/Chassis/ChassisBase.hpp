@@ -10,7 +10,7 @@
 #include "StateSnapshot.hpp"
 #include "DeviceBase/DeviceBase.hpp"
 #include "MicroROS/MicroROS_Agent.hpp"
-#include <nav_msgs/msg/odometry.h>
+#include <geometry_msgs/msg/twist.h>
 
 typedef struct
 {
@@ -67,8 +67,8 @@ template <typename OdomPolicy>
 class ChassisBase : public DeviceBase
 {
 public:
-    virtual void InverseKinematics(std::array<float, 3>&) = 0; // 底盘到轮组
-    virtual void ForwardKinematics() = 0; // 轮组到底盘
+    virtual void InverseKinematics(std::array<float, 3>&) = 0;
+    virtual void ForwardKinematics() = 0;
 
     template <typename T>
     void SetVelocity(T&& v)
@@ -88,7 +88,7 @@ public:
 
     auto GetRosBinder()
     {
-        return [this](nav_msgs__msg__Odometry& msg)
+        return [this](geometry_msgs__msg__Twist& msg)
         {
             this->UpdateToRos(msg);
         };
@@ -102,27 +102,13 @@ protected:
 
         Chassis_State_t state = GetChassisState();
 
-        uint32_t ticks = osKernelGetTickCount();
-        msg.header.stamp.sec = ticks / configTICK_RATE_HZ;
-        msg.header.stamp.nanosec = (ticks % configTICK_RATE_HZ) * (1000000000 / configTICK_RATE_HZ);
+        msg.linear.x = state.velocity[0];
+        msg.linear.y = state.velocity[1];
+        msg.linear.z = 0.0f;
 
-        msg.pose.pose.position.x = state.position[0];
-        msg.pose.pose.position.y = state.position[1];
-        msg.pose.pose.position.z = 0.0f;
-
-        float theta = state.position[2];
-        msg.pose.pose.orientation.w = cosf(theta / 2.0f);
-        msg.pose.pose.orientation.x = 0.0f;
-        msg.pose.pose.orientation.y = 0.0f;
-        msg.pose.pose.orientation.z = sinf(theta / 2.0f);
-
-        msg.twist.twist.linear.x = state.velocity[0];
-        msg.twist.twist.linear.y = state.velocity[1];
-        msg.twist.twist.linear.z = 0.0f;
-
-        msg.twist.twist.angular.x = 0.0f;
-        msg.twist.twist.angular.y = 0.0f;
-        msg.twist.twist.angular.z = state.velocity[2];
+        msg.angular.x = 0.0f;
+        msg.angular.y = 0.0f;
+        msg.angular.z = state.velocity[2];
     }
 
     void CommitChassisState(const Chassis_State_t& newState)

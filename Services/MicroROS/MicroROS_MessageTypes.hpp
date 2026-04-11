@@ -8,7 +8,7 @@
 #define FINEMOTE_MICROROS_MESSAGE_TYPES_HPP
 
 #include <sensor_msgs/msg/joint_state.h>
-#include <nav_msgs/msg/odometry.h>
+#include <geometry_msgs/msg/twist.h>
 #include <std_msgs/msg/bool.h>
 #include <std_msgs/msg/int32.h>
 
@@ -32,7 +32,7 @@ struct RosMsgTraits
 
 DEFINE_MICROROS_MSG(sensor_msgs__msg__JointState, sensor_msgs, msg, JointState)
 
-DEFINE_MICROROS_MSG(nav_msgs__msg__Odometry, nav_msgs, msg, Odometry)
+DEFINE_MICROROS_MSG(geometry_msgs__msg__Twist, geometry_msgs, msg, Twist)
 
 DEFINE_MICROROS_MSG(std_msgs__msg__Bool, std_msgs, msg, Bool)
 

@@ -29,7 +29,6 @@
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -52,19 +51,7 @@ typedef StaticTask_t osStaticThreadDef_t;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for MicroROSTask */
-osThreadId_t MicroROSTaskHandle;
-uint32_t MicroROSTaskBuffer[ 5000 ];
-osStaticThreadDef_t MicroROSTaskControlBlock;
-const osThreadAttr_t MicroROSTask_attributes = {
-  .name = "MicroROSTask",
-  .cb_mem = &MicroROSTaskControlBlock,
-  .cb_size = sizeof(MicroROSTaskControlBlock),
-  .stack_mem = &MicroROSTaskBuffer[0],
-  .stack_size = sizeof(MicroROSTaskBuffer),
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -74,7 +61,6 @@ const osThreadAttr_t MicroROSTask_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
-extern void StartMicroROSTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -107,9 +93,6 @@ void MX_FREERTOS_Init(void) {
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* creation of MicroROSTask */
-  MicroROSTaskHandle = osThreadNew(StartMicroROSTask, NULL, &MicroROSTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
