@@ -37,8 +37,6 @@ public:
         MicroROS_Manager<enable>::GetInstance().RegisterAgent(this);
     }
 
-    virtual ~ROSAgent() = default;
-
     virtual bool Init(rcl_node_t* node, rclc_support_t* support, rclc_executor_t* executor) = 0;
     virtual void Execute() = 0;
     virtual void Fini() = 0;
@@ -172,11 +170,18 @@ public:
             return false;
         }
 
+        auto callback_wrapper = [](const void* msgin, void* untyped_self)
+        {
+            auto* self = static_cast<RosSubscriber*>(untyped_self);
+            auto* concrete_msg = static_cast<const MsgT*>(msgin);
+            self->callback_(*concrete_msg);
+        };
+
         ret = rclc_executor_add_subscription_with_context(
             executor,
             &subscriber_,
             &msg_,
-            &StaticCallback,
+            callback_wrapper,
             this,
             ON_NEW_DATA
         );
@@ -193,13 +198,6 @@ public:
     }
 
 private:
-    static void StaticCallback(const void* msgin, void* untyped_self)
-    {
-        auto* self = static_cast<RosSubscriber*>(untyped_self);
-        auto* concrete_msg = static_cast<const MsgT*>(msgin);
-        self->callback_(*concrete_msg);
-    }
-
     std::string topic_str_;
     CallbackFunc callback_;
     rcl_subscription_t subscriber_{rcl_get_zero_initialized_subscription()};

@@ -7,13 +7,8 @@
 #include <uxr/client/transport.h>
 #include "Bus/UART_Base.hpp"
 
-#ifndef MICROROS_BUF_SIZE
-#define MICROROS_BUF_SIZE 2048
-#endif
-
-#ifndef MICROROS_DMA_BUF_SIZE
-#define MICROROS_DMA_BUF_SIZE 512
-#endif
+constexpr size_t MICROROS_BUF_SIZE = 2048;
+constexpr size_t MICROROS_DMA_BUF_SIZE = 512;
 
 template <bool enable>
 class MicroROS_Manager;
@@ -25,10 +20,7 @@ public:
     static bool Open(struct uxrCustomTransport* t)
     {
         auto& manager = MicroROS_Manager<enable>::GetInstance();
-        while (!manager.rx_queue_.empty())
-        {
-            manager.rx_queue_.pop();
-        }
+        xStreamBufferReset(manager.rx_stream_buffer_);
         return true;
     }
 
@@ -46,7 +38,7 @@ public:
             len = MICROROS_BUF_SIZE;
         }
 
-        if (osSemaphoreAcquire(manager.tx_sem_, 100) == osOK)
+        if (xSemaphoreTake(manager.tx_sem_, pdMS_TO_TICKS(100)) == pdTRUE)
         {
             memcpy(manager.tx_buffer_, buf, len);
             UART_Base<MICRO_ROS_UART_ID>::GetInstance().Transmit(
@@ -62,34 +54,14 @@ public:
     static size_t Read(struct uxrCustomTransport* t, uint8_t* buf, size_t len, int timeout, uint8_t* err)
     {
         auto& manager = MicroROS_Manager<enable>::GetInstance();
-        size_t read_count = 0;
+        uint32_t timeout_ticks = (timeout <= 0) ? 0 : pdMS_TO_TICKS(timeout);
 
-        uint32_t timeout_ms = (timeout <= 0) ? 0 : static_cast<uint32_t>(timeout);
-        uint32_t start_tick = osKernelGetTickCount();
-
-        while (read_count < len)
-        {
-            while (read_count < len && !manager.rx_queue_.empty())
-            {
-                buf[read_count++] = manager.rx_queue_.front();
-                manager.rx_queue_.pop();
-            }
-
-            if (read_count >= len || timeout_ms == 0)
-            {
-                break;
-            }
-
-            uint32_t elapsed = osKernelGetTickCount() - start_tick;
-            if (elapsed >= timeout_ms)
-            {
-                break;
-            }
-
-            osSemaphoreAcquire(manager.rx_sem_, timeout_ms - elapsed);
-        }
-
-        return read_count;
+        return xStreamBufferReceive(
+            manager.rx_stream_buffer_,
+            buf,
+            len,
+            timeout_ticks
+        );
     }
 };
 

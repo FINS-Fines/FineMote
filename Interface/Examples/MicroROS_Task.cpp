@@ -24,13 +24,3 @@ RosSubscriber sub_led("cmd/led", [](const std_msgs__msg__Bool& msg)
     HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, msg.data ? GPIO_PIN_RESET : GPIO_PIN_SET);
 });
 
-extern "C" void StartMicroROSTask(void* argument)
-{
-    auto& RosManager = MicroROS_Manager<>::GetInstance();
-
-    for (;;)
-    {
-        RosManager.Handle();
-        osDelay(200);
-    }
-}
