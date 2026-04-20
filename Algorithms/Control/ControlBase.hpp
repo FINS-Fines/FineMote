@@ -23,20 +23,14 @@ public:
 
     virtual ControllerOutputData Calc() {
         PerformCalc();
-        return GetOutputs();
         return GetCurrentOutputs();
     }
 
 protected:
 
     virtual void PerformCalc() = 0;
-    virtual ControllerOutputData GetOutputs() = 0; // 注：仅返回当前环的结果，不是整个链的结果！！！
-    // TODO: 后续可能需要提供两个GetOutputs，一个返回当前环的结果，一个返回整个链的结果
     virtual ControllerOutputData GetCurrentOutputs() = 0; // 返回当前环的结果
-
-    // std::function<ControllerOutputData()> nextCalc = nullptr;
-    // 由于连接机制的更改，因此所有与nextCalc有关的代码都被移除了
-    // 新的连接机制见ControllerChain.hpp
+    virtual ControllerOutputData GetTotalOutputs() = 0;
 };
 
 template<typename T, size_t M, typename... Args, size_t... I>
