@@ -78,7 +78,11 @@ public:
             this->outputs[i] = feedback(i) + feedforward(i);
         }
     }
-    ControllerOutputData GetOutputs() override {
+    ControllerOutputData GetCurrentOutputs() override {
+        return { (float*)this->outputs.data(), (uint8_t)ControlSize };
+    }
+
+    ControllerOutputData GetTotalOutputs() override {
         return { (float*)this->outputs.data(), (uint8_t)ControlSize };
     }
 

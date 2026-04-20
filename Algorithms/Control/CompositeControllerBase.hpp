@@ -112,6 +112,13 @@ public:
     // 把内部控制器的outputs输出，作为复合控制器的outputs
     ControllerOutputData GetOutputs() override {
         return ctrl.GetOutputs();
+    ControllerOutputData GetCurrentOutputs() override {
+        return ctrl.GetCurrentOutputs();
+    }
+
+    ControllerOutputData GetTotalOutputs() override
+    {
+        return ctrl.GetTotalOutputs();
     }
 
     // 先计算obs，再计算ctrl，最后把ctrl计算结果同步到复合控制器的outputs
@@ -121,6 +128,7 @@ public:
         ctrl.PerformCalc();
 
         auto outs = ctrl.GetOutputs();
+        auto outs = ctrl.GetCurrentOutputs();
         for (size_t i = 0; i < Ctrl::control_size; ++i) {
             this->outputs[i] = outs.dataPtr[i];
         }
@@ -134,6 +142,7 @@ public:
     {
         // ctrl.outputs -> obs.ctrl
         auto co = ctrl.GetOutputs();
+        auto co = ctrl.GetCurrentOutputs();
         // co.dataPtr points to Ctrl's internal outputs array
         std::array<float*, Ctrl::control_size> ctrlPtrArr{};
         for (size_t i = 0; i < Ctrl::control_size; ++i) {

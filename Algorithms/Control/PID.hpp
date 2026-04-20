@@ -27,7 +27,11 @@ public:
         lastError = error;
     }
 
-    ControllerOutputData GetOutputs() override {
+    ControllerOutputData GetCurrentOutputs() override {
+        return { this->outputs.data(), 1 };
+    }
+
+    ControllerOutputData GetTotalOutputs() override {
         return { this->outputs.data(), 1 };
     }
 

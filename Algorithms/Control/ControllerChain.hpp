@@ -100,7 +100,7 @@ public:
         if constexpr (has_next) {
             return next.Calc(); // 静态多态调用
         } else {
-            return this->GetOutputs();
+            return this->GetCurrentOutputs();
         }
     }
 
@@ -127,6 +127,19 @@ public:
                       }
     }
 
+    // 获取输出
+    ControllerOutputData GetCurrentOutputs() override {
+        return { this->outputs.data(), static_cast<uint8_t>(Controller::control_size) };
+    }
+
+    // 获取最内环输出
+    ControllerOutputData GetTotalOutputs() override {
+        if constexpr (has_next)
+        {
+            return next.GetTotalOutputs();
+        }
+        else return { this->outputs.data(), static_cast<uint8_t>(Controller::control_size) };
+    }
 };
 
 // 使用辅助函数创建控制器链类型

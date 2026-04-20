@@ -58,7 +58,12 @@ public:
     }
 
     // 获取输出
-    ControllerOutputData GetOutputs() override {
+    ControllerOutputData GetCurrentOutputs() override {
+        return { outputs.data(), static_cast<uint8_t>(ControlSize) };
+    }
+
+    // 获取最内环输出
+    ControllerOutputData GetTotalOutputs() override {
         return { outputs.data(), static_cast<uint8_t>(ControlSize) };
     }
 
@@ -82,7 +87,10 @@ public:
         }
     }
 
-    ControllerOutputData GetOutputs() override {
+    ControllerOutputData GetCurrentOutputs() override {
+        return { this->outputs.data(), 1 };
+    }
+    ControllerOutputData GetTotalOutputs() override {
         return { this->outputs.data(), 1 };
     }
 };
