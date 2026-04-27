@@ -27,12 +27,6 @@ target_compile_definitions(finemote_board INTERFACE
         __CMAKE_APP
 )
 
-target_link_options(finemote_board INTERFACE
-        "--scatter=${CMAKE_CURRENT_SOURCE_DIR}/MDK-ARM/${BOARD_NAME}/${BOARD_NAME}.sct"
-        "--cpu=${FINEMOTE_ARMLINK_CPU}"
-        "--strict"
-)
-
 target_include_directories(finemote_board INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP

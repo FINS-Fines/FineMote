@@ -12,7 +12,7 @@
       "generator": "Ninja Multi-Config",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/armclang.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/armclang/toolchain.cmake"
       }
     },
     {
