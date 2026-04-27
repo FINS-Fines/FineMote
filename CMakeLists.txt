@@ -98,23 +98,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         finemote::bsp
 )
 
-target_link_options(${PROJECT_NAME} PRIVATE
-        "--list=$<TARGET_FILE_DIR:${PROJECT_NAME}>/$<TARGET_FILE_BASE_NAME:${PROJECT_NAME}>.map"
-        "--map"
-        "--summary_stderr"
-        "--info=summarysizes"
-        "--info=sizes"
-        "--info=totals"
-        "--info=unused"
-        "--info=veneers"
-        "--load_addr_map_info"
-        "--xref"
-        "--callgraph"
-        "--symbols"
-)
-
-## ------------------ convert to hex ------------------
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --i32combined --output "$<TARGET_FILE_DIR:${PROJECT_NAME}>/$<TARGET_FILE_BASE_NAME:${PROJECT_NAME}>.hex" "$<TARGET_FILE:${PROJECT_NAME}>"
-        VERBATIM
-)
+finemote_postprocess(${PROJECT_NAME})
