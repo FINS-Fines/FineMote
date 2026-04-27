@@ -12,19 +12,9 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(_FINEMOTE_WARNING_FLAGS
-        -Wno-packed
-        -Wno-missing-variable-declarations
-        -Wno-missing-prototypes
-        -Wno-missing-noreturn
-        -Wno-sign-conversion
-        -Wno-nonportable-include-path
-        -Wno-reserved-id-macro
-        -Wno-unused-macros
-        -Wno-documentation-unknown-command
-        -Wno-documentation
-        -Wno-license-management
-        -Wno-parentheses-equality
-        -Wno-reserved-identifier
+        -Wall
+        -Wextra
+        -Wpedantic
 )
 
 add_compile_options(${_FINEMOTE_WARNING_FLAGS})
