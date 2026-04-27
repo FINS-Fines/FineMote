@@ -9,51 +9,80 @@
     {
       "name": "base",
       "hidden": true,
-      "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/armclang/toolchain.cmake"
-      }
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}"
     },
     {
-      "name": "Robomaster_C",
+      "name": "compiler-armclang",
+      "hidden": true,
       "inherits": [
         "base"
       ],
+      "toolchainFile": "${sourceDir}/cmake/armclang/toolchain.cmake"
+    },
+    {
+      "name": "board-Robomaster_C",
+      "hidden": true,
       "cacheVariables": {
         "BOARD_NAME": "Robomaster_C"
       }
     },
     {
-      "name": "MC_Board",
-      "inherits": [
-        "base"
-      ],
+      "name": "board-MC_Board",
+      "hidden": true,
       "cacheVariables": {
         "BOARD_NAME": "MC_Board"
       }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "Robomaster_C-debug",
-      "configurePreset": "Robomaster_C",
-      "configuration": "Debug"
     },
     {
-      "name": "Robomaster_C-release",
-      "configurePreset": "Robomaster_C",
-      "configuration": "Release"
+      "name": "config-debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
     },
     {
-      "name": "MC_Board-debug",
-      "configurePreset": "MC_Board",
-      "configuration": "Debug"
+      "name": "config-release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     },
     {
-      "name": "MC_Board-release",
-      "configurePreset": "MC_Board",
-      "configuration": "Release"
+      "name": "armclang-Robomaster_C-debug",
+      "displayName": "ArmClang / Robomaster_C / Debug",
+      "inherits": [
+        "compiler-armclang",
+        "board-Robomaster_C",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "armclang-Robomaster_C-release",
+      "displayName": "ArmClang / Robomaster_C / Release",
+      "inherits": [
+        "compiler-armclang",
+        "board-Robomaster_C",
+        "config-release"
+      ]
+    },
+    {
+      "name": "armclang-MC_Board-debug",
+      "displayName": "ArmClang / MC_Board / Debug",
+      "inherits": [
+        "compiler-armclang",
+        "board-MC_Board",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "armclang-MC_Board-release",
+      "displayName": "ArmClang / MC_Board / Release",
+      "inherits": [
+        "compiler-armclang",
+        "board-MC_Board",
+        "config-release"
+      ]
     }
   ]
 }
