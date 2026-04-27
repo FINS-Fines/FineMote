@@ -1,4 +1,4 @@
-set(FINEMOTE_FIRMWARE_LINK_OPTIONS
+set(_FINEMOTE_FIRMWARE_LINK_OPTIONS
         "--map"
         "--summary_stderr"
         "--info=summarysizes"
@@ -63,9 +63,9 @@ macro(finemote_apply_board_toolchain)
         endif ()
     endif ()
 
-    set(_FINEMOTE_SCATTER_FILE "${FINEMOTE_PROJECT_DIR}/BSP/${BOARD_NAME}/MDK-ARM/${BOARD_NAME}/${BOARD_NAME}.sct")
+    set(_FINEMOTE_SCATTER_FILE "${_FINEMOTE_PROJECT_DIR}/BSP/${BOARD_NAME}/MDK-ARM/${BOARD_NAME}/${BOARD_NAME}.sct")
 
-    set(FINEMOTE_BOARD_LINK_OPTIONS
+    set(_FINEMOTE_BOARD_LINK_OPTIONS
             "--scatter=${_FINEMOTE_SCATTER_FILE}"
             "--cpu=${_FINEMOTE_ARMLINK_CPU}"
             "--strict"
@@ -73,14 +73,14 @@ macro(finemote_apply_board_toolchain)
             FORCE
     )
 
-    string(JOIN " " _FINEMOTE_BOARD_LINK_FLAGS ${FINEMOTE_BOARD_LINK_OPTIONS})
+    string(JOIN " " _FINEMOTE_BOARD_LINK_FLAGS ${_FINEMOTE_BOARD_LINK_OPTIONS})
     set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} ${_FINEMOTE_BOARD_LINK_FLAGS}")
 endmacro()
 
 function(finemote_postprocess target)
     target_link_options(${target} PRIVATE
             "--list=$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_BASE_NAME:${target}>.map"
-            ${FINEMOTE_FIRMWARE_LINK_OPTIONS}
+            ${_FINEMOTE_FIRMWARE_LINK_OPTIONS}
     )
 
     add_custom_command(TARGET ${target} POST_BUILD

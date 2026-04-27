@@ -29,7 +29,7 @@ set(CMAKE_EXECUTABLE_SUFFIX_ASM ".elf")
 set(CMAKE_EXECUTABLE_SUFFIX_C ".elf")
 set(CMAKE_EXECUTABLE_SUFFIX_CXX ".elf")
 
-get_filename_component(FINEMOTE_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+get_filename_component(_FINEMOTE_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
 
 include("${CMAKE_CURRENT_LIST_DIR}/options.cmake")
 
@@ -38,7 +38,7 @@ if (NOT DEFINED BOARD_NAME OR BOARD_NAME STREQUAL "")
     message(FATAL_ERROR "BOARD_NAME is not set.")
 endif ()
 
-set(_board_tc "${FINEMOTE_PROJECT_DIR}/BSP/${BOARD_NAME}/cmake/board_toolchain.cmake")
+set(_board_tc "${_FINEMOTE_PROJECT_DIR}/BSP/${BOARD_NAME}/cmake/board_toolchain.cmake")
 if (NOT EXISTS "${_board_tc}")
     message(FATAL_ERROR "Board toolchain file not found: ${_board_tc}")
 endif ()
