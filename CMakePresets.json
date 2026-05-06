@@ -21,6 +21,14 @@
       "toolchainFile": "${sourceDir}/cmake/armclang/toolchain.cmake"
     },
     {
+      "name": "compiler-arm-none-eabi-gcc",
+      "hidden": true,
+      "inherits": [
+        "base"
+      ],
+      "toolchainFile": "${sourceDir}/cmake/arm-none-eabi-gcc/toolchain.cmake"
+    },
+    {
       "name": "board-Robomaster_C",
       "hidden": true,
       "cacheVariables": {
@@ -80,6 +88,42 @@
       "displayName": "ArmClang / MC_Board / Release",
       "inherits": [
         "compiler-armclang",
+        "board-MC_Board",
+        "config-release"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-Robomaster_C-debug",
+      "displayName": "arm-none-eabi-gcc / Robomaster_C / Debug",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-Robomaster_C",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-Robomaster_C-release",
+      "displayName": "arm-none-eabi-gcc / Robomaster_C / Release",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-Robomaster_C",
+        "config-release"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-MC_Board-debug",
+      "displayName": "arm-none-eabi-gcc / MC_Board / Debug",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-MC_Board",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-MC_Board-release",
+      "displayName": "arm-none-eabi-gcc / MC_Board / Release",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
         "board-MC_Board",
         "config-release"
       ]

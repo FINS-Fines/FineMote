@@ -1,27 +1,17 @@
-set(CMAKE_C_COMPILER armclang)
-set(CMAKE_ASM_COMPILER armclang)
-set(CMAKE_CXX_COMPILER armclang)
+set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+set(CMAKE_ASM_COMPILER arm-none-eabi-gcc)
+set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 
-set(CMAKE_LINKER armlink)
-set(CMAKE_AR armar)
-set(CMAKE_OBJCOPY fromelf)
-set(CMAKE_SIZE fromelf)
+set(CMAKE_LINKER arm-none-eabi-gcc)
+set(CMAKE_AR arm-none-eabi-ar)
+set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
+set(CMAKE_SIZE arm-none-eabi-size)
 
-set(_FINEMOTE_TOOLCHAIN_ID armclang CACHE INTERNAL "FineMote toolchain id")
-set(TRIPLE arm-arm-none-eabi)
-
-#set(CMAKE_C_COMPILER_TARGET ${TRIPLE})
-#set(CMAKE_CXX_COMPILER_TARGET ${TRIPLE})
-#set(CMAKE_ASM_COMPILER_TARGET ${TRIPLE})
-
-## for clion to detect the compiler info
-set(CMAKE_C_FLAGS_INIT "--target=${TRIPLE}")
-set(CMAKE_CXX_FLAGS_INIT "--target=${TRIPLE}")
-set(CMAKE_ASM_FLAGS_INIT "--target=${TRIPLE}")
+set(_FINEMOTE_TOOLCHAIN_ID arm-none-eabi-gcc CACHE INTERNAL "FineMote toolchain id")
 
 add_compile_options(
-        "$<$<CONFIG:Release>:-Os;-gdwarf-4>"
-        "$<$<CONFIG:Debug>:-O1;-gdwarf-4>"
+        "$<$<CONFIG:Release>:-Os;-g3>"
+        "$<$<CONFIG:Debug>:-Og;-g3>"
 )
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
@@ -45,4 +35,4 @@ if (NOT EXISTS "${_FINEMOTE_BOARD_TOOLCHAIN}")
 endif ()
 
 include("${_FINEMOTE_BOARD_TOOLCHAIN}")
-message(STATUS "Configured for armclang toolchain targeting ${BOARD_NAME}")
+message(STATUS "Configured for arm-none-eabi-gcc toolchain targeting ${BOARD_NAME}")

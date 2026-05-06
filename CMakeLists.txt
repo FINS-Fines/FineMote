@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.22)
 
 project(${BOARD_NAME} C CXX ASM)
 
-add_executable(${PROJECT_NAME})
+add_executable(${PROJECT_NAME}
+        ${_FINEMOTE_STARTUP_SOURCE}
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

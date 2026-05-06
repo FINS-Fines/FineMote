@@ -48,6 +48,10 @@ file(GLOB _FINEMOTE_BSP_SOURCES CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/FineMote_BSP/*.cpp"
 )
 
+if (_FINEMOTE_TOOLCHAIN_ID STREQUAL "arm-none-eabi-gcc")
+    list(FILTER _FINEMOTE_BSP_SOURCES EXCLUDE REGEX ".*/Semihost\\.c$")
+endif ()
+
 target_sources(finemote_bsp PRIVATE
         ${_FINEMOTE_BSP_SOURCES}
 )
