@@ -43,6 +43,20 @@
       }
     },
     {
+      "name": "board-Robomaster_A",
+      "hidden": true,
+      "cacheVariables": {
+        "BOARD_NAME": "Robomaster_A"
+      }
+    },
+    {
+      "name": "board-MC_Board_02",
+      "hidden": true,
+      "cacheVariables": {
+        "BOARD_NAME": "MC_Board_02"
+      }
+    },
+    {
       "name": "config-debug",
       "hidden": true,
       "cacheVariables": {
@@ -93,6 +107,42 @@
       ]
     },
     {
+      "name": "armclang-Robomaster_A-debug",
+      "displayName": "ArmClang / Robomaster_A / Debug",
+      "inherits": [
+        "compiler-armclang",
+        "board-Robomaster_A",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "armclang-Robomaster_A-release",
+      "displayName": "ArmClang / Robomaster_A / Release",
+      "inherits": [
+        "compiler-armclang",
+        "board-Robomaster_A",
+        "config-release"
+      ]
+    },
+    {
+      "name": "armclang-MC_Board_02-debug",
+      "displayName": "ArmClang / MC_Board_02 / Debug",
+      "inherits": [
+        "compiler-armclang",
+        "board-MC_Board_02",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "armclang-MC_Board_02-release",
+      "displayName": "ArmClang / MC_Board_02 / Release",
+      "inherits": [
+        "compiler-armclang",
+        "board-MC_Board_02",
+        "config-release"
+      ]
+    },
+    {
       "name": "arm-none-eabi-gcc-Robomaster_C-debug",
       "displayName": "arm-none-eabi-gcc / Robomaster_C / Debug",
       "inherits": [
@@ -125,6 +175,42 @@
       "inherits": [
         "compiler-arm-none-eabi-gcc",
         "board-MC_Board",
+        "config-release"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-Robomaster_A-debug",
+      "displayName": "arm-none-eabi-gcc / Robomaster_A / Debug",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-Robomaster_A",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-Robomaster_A-release",
+      "displayName": "arm-none-eabi-gcc / Robomaster_A / Release",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-Robomaster_A",
+        "config-release"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-MC_Board_02-debug",
+      "displayName": "arm-none-eabi-gcc / MC_Board_02 / Debug",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-MC_Board_02",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-MC_Board_02-release",
+      "displayName": "arm-none-eabi-gcc / MC_Board_02 / Release",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-MC_Board_02",
         "config-release"
       ]
     }

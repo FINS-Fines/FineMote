@@ -21,4 +21,4 @@ int unsetenv(const char* name)
 }
 
 const char _ctype_[256] = {0};
-void* _impure_ptr = NULL;
+
