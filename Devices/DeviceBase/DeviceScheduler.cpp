@@ -23,7 +23,7 @@ namespace {
 
 void DeviceScheduler::RegisterDevice(DeviceBase *device) {
     if (running_) {
-        return;
+        Error_Handler();
     }
 
     const auto period = device->divisionFactor;
@@ -36,7 +36,7 @@ void DeviceScheduler::RegisterDevice(DeviceBase *device) {
         if (!it->devices.full()) {
             it->devices.emplace_back(device);
         } else {
-            // the devices of the bucket are full
+            Error_Handler();
         }
     } else {
         if (!buckets_.full()) {
@@ -45,7 +45,7 @@ void DeviceScheduler::RegisterDevice(DeviceBase *device) {
             bucket.devices.emplace_back(device);
             buckets_.emplace_back(etl::move(bucket));
         } else {
-            // the buckets are full
+            Error_Handler();
         }
     }
 }
@@ -66,14 +66,25 @@ void DeviceScheduler::Start() {
         param.sched_priority = priority;
 
         pthread_attr_t attr;
-        pthread_attr_init(&attr);
-        pthread_attr_setschedparam(&attr, &param);
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        if (pthread_attr_init(&attr) != 0) {
+            Error_Handler();
+        }
+
+        if (pthread_attr_setschedparam(&attr, &param) != 0) {
+            Error_Handler();
+        }
+
+        if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0) {
+            Error_Handler();
+        }
 
         if (pthread_create(&bucket.thread, &attr, &DeviceScheduler::BucketThreadFunc, &bucket) != 0) {
-            // fail to create thread
+            Error_Handler();
         }
-        pthread_attr_destroy(&attr);
+
+        if (pthread_attr_destroy(&attr) != 0) {
+            Error_Handler();
+        }
 
         priority--;
     }
@@ -87,7 +98,9 @@ void DeviceScheduler::Start() {
 
     const uint32_t period = bucket->period;
     timespec next_wake_time{};
-    clock_gettime(CLOCK_MONOTONIC, &next_wake_time);
+    if (clock_gettime(CLOCK_MONOTONIC, &next_wake_time) != 0) {
+        Error_Handler();
+    }
 
     while (true) {
         AddTicksToTimespec(next_wake_time, period);
