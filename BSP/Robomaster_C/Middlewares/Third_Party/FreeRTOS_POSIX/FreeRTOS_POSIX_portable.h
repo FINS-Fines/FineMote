@@ -31,16 +31,18 @@
 #ifndef _FREERTOS_POSIX_PORTABLE_H_
 #define _FREERTOS_POSIX_PORTABLE_H_
 
-/* This port uses the defaults in FreeRTOS_POSIX_portable_default.h, so this
- * file is empty. */
-
+#if defined(__ARMCC_VERSION)
 #include <time.h>
 
 #define posixconfigENABLE_TIME_T 0
 #define posixconfigENABLE_CLOCK_T 0
 
 #ifdef CLOCKS_PER_SEC
-    #undef CLOCKS_PER_SEC
+#undef CLOCKS_PER_SEC
+#endif
+
+#elif defined(__GNUC__)
+
 #endif
 
 #endif /* _FREERTOS_POSIX_PORTABLE_H_ */

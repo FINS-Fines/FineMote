@@ -37,66 +37,52 @@ macro(finemote_toolchain)
 
     set(CMAKE_C_FLAGS_INIT "${CMAKE_C_FLAGS_INIT} ${_FINEMOTE_COMMON_FLAGS_STRING}")
     set(CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT} ${_FINEMOTE_COMMON_FLAGS_STRING}")
-    set(CMAKE_ASM_FLAGS_INIT "${CMAKE_ASM_FLAGS_INIT} ${_FINEMOTE_ARCH_FLAGS_STRING} -masm=auto")
+    set(CMAKE_ASM_FLAGS_INIT "${CMAKE_ASM_FLAGS_INIT} ${_FINEMOTE_ARCH_FLAGS_STRING} -x assembler-with-cpp")
 
     # startup file
     set(_FINEMOTE_BOARD_DIR "${_FINEMOTE_PROJECT_DIR}/BSP/${BOARD_NAME}")
-    file(GLOB _FINEMOTE_STARTUP_CANDIDATES "${_FINEMOTE_BOARD_DIR}/MDK-ARM/startup*.s")
+    file(GLOB _FINEMOTE_STARTUP_CANDIDATES "${_FINEMOTE_BOARD_DIR}/Core/Startup/startup*.s")
     list(LENGTH _FINEMOTE_STARTUP_CANDIDATES _FINEMOTE_STARTUP_COUNT)
     if (NOT _FINEMOTE_STARTUP_COUNT EQUAL 1)
-        message(FATAL_ERROR "Expected exactly one ArmClang startup file under ${_FINEMOTE_BOARD_DIR}/MDK-ARM, found ${_FINEMOTE_STARTUP_COUNT}.")
+        message(FATAL_ERROR "Expected exactly one GCC startup file under ${_FINEMOTE_BOARD_DIR}/Core/Startup, found ${_FINEMOTE_STARTUP_COUNT}.")
     endif ()
     list(GET _FINEMOTE_STARTUP_CANDIDATES 0 _FINEMOTE_STARTUP_SOURCE)
     set(_FINEMOTE_STARTUP_SOURCE "${_FINEMOTE_STARTUP_SOURCE}" CACHE INTERNAL "Board startup source" FORCE)
 
     # linker script
-    set(_FINEMOTE_LINKER_SCRIPT "${_FINEMOTE_PROJECT_DIR}/BSP/${BOARD_NAME}/MDK-ARM/${BOARD_NAME}/${BOARD_NAME}.sct")
+    set(_FINEMOTE_LINKER_SCRIPT "${_FINEMOTE_BOARD_DIR}/STM32F407XX_FLASH.ld")
     if (NOT EXISTS "${_FINEMOTE_LINKER_SCRIPT}")
-        message(FATAL_ERROR "ArmClang linker script not found: ${_FINEMOTE_LINKER_SCRIPT}")
+        message(FATAL_ERROR "GCC linker script not found: ${_FINEMOTE_LINKER_SCRIPT}")
     endif ()
 
-    # for armlink
-    set(_FINEMOTE_ARMLINK_CPU "${CMAKE_SYSTEM_PROCESSOR}")
-    if (DEFINED FINEMOTE_FPU AND NOT FINEMOTE_FPU STREQUAL "")
-        if (FINEMOTE_FPU MATCHES "-sp-")
-            string(APPEND _FINEMOTE_ARMLINK_CPU ".fp.sp")
-        elseif (FINEMOTE_FPU MATCHES "-dp-")
-            string(APPEND _FINEMOTE_ARMLINK_CPU ".fp.dp")
-        endif ()
-    endif ()
-
+    # linker options
     set(_FINEMOTE_BOARD_LINK_OPTIONS
-            "--scatter=${_FINEMOTE_LINKER_SCRIPT}"
-            "--cpu=${_FINEMOTE_ARMLINK_CPU}"
-            "--strict"
-            CACHE INTERNAL "ArmClang board link options"
+            ${_FINEMOTE_ABI_FLAGS}
+            -T${_FINEMOTE_LINKER_SCRIPT}
+            -Wl,-Map=$<TARGET_FILE_DIR:@TARGET@>/$<TARGET_FILE_BASE_NAME:@TARGET@>.map
+            -Wl,--gc-sections
+            -Wl,--print-memory-usage
+            -Wl,--no-wchar-size-warning
+            -specs=nano.specs
+            -specs=nosys.specs
+            CACHE INTERNAL "arm-none-eabi-gcc board link options"
             FORCE
     )
-
-    string(JOIN " " _FINEMOTE_BOARD_LINK_FLAGS ${_FINEMOTE_BOARD_LINK_OPTIONS})
-    set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} ${_FINEMOTE_BOARD_LINK_FLAGS}")
 endmacro()
 
 function(finemote_postprocess target)
     # map and report files
+    set(_FINEMOTE_TARGET_LINK_OPTIONS ${_FINEMOTE_BOARD_LINK_OPTIONS})
+    list(TRANSFORM _FINEMOTE_TARGET_LINK_OPTIONS REPLACE "@TARGET@" "${target}")
+
     target_link_options(${target} PRIVATE
-            "--list=$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_BASE_NAME:${target}>.map"
-            "--map"
-            "--summary_stderr"
-            "--info=summarysizes"
-            "--info=sizes"
-            "--info=totals"
-            "--info=unused"
-            "--info=veneers"
-            "--load_addr_map_info"
-            "--xref"
-            "--callgraph"
-            "--symbols"
+            ${_FINEMOTE_TARGET_LINK_OPTIONS}
     )
 
     # firmware image
     add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_OBJCOPY} --i32combined --output "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_BASE_NAME:${target}>.hex" "$<TARGET_FILE:${target}>"
+            COMMAND ${CMAKE_OBJCOPY} -O ihex "$<TARGET_FILE:${target}>" "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_BASE_NAME:${target}>.hex"
+            COMMAND ${CMAKE_SIZE} "$<TARGET_FILE:${target}>"
             VERBATIM
     )
 endfunction()
