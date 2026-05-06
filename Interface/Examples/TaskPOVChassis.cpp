@@ -121,14 +121,18 @@ UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
 #include "MicroROS/MicroROS_Manager.hpp"
 #include "MicroROS/MicroROS_MessageTypes.hpp"
 
-int32_t count_1 = 700;
-RosPublisher pub_hb_1("heartbeat_1", [](std_msgs__msg__Int32& msg) {
-    msg.data = count_1++;
+auto pub_chassis_twist = PUBLISHER(chassis);
+
+int32_t count = 0;
+RosPublisher pub_hb("heartbeat", [](std_msgs__msg__Int32& msg) {
+    msg.data = count++;
 });
 
-auto pub_motor_state = PUBLISHER(CBRMotor);
-auto pub_chassis_odom = PUBLISHER(chassis);
 
+RosSubscriber sub_led("cmd/led", [](const std_msgs__msg__Bool& msg)
+{
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, msg.data ? GPIO_PIN_RESET : GPIO_PIN_SET);
+});
 
 
 
