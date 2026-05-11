@@ -20,6 +20,7 @@ public:
     }
 
     void Handle() final {
+        SetFeedback();
         controller->Calc();
         MessageGenerate();
         GetCurrentPosition();
@@ -29,9 +30,12 @@ public:
 
 private:
     void SetFeedback() final {
-        switch (params.targetType) {
+        const Motor_State_t* s = GetStatePtr();
+        switch (this->params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
+                controller->SetFeedbacks(&s->position);
+                break;
+            default:
                 break;
         }
     }
@@ -75,9 +79,16 @@ private:
 
     void Update() override {
         if (canAgent.rxbuf[2] != 0xEE) {
+            Motor_State_t newState;
+
             float tmp = ((canAgent.rxbuf[2] << 24u) | (canAgent.rxbuf[3] << 16u) | (canAgent.rxbuf[4] << 8u) | (canAgent.rxbuf[5])) * 360.0f / 65536.0f;
             tmp *= canAgent.rxbuf[1] == 0x00 ? -1 : 1;
-            state.position = fmod(tmp, 360.);
+            newState.position = fmod(tmp, 360.);
+            newState.speed = 0;
+            newState.torque = 0;
+            newState.temperature = 0;
+
+            stateSnapshot_.Commit(newState);
         }
     }
 };

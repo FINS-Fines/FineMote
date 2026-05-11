@@ -5,6 +5,18 @@
 #ifndef FINEMOTE_CHASSISBASE_H
 #define FINEMOTE_CHASSISBASE_H
 
+#include <array>
+#include <type_traits>
+#include "StateSnapshot.hpp"
+#include "DeviceBase/DeviceBase.hpp"
+#include "MicroROS/MicroROS_Agent.hpp"
+#include <geometry_msgs/msg/twist.h>
+
+typedef struct {
+    std::array<float, 3> position;
+    std::array<float, 3> velocity;
+} Chassis_State_t;
+
 template <int DOFs>
 class WithoutOdom {
 public:
@@ -50,11 +62,46 @@ public:
         targetV = std::forward<T>(v);
     }
 
+    Chassis_State_t GetChassisState() const {
+        return stateSnapshot_.Read();
+    }
+
+    const Chassis_State_t* GetChassisStatePtr() const {
+        return stateSnapshot_.GetPtr();
+    }
+
+    auto GetRosBinder() {
+        return [this](geometry_msgs__msg__Twist& msg) {
+            this->UpdateToRos(msg);
+        };
+    }
+
 protected:
+    template <typename MsgT>
+    void UpdateToRos(MsgT& msg) {
+        if constexpr (!WITH_MICRO_ROS) return;
+
+        Chassis_State_t state = GetChassisState();
+
+        msg.linear.x = state.velocity[0];
+        msg.linear.y = state.velocity[1];
+        msg.linear.z = 0.0f;
+
+        msg.angular.x = 0.0f;
+        msg.angular.y = 0.0f;
+        msg.angular.z = state.velocity[2];
+    }
+
+    void CommitChassisState(const Chassis_State_t& newState) {
+        stateSnapshot_.Commit(newState);
+    }
+
     OdomPolicy odom;
 
     std::array<float, 3> targetV = {0};
     std::array<float, 3> estimatedV = {0};
+
+    StateSnapshot<Chassis_State_t> stateSnapshot_;
 };
 
 #endif

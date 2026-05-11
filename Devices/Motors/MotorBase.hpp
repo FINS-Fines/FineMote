@@ -3,7 +3,11 @@
 
 #include "../DeviceBase/DeviceBase.hpp"
 #include "Control/ImplementControlBase.hpp"
+#include "StateSnapshot.hpp"
+#include "FreeRTOS.h"
+#include "task.h"
 #include <cstdint>
+#include <sensor_msgs/msg/joint_state.h>
 
 enum class Motor_Ctrl_Type_e: uint16_t {
     Position = 0,
@@ -32,10 +36,7 @@ public:
 
     }
 
-
-
     void ResetController(ImplementControllerBase<1,1>& _controller) {
-
         controller = &_controller;
         _controller.SetTargets(&target);
         this->SetFeedback();
@@ -44,7 +45,7 @@ public:
     void Stop() {
         switch (params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                SetTargetAngle(state.position);
+                SetTargetAngle(GetState().position);
                 break;
             case Motor_Ctrl_Type_e::Speed:
                 SetTargetSpeed(0);
@@ -77,31 +78,66 @@ public:
         }
         target = targetAngle * params.reductionRatio; //多圈目标，减速后
 
+        Motor_State_t current_s = GetState();
+
         if (params.multiTurnSamePosition) {
-            while (target - state.position < -180.f * params.reductionRatio){
+            while (target - current_s.position < -180.f * params.reductionRatio) {
                 target += 360.f * params.reductionRatio;
             }
-            while (target - state.position > 180.f * params.reductionRatio){
+            while (target - current_s.position > 180.f * params.reductionRatio) {
                 target -= 360.f * params.reductionRatio;
             }
         }
     }
 
-    Motor_State_t& GetState(){
-        return state;
+    Motor_State_t GetState() const {
+        return stateSnapshot_.Read();
     }
 
-    const float GetMultiTurnPosition() {
-        return state.position / params.reductionRatio;
+    const Motor_State_t* GetStatePtr() const {
+        return stateSnapshot_.GetPtr();
+    }
+
+    float GetMultiTurnPosition() const {
+        return GetState().position / params.reductionRatio;
+    }
+
+    void CommitState(const Motor_State_t& newState) {
+        stateSnapshot_.Commit(newState);
+    }
+
+    void UpdateToRos(sensor_msgs__msg__JointState& msg) const {
+        if constexpr (WITH_MICRO_ROS) {
+            Motor_State_t s = stateSnapshot_.Read();
+            uint32_t ticks = xTaskGetTickCount();
+            msg.header.stamp.sec = ticks / configTICK_RATE_HZ;
+            msg.header.stamp.nanosec = (ticks % configTICK_RATE_HZ) * (1000000000 / configTICK_RATE_HZ);
+            if (msg.position.capacity >= 1) {
+                msg.position.data[0] = s.position;
+                msg.position.size = 1;
+            }
+            if (msg.velocity.capacity >= 1) {
+                msg.velocity.data[0] = s.speed;
+                msg.velocity.size = 1;
+            }
+            if (msg.effort.capacity >= 1) {
+                msg.effort.data[0] = s.torque;
+                msg.effort.size = 1;
+            }
+        }
+    }
+
+    auto GetRosBinder() {
+        return [this](sensor_msgs__msg__JointState& msg) { this->UpdateToRos(msg); };
     }
 
 protected:
     virtual void SetFeedback() = 0;
 
     float target = 0; //多圈目标，减速后
-    Motor_State_t state = {0, 0, 0, 0}; //单圈状态，不考虑减速
     Motor_Param_t params;
     ImplementControllerBase<1,1>* controller = nullptr;
+    StateSnapshot<Motor_State_t> stateSnapshot_;
 };
 
 #endif

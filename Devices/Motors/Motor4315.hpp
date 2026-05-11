@@ -38,10 +38,14 @@ private:
         if (CRC16Calc(data, 13) == (data[13] | data[14] << 8u) && motorMap.contains(data[2])) {
             MotorBase* motor = motorMap[data[2]];
             if (data[3] == 0x55) {
-                motor->GetState().position = -1 * ((data[7] | (data[8] << 8u) | (data[9] << 16u) | (data[10] << 24u)) * 360.0f / 16384.0f);
-                motor->GetState().speed = -1 * static_cast<int16_t>(data[11] | (data[12] << 8u));
-                motor->GetState().torque = 0; // 电机应答不返回电流值
-                motor->GetState().temperature = 0; // 电机应答不返回温度参数
+                Motor_State_t newState;
+
+                newState.position = -1 * ((data[7] | (data[8] << 8u) | (data[9] << 16u) | (data[10] << 24u)) * 360.0f / 16384.0f);
+                newState.speed = -1 * static_cast<int16_t>(data[11] | (data[12] << 8u));
+                newState.torque = 0;
+                newState.temperature = 0;
+
+                motor->CommitState(newState);
             }
         }
     }
@@ -56,7 +60,8 @@ public:
         ResetController(_controller);
     }
 
-    void Handle() override {
+    void Handle() final {
+        SetFeedback();
         controller->Calc();
         MessageGenerate();
     }
@@ -64,10 +69,11 @@ public:
 private:
     uint8_t txbuf[11] = {};
 
-    void SetFeedback() override {
-        switch (params.ctrlType) {
+    void SetFeedback() final {
+        const Motor_State_t* s = GetStatePtr();
+        switch (this->params.ctrlType) {
             case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
+                controller->SetFeedbacks(&s->position);
                 break;
         }
     }

@@ -117,6 +117,18 @@ public:
         this->estimatedV[0] = Xn[0][0][0];
         this->estimatedV[1] = Xn[0][1][0];
         this->estimatedV[2] = Xn[0][2][0];
+
+        Chassis_State_t newState;
+        newState.velocity = this->estimatedV;
+        if constexpr (!std::is_same<OdomPolicy, WithoutOdom<3>>::value)
+        {
+            newState.position = this->odom.GetOdom();
+        }
+        else
+        {
+            newState.position = {0, 0, 0};
+        }
+        this->CommitChassisState(newState);
     }
 
     void Handle() final {

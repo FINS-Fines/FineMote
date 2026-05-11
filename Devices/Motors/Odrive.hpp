@@ -20,6 +20,7 @@ public:
     }
 
     void Handle() final {
+        SetFeedback();
         controller->Calc();
         MessageGenerate();
     }
@@ -28,12 +29,15 @@ public:
 
 private:
     void SetFeedback() final {
+        const Motor_State_t* s = GetStatePtr();
         switch (params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
+                controller->SetFeedbacks(&s->position);
                 break;
             case Motor_Ctrl_Type_e::Speed:
-                controller->SetFeedbacks(&state.speed);
+                controller->SetFeedbacks(&s->speed);
+                break;
+            default:
                 break;
         }
     }
@@ -90,13 +94,19 @@ private:
     }
 
     void Update() override {
+        Motor_State_t newState;
+
         uint32_t position_data = (canAgent.rxbuf[0] | (canAgent.rxbuf[1] << 8u) | (canAgent.rxbuf[2] << 16u) | (canAgent.rxbuf[3] << 24u));
         float position_float = *reinterpret_cast<float*>(&position_data);
-        state.position = position_float;
+        newState.position = position_float;
 
         uint32_t speed_data = (canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u) | (canAgent.rxbuf[6] << 16u) | (canAgent.rxbuf[7] << 24u));
         float speed_float = *reinterpret_cast<float*>(&speed_data);
-        state.speed = speed_float;
+        newState.speed = speed_float;
+        newState.torque = 0;
+        newState.temperature = 0;
+
+        stateSnapshot_.Commit(newState);
     }
 };
 

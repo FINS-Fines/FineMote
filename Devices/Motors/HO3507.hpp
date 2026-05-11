@@ -24,6 +24,7 @@ public:
     }
 
     void Handle() final {
+        SetFeedback();
         controller->Calc();
         if (HAL_GetTick() - initTick < 5000) {
             ChooseCtrlType();
@@ -39,12 +40,15 @@ private:
     uint32_t initTick;
 
     void SetFeedback() final {
-        switch (params.targetType) {
+        const Motor_State_t* s = GetStatePtr();
+        switch (this->params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
+                controller->SetFeedbacks(&s->position);
                 break;
             case Motor_Ctrl_Type_e::Speed:
-                controller->SetFeedbacks(&state.speed);
+                controller->SetFeedbacks(&s->speed);
+                break;
+            default:
                 break;
         }
     }
@@ -146,12 +150,17 @@ private:
     }
 
     void Update() override { //正方向取CCW
+        Motor_State_t newState;
+
         int16_t position_code = (canAgent.rxbuf[1] << 8) | canAgent.rxbuf[2];
-        state.position = -static_cast<float>(position_code - 0x8000) / 32768.0f * 360.0f;
+        newState.position = -static_cast<float>(position_code - 0x8000) / 32768.0f * 360.0f;
         int16_t speed_code = (canAgent.rxbuf[3] << 4) | ((canAgent.rxbuf[4] >> 4) & 0x0F);
-        state.speed = -static_cast<float>(speed_code - 0x800) / 2048.0f * 58.639f;
+        newState.speed = -static_cast<float>(speed_code - 0x800) / 2048.0f * 58.639f;
         int16_t torque_code = (((canAgent.rxbuf[4]) & 0xF0) << 4) | canAgent.rxbuf[5];
-        state.torque = -static_cast<float>(torque_code - 0x800) / 2048.0f * 4.0f;
+        newState.torque = -static_cast<float>(torque_code - 0x800) / 2048.0f * 4.0f;
+        newState.temperature = 0;
+
+        stateSnapshot_.Commit(newState);
     }
 };
 

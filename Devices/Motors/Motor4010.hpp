@@ -24,6 +24,7 @@ public:
     }
 
     void Handle() final {
+        SetFeedback();
         controller->Calc();
         MessageGenerate();
     }
@@ -32,12 +33,13 @@ public:
 
 private:
     void SetFeedback() final {
+        const Motor_State_t* s = GetStatePtr();
         switch (this->params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position);
+                controller->SetFeedbacks(&s->position);
                 break;
             case Motor_Ctrl_Type_e::Speed:
-                controller->SetFeedbacks(&state.speed);
+                controller->SetFeedbacks(&s->speed);
                 break;
             default:
                 break;
@@ -80,10 +82,14 @@ private:
     }
 
     void Update() override {
-        state.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
-        state.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
-        state.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
-        state.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
+        Motor_State_t newState;
+
+        newState.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
+        newState.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
+        newState.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
+        newState.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
+
+        stateSnapshot_.Commit(newState);
     }
 };
 
