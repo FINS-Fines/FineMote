@@ -9,6 +9,8 @@
 
 #include "ProjectConfig.h"
 
+#include <cstring>
+
 #include "Verification/CRC.h"
 
 class FineSerial {
