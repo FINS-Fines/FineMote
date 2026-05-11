@@ -67,7 +67,7 @@ extern uint32_t SystemCoreClock;
 #define configCPU_CLOCK_HZ (SystemCoreClock)
 #define configTICK_RATE_HZ ((TickType_t)1000)
 #define configMAX_PRIORITIES (56)
-#define configMINIMAL_STACK_SIZE ((uint16_t)128)
+#define configMINIMAL_STACK_SIZE ((uint16_t)512)
 #define configTOTAL_HEAP_SIZE ((size_t)15360)
 #define configMAX_TASK_NAME_LEN (16)
 #define configUSE_TRACE_FACILITY 1
@@ -75,8 +75,10 @@ extern uint32_t SystemCoreClock;
 #define configUSE_MUTEXES 1
 #define configQUEUE_REGISTRY_SIZE 8
 #define configUSE_RECURSIVE_MUTEXES 1
+#define configUSE_APPLICATION_TASK_TAG 1
 #define configUSE_COUNTING_SEMAPHORES 1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
+#define configUSE_POSIX_ERRNO 1
 /* USER CODE BEGIN MESSAGE_BUFFER_LENGTH_TYPE */
 /* Defaults to size_t for backward compatibility, but can be changed
    if lengths will always be less than the number of bytes in a size_t. */
@@ -91,7 +93,7 @@ extern uint32_t SystemCoreClock;
 #define configUSE_TIMERS 1
 #define configTIMER_TASK_PRIORITY (2)
 #define configTIMER_QUEUE_LENGTH 10
-#define configTIMER_TASK_STACK_DEPTH 256
+#define configTIMER_TASK_STACK_DEPTH 1024
 
 /* CMSIS-RTOS V2 flags */
 #define configUSE_OS2_THREAD_SUSPEND_RESUME 1
@@ -170,8 +172,7 @@ standard names. */
 
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
-#define configUSE_POSIX_ERRNO 1
-#define configUSE_APPLICATION_TASK_TAG 1
+
 /* USER CODE END Defines */
 
 #endif /* FREERTOS_CONFIG_H */
