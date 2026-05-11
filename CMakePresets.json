@@ -43,6 +43,13 @@
       }
     },
     {
+      "name": "board-MC_Board_02",
+      "hidden": true,
+      "cacheVariables": {
+        "BOARD_NAME": "MC_Board_02"
+      }
+    },
+    {
       "name": "config-debug",
       "hidden": true,
       "cacheVariables": {
@@ -125,6 +132,42 @@
       "inherits": [
         "compiler-arm-none-eabi-gcc",
         "board-MC_Board",
+        "config-release"
+      ]
+    },
+    {
+      "name": "armclang-MC_Board_02-debug",
+      "displayName": "ArmClang / MC_Board_02 / Debug",
+      "inherits": [
+        "compiler-armclang",
+        "board-MC_Board_02",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "armclang-MC_Board_02-release",
+      "displayName": "ArmClang / MC_Board_02 / Release",
+      "inherits": [
+        "compiler-armclang",
+        "board-MC_Board_02",
+        "config-release"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-MC_Board_02-debug",
+      "displayName": "arm-none-eabi-gcc / MC_Board_02 / Debug",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-MC_Board_02",
+        "config-debug"
+      ]
+    },
+    {
+      "name": "arm-none-eabi-gcc-MC_Board_02-release",
+      "displayName": "arm-none-eabi-gcc / MC_Board_02 / Release",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "board-MC_Board_02",
         "config-release"
       ]
     }

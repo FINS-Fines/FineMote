@@ -10,6 +10,9 @@
 #include "etl/map.h"
 #include "etl/queue.h"
 #include "BSP_CAN.h"
+#include "CAN_Header.hpp"
+template<uint8_t ID>
+class BSP_CAN;//前置声明BSP_CAN
 
 #define CAN_MAP_SIZE 20
 #define CAN_TX_QUEUE_SIZE 16
@@ -40,7 +43,8 @@ public:
     CAN_Base &operator=(const CAN_Base &) = delete;
 
     void RxHandle() {
-        uint8_t tempBuf[8];
+        //使用自定义的Header，传入BSP_CAN
+        /*uint8_t tempBuf[8];
         CAN_RxHeaderTypeDef Header;
 
         BSP_CAN<ID>::GetInstance().Receive(&Header, tempBuf);
@@ -49,11 +53,20 @@ public:
             memcpy(rxBufferMap[Header.StdId], tempBuf, Header.DLC);
         } else if (Header.IDE == CAN_ID_EXT) {
             memcpy(rxBufferMap[Header.ExtId], tempBuf, Header.DLC);
+        }*/
+        uint8_t tempBuf[8];
+        FineMote_CAN_HeaderTypeDef Header;
+        BSP_CAN<ID>::GetInstance().Receive(&Header, tempBuf);
+        if (Header.IDE == CAN_ID_STD) {
+            memcpy(rxBufferMap[Header.ID], tempBuf, Header.DLC);
+        } else if (Header.IDE == CAN_ID_EXT) {
+            memcpy(rxBufferMap[Header.ID], tempBuf, Header.DLC);
         }
     }
 
     void TxHandle() {
-        if (!dataQueue.empty()) {
+        //使用自定义的Header，传入BSP_CAN
+        /*if (!dataQueue.empty()) {
             CAN_TxHeaderTypeDef Header;
 
             if (dataQueue.front().IDE == CAN_ID_STD) {
@@ -69,6 +82,19 @@ public:
 
             BSP_CAN<ID>::GetInstance().Transmit(&Header, dataQueue.front().message);
 
+            dataQueue.pop();
+        } else {
+            isTxComplete = true;
+        }*/
+        if (!dataQueue.empty()) {
+            FineMote_CAN_HeaderTypeDef Header;
+            if (dataQueue.front().IDE == CAN_ID_STD || dataQueue.front().IDE == CAN_ID_EXT) {
+                Header.ID = dataQueue.front().addr;
+            }
+            Header.DLC = dataQueue.front().DLC;
+            Header.IDE = dataQueue.front().IDE;
+            Header.RTR = dataQueue.front().RTR;
+            BSP_CAN<ID>::GetInstance().Transmit(&Header, dataQueue.front().message);
             dataQueue.pop();
         } else {
             isTxComplete = true;
