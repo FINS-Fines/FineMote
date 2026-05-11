@@ -166,6 +166,24 @@
   */
 
 /**
+  * @brief  Configure the system power supply to exit Run0 mode
+  *         This function configures the LDO regulator for normal operation
+  * @param  None
+  * @retval None
+  */
+void ExitRun0Mode(void)
+{
+  /* For STM32H7, configure LDO voltage regulator */
+  /* This ensures proper power supply configuration before SystemInit */
+  PWR->CR3 |= PWR_CR3_LDOEN;
+
+  /* Wait until regulator is ready */
+  while((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {
+  }
+}
+
+/**
   * @brief  Setup the microcontroller system
   *         Initialize the FPU setting and  vector table location
   *         configuration.

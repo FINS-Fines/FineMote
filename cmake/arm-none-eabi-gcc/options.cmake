@@ -50,9 +50,10 @@ macro(finemote_toolchain)
     set(_FINEMOTE_STARTUP_SOURCE "${_FINEMOTE_STARTUP_SOURCE}" CACHE INTERNAL "Board startup source" FORCE)
 
     # linker script
-    set(_FINEMOTE_LINKER_SCRIPT "${_FINEMOTE_BOARD_DIR}/STM32F407XX_FLASH.ld")
-    if (NOT EXISTS "${_FINEMOTE_LINKER_SCRIPT}")
-        message(FATAL_ERROR "GCC linker script not found: ${_FINEMOTE_LINKER_SCRIPT}")
+    file(GLOB _FINEMOTE_LINKER_SCRIPT "${_FINEMOTE_BOARD_DIR}/*_FLASH.ld")
+    list(LENGTH _FINEMOTE_LINKER_SCRIPT _FINEMOTE_LINKER_COUNT)
+    if (NOT _FINEMOTE_LINKER_COUNT EQUAL 1)
+        message(FATAL_ERROR "Expected exactly one linker script under ${_FINEMOTE_BOARD_DIR}, found ${_FINEMOTE_LINKER_COUNT}.")
     endif ()
 
     # linker options
