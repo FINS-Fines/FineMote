@@ -114,7 +114,30 @@ UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
 
 
 /**
- * Part 4: Task definitions.
+ * Part 4: micro-ROS definitions.
+ */
+
+#include "MicroROS/MicroROS_Agent.hpp"
+#include "MicroROS/MicroROS_Manager.hpp"
+#include "MicroROS/MicroROS_MessageTypes.hpp"
+
+auto pub_chassis_twist = PUBLISHER(chassis);
+
+int32_t count = 0;
+RosPublisher pub_hb("heartbeat", [](std_msgs__msg__Int32& msg) {
+    msg.data = count++;
+});
+
+
+RosSubscriber sub_led("cmd/led", [](const std_msgs__msg__Bool& msg)
+{
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, msg.data ? GPIO_PIN_RESET : GPIO_PIN_SET);
+});
+
+
+
+/**
+ * Part 5: Task definitions.
  */
 static bool cascaded=0;
 void TaskPOVChassis() {
