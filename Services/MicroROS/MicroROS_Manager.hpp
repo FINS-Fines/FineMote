@@ -8,14 +8,14 @@
 #define FINEMOTE_MICROROS_MANAGER_HPP
 
 #include "Board.h"
-#include "FreeRTOS.h"
-#include "cmsis_os.h"
 #include "etl/list.h"
-#include "stream_buffer.h"
-#include "task.h"
+
+#include <cstring>
 
 #include <FreeRTOS_POSIX.h>
 #include <FreeRTOS_POSIX/pthread.h>
+#include <FreeRTOS_POSIX/unistd.h>
+#include <atomic>
 
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
@@ -66,7 +66,7 @@ public:
             HandleRunning();
             break;
         case State::ERROR:
-            osDelay(1000);
+            sleep(1);
             state_ = State::WAITING_AGENT;
             break;
         }
@@ -74,18 +74,11 @@ public:
 
 private:
     MicroROS_Manager() :
-        rx_stream_buffer_(xStreamBufferCreateStatic(
-            MICROROS_BUF_SIZE,
-            1,
-            stream_buffer_storage_,
-            &stream_buffer_struct_
-        )),
         dma_buffer_([this](uint8_t* data, size_t size)
         {
             this->PushRxData(data, size);
         })
     {
-        configASSERT(rx_stream_buffer_ != nullptr);
         Setup();
         StartThread();
     }
@@ -94,14 +87,9 @@ private:
     {
         allocator_ = rcl_get_default_allocator();
 
-        tx_sem_ = xSemaphoreCreateBinaryStatic(&tx_sem_struct_);
-        configASSERT(tx_sem_ != nullptr);
-        xSemaphoreGive(tx_sem_);
-
         UART_Base<MICRO_ROS_UART_ID>::GetInstance().BindTxHandle([this]()
         {
-            BaseType_t hpw = pdFALSE;
-            xSemaphoreGiveFromISR(this->tx_sem_, &hpw);
+            this->tx_busy_.store(false, std::memory_order_release);
             return true;
         });
 
@@ -133,7 +121,7 @@ private:
         for (;;)
         {
             manager->Handle();
-            osDelay(200);
+            usleep(200000);
         }
     }
 
@@ -141,14 +129,23 @@ private:
 
     void PushRxData(uint8_t* data, size_t size)
     {
-        if (rx_stream_buffer_ == nullptr || size == 0) return;
+        if (size == 0) return;
 
-        xStreamBufferSendFromISR(
-            rx_stream_buffer_,
-            data,
-            size,
-            nullptr
-        );
+        size_t w = rx_w_.load(std::memory_order_relaxed);
+        size_t r = rx_r_.load(std::memory_order_acquire);
+        size_t space = MICROROS_BUF_SIZE - (w - r);
+
+        if (size > space) return;
+
+        size_t pos = w & (MICROROS_BUF_SIZE - 1);
+        size_t first = MICROROS_BUF_SIZE - pos;
+        if (size <= first) {
+            memcpy(&rx_buf_[pos], data, size);
+        } else {
+            memcpy(&rx_buf_[pos], data, first);
+            memcpy(&rx_buf_[0], data + first, size - first);
+        }
+        rx_w_.store(w + size, std::memory_order_release);
     }
 
     void HandleWaiting()
@@ -193,7 +190,7 @@ private:
             }
         }
 
-        last_tick_ = xTaskGetTickCount();
+        ping_counter_ = 0;
         state_ = State::RUNNING;
     }
 
@@ -212,9 +209,9 @@ private:
             agent->Execute();
         }
 
-        if ((xTaskGetTickCount() - last_tick_) > pdMS_TO_TICKS(1000))
+        if (++ping_counter_ >= 5)  // 5 * 200ms = 1000ms
         {
-            last_tick_ = xTaskGetTickCount();
+            ping_counter_ = 0;
             if (rmw_uros_ping_agent(500, 1) != RMW_RET_OK)
             {
                 GotoError();
@@ -244,18 +241,15 @@ private:
     rclc_support_t support_;
     rcl_node_t node_;
     rclc_executor_t executor_;
-    uint32_t last_tick_ = 0;
-
-    StaticSemaphore_t tx_sem_struct_;
-    SemaphoreHandle_t tx_sem_;
-
-    StaticStreamBuffer_t stream_buffer_struct_;
-    uint8_t stream_buffer_storage_[MICROROS_BUF_SIZE + 1];
-    StreamBufferHandle_t rx_stream_buffer_;
+    uint32_t ping_counter_ = 0;
+    uint8_t rx_buf_[MICROROS_BUF_SIZE];
+    std::atomic<size_t> rx_w_{0};
+    std::atomic<size_t> rx_r_{0};
 
     etl::list<ROSAgent<>*, MICROROS_MAX_AGENTS> agents_;
 
     uint8_t tx_buffer_[MICROROS_BUF_SIZE];
+    std::atomic<bool> tx_busy_{false};
     UARTBuffer<MICRO_ROS_UART_ID, MICROROS_DMA_BUF_SIZE> dma_buffer_;
 
     pthread_t thread_{};

@@ -12,7 +12,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "cmsis_os.h"
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
