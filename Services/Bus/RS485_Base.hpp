@@ -108,7 +108,7 @@ public:
     }
 
 private:
-    uint32_t addr;
+    uint8_t addr;
     std::function<void(uint8_t *data, size_t size)> decodeFunc;
 };
 

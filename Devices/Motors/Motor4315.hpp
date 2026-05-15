@@ -17,6 +17,7 @@ template <uint8_t ID>
 class HTMotorProxy_RS485 {
 public:
     HTMotorProxy_RS485(MotorBase* motor, uint8_t addr) {
+        RS485_Base<ID>::GetInstance();
         getMotorMap().insert(etl::make_pair(addr, motor));
     }
 
