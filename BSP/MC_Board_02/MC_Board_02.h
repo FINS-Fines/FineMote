@@ -41,13 +41,13 @@ public:
  * UART Definitions
  */
  // 新增了对SBUS端口(UART5)的支持
-constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart1, &huart2, &huart5, &huart3, &huart7,&huart10};
+constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart1, &huart2, &huart3, nullptr, &huart5, nullptr, &huart7, nullptr, nullptr, &huart10};
 constexpr size_t UART_BUS_MAXIMUM_COUNT = sizeof(BSP_UARTList) / sizeof(BSP_UARTList[0]) - 1;
 
 /**
  * RS485 Definitions
  */
-constexpr size_t BSP_RS485UARTIndexList[] = {0, 4, 2};
+constexpr size_t BSP_RS485UARTIndexList[] = {0, 3, 2};
 constexpr size_t RS485_BUS_MAXIMUM_COUNT = sizeof(BSP_RS485UARTIndexList) / sizeof(BSP_RS485UARTIndexList[0]) - 1;
 
 inline GPIO_TypeDef *const BSP_RS485FlowCtrlPortList[3] = {nullptr, GPIOB, GPIOD};

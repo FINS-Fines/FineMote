@@ -84,7 +84,9 @@ public:
 
     void RxHandle(uint16_t size) {
         BSP_UART<ID>::GetInstance().Receive(*bufferHead, rxLength);
-        commitBufferFunc(size);
+        if (size > 0) {
+            commitBufferFunc(size);
+        }
     }
 
 private:

@@ -74,11 +74,18 @@ public:
 
 private:
     MicroROS_Manager() :
+        rx_stream_buffer_(xStreamBufferCreateStatic(
+            MICROROS_BUF_SIZE,
+            1,
+            stream_buffer_storage_,
+            &stream_buffer_struct_
+        )),
         dma_buffer_([this](uint8_t* data, size_t size)
         {
             this->PushRxData(data, size);
         })
     {
+        configASSERT(rx_stream_buffer_ != nullptr);
         Setup();
         StartThread();
     }
@@ -86,13 +93,6 @@ private:
     void Setup()
     {
         allocator_ = rcl_get_default_allocator();
-
-        rx_stream_buffer_ = xStreamBufferCreateStatic(
-            MICROROS_BUF_SIZE,
-            1,
-            stream_buffer_storage_,
-            &stream_buffer_struct_
-        );
 
         tx_sem_ = xSemaphoreCreateBinaryStatic(&tx_sem_struct_);
         configASSERT(tx_sem_ != nullptr);
@@ -141,6 +141,8 @@ private:
 
     void PushRxData(uint8_t* data, size_t size)
     {
+        if (rx_stream_buffer_ == nullptr || size == 0) return;
+
         xStreamBufferSendFromISR(
             rx_stream_buffer_,
             data,
