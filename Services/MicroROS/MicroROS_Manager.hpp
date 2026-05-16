@@ -10,12 +10,9 @@
 #include "Board.h"
 #include "etl/list.h"
 
-#include <cstring>
-
 #include <FreeRTOS_POSIX.h>
 #include <FreeRTOS_POSIX/pthread.h>
 #include <FreeRTOS_POSIX/unistd.h>
-#include <atomic>
 
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
@@ -23,7 +20,6 @@
 #include <rmw_microros/rmw_microros.h>
 #include <uxr/client/transport.h>
 
-#include "Bus/UART_Base.hpp"
 #include "MicroROS_Agent.hpp"
 #include "MicroROS_Transport.hpp"
 
@@ -33,8 +29,6 @@ constexpr size_t MICROROS_MAX_AGENTS = 10;
 template <bool enable>
 class MicroROS_Manager
 {
-    friend class MicroROS_Transport<enable>;
-
 public:
     enum class State { WAITING_AGENT, INITIALIZING, RUNNING, ERROR };
 
@@ -73,29 +67,16 @@ public:
     }
 
 private:
-    MicroROS_Manager() :
-        dma_buffer_([this](uint8_t* data, size_t size)
-        {
-            this->PushRxData(data, size);
-        })
+    MicroROS_Manager()
     {
-        Setup();
-        StartThread();
-    }
-
-    void Setup()
-    {
+        MicroROS_Transport::GetInstance();
+        rmw_uros_set_custom_transport(true, nullptr,
+                                      MicroROS_Transport::Open,
+                                      MicroROS_Transport::Close,
+                                      MicroROS_Transport::Write,
+                                      MicroROS_Transport::Read);
         allocator_ = rcl_get_default_allocator();
-
-        UART_Base<MICRO_ROS_UART_ID>::GetInstance().BindTxHandle([this]()
-        {
-            this->tx_busy_.store(false, std::memory_order_release);
-            return true;
-        });
-
-        rmw_uros_set_custom_transport(true, nullptr, MicroROS_Transport<enable>::Open,
-                                      MicroROS_Transport<enable>::Close, MicroROS_Transport<enable>::Write,
-                                      MicroROS_Transport<enable>::Read);
+        StartThread();
     }
 
     void StartThread()
@@ -126,27 +107,6 @@ private:
     }
 
     ~MicroROS_Manager() = default;
-
-    void PushRxData(uint8_t* data, size_t size)
-    {
-        if (size == 0) return;
-
-        size_t w = rx_w_.load(std::memory_order_relaxed);
-        size_t r = rx_r_.load(std::memory_order_acquire);
-        size_t space = MICROROS_BUF_SIZE - (w - r);
-
-        if (size > space) return;
-
-        size_t pos = w & (MICROROS_BUF_SIZE - 1);
-        size_t first = MICROROS_BUF_SIZE - pos;
-        if (size <= first) {
-            memcpy(&rx_buf_[pos], data, size);
-        } else {
-            memcpy(&rx_buf_[pos], data, first);
-            memcpy(&rx_buf_[0], data + first, size - first);
-        }
-        rx_w_.store(w + size, std::memory_order_release);
-    }
 
     void HandleWaiting()
     {
@@ -242,16 +202,7 @@ private:
     rcl_node_t node_;
     rclc_executor_t executor_;
     uint32_t ping_counter_ = 0;
-    uint8_t rx_buf_[MICROROS_BUF_SIZE];
-    std::atomic<size_t> rx_w_{0};
-    std::atomic<size_t> rx_r_{0};
-
     etl::list<ROSAgent<>*, MICROROS_MAX_AGENTS> agents_;
-
-    uint8_t tx_buffer_[MICROROS_BUF_SIZE];
-    std::atomic<bool> tx_busy_{false};
-    UARTBuffer<MICRO_ROS_UART_ID, MICROROS_DMA_BUF_SIZE> dma_buffer_;
-
     pthread_t thread_{};
 };
 
