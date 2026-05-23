@@ -15,6 +15,7 @@ target_include_directories(FreeRTOS-POSIX PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/include/private"
         "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include/portable"
+        "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include/portable/st/stm32l475_discovery"
 )
 
 file(GLOB FreeRTOS_POSIX_SOURCES CONFIGURE_DEPENDS
