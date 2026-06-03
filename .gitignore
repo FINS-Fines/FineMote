@@ -4,6 +4,10 @@
 # VSCode
 .vscode/
 
+# Codex
+.codex
+.agents/
+
 # CLion
 .idea/*
 !.idea/copyright/
