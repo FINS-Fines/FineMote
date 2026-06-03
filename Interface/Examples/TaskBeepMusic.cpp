@@ -2,7 +2,7 @@
 // IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
 // All rights reserved.
 
-#include "Scheduler.h"
+#include "DeviceBase/Task.hpp"
 
 #include "MultiMedia/BeepMusic.hpp"
 
@@ -32,7 +32,7 @@ void updateButtonStateBitwise(button_state_e* current_state, bool rawIsPressed) 
     }
 }
 
-void TaskBeepMusic() {
+[[maybe_unused]] static auto& task_beep_music = make_task([] {
     bool rawIsPressed = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) == buttonPressedLevel);
     updateButtonStateBitwise(&buttonStableState,rawIsPressed );
 
@@ -43,6 +43,4 @@ void TaskBeepMusic() {
         }
     }
     buttonLastState = buttonStableState;
-}
-TASK_EXPORT(TaskBeepMusic);
-
+}, 1);

@@ -895,11 +895,6 @@
               <FilePath>..\..\..\Interface\Interface.cpp</FilePath>
             </File>
             <File>
-              <FileName>Scheduler.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Interface\Scheduler.cpp</FilePath>
-            </File>
-            <File>
               <FileName>TaskLED.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\Interface\Examples\TaskLED.cpp</FilePath>

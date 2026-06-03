@@ -6,7 +6,6 @@
 
 #include "DeviceBase/DeviceScheduler.hpp"
 #include "ProjectConfig.h"
-#include "Scheduler.h"
 
 /**
  * @brief 用户初始化
@@ -34,7 +33,6 @@ void Loop() {
 
 void MainRTLoop() {
     HAL_IWDG_Refresh(&hiwdg);
-    FineMoteScheduler();
 }
 
 /*****  不要修改以下代码 *****/

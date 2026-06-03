@@ -737,11 +737,6 @@
               <FilePath>..\..\..\Interface\Interface.cpp</FilePath>
             </File>
             <File>
-              <FileName>Scheduler.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\..\..\Interface\Scheduler.cpp</FilePath>
-            </File>
-            <File>
               <FileName>TaskBeepMusic.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\Interface\Examples\TaskBeepMusic.cpp</FilePath>

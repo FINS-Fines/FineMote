@@ -14,7 +14,7 @@
 
 #ifdef WITH_POV_EXAMPLE
 
-#include "Scheduler.h"
+#include "DeviceBase/Task.hpp"
 
 /**
  * Part 1 (Case 1): Motor definitions.
@@ -116,8 +116,8 @@ UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
 /**
  * Part 4: Task definitions.
  */
-static bool cascaded=0;
-void TaskPOVChassis() {
+[[maybe_unused]] static bool cascaded=0;
+[[maybe_unused]] static auto& task_pov_chassis = make_task([] {
     constexpr float SPEED_LIMIT = 2.0f;
 //    if(!cascaded){
 //        outerControllers[0].Cascade(innerControllers[0]);
@@ -134,7 +134,6 @@ void TaskPOVChassis() {
         };
         chassis.SetVelocity(std::move(targetV));
     }
-}
-TASK_EXPORT(TaskPOVChassis);
+}, 1);
 
 #endif

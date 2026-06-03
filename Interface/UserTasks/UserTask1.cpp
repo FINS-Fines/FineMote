@@ -4,9 +4,11 @@
  * All rights reserved.
  ******************************************************************************/
 
-#include "Scheduler.h"
+#include "DeviceBase/Task.hpp"
 
-void UserTask1() {
-    // Do something
-}
-TASK_EXPORT(UserTask1);
+[[maybe_unused]] static auto& user_task1 = make_task(
+    [] {
+        // Do something
+    },
+    100
+);
