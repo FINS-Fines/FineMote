@@ -18,7 +18,8 @@ public:
         constexpr uint8_t FRAME_TRAILER = 0xBB;
 
         uint8_t crc = CRC8Calc(data + 3, size - 5);
-        if (data[0] != FRAME_HEADER || data[size - 1] != FRAME_TRAILER || data[size - 2] != crc || size != 5 + data[2]) {
+        if (data[0] != FRAME_HEADER || data[size - 1] != FRAME_TRAILER || data[size - 2] != crc || size != 5 + data[2])
+        {
             return;
         }
 
@@ -31,7 +32,7 @@ public:
     }
 
     std::array<float, 3> GetVelCmd() const {
-        std::array<float, 3> retval = {velCmd[0], velCmd[1], rtCmd[2]};
+        std::array<float, 3> retval = { velCmd[0], velCmd[1], rtCmd[2] };
         return std::move(retval);
     }
 

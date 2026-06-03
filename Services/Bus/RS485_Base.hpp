@@ -7,10 +7,10 @@
 #ifndef FINEMOTE_RS485_BASE_HPP
 #define FINEMOTE_RS485_BASE_HPP
 
-#include "etl/map.h"
 #include "../../Devices/DeviceBase/DeviceBase.hpp"
-#include "UART_Base.hpp"
 #include "BSP_RS485.h"
+#include "UART_Base.hpp"
+#include "etl/map.h"
 
 #define RS485_RX_BUFFER_LENGTH 30
 #define RS485_AGENT_SIZE 16
@@ -20,9 +20,9 @@ template<size_t ID>
 class RS485_Agent;
 
 template<size_t ID>
-class RS485_Base : public DeviceBase {
+class RS485_Base: public DeviceBase {
 public:
-    static RS485_Base &GetInstance() {
+    static RS485_Base& GetInstance() {
         static RS485_Base instance;
         return instance;
     }
@@ -56,7 +56,7 @@ public:
         }
     }
 
-    void RxHandle(uint8_t *data, size_t size) {
+    void RxHandle(uint8_t* data, size_t size) {
         uint8_t id = data[0];
         if (agentMap.contains(id)) {
             agentMap[id]->Decode(data, size);
@@ -64,14 +64,15 @@ public:
         waitForResponse = false;
     }
 
-    void Transmit(uint8_t *data, size_t size) {
+    void Transmit(uint8_t* data, size_t size) {
         UART_Base<BSP_RS485UARTIndexList[ID]>::GetInstance().Transmit(data, size);
     }
 
 private:
-    RS485_Base(): buffer([this](uint8_t *data, size_t size) {
-        RxHandle(data, size);
-    }) {
+    RS485_Base():
+        buffer([this](uint8_t* data, size_t size) {
+            RxHandle(data, size);
+        }) {
         UART_Base<BSP_RS485UARTIndexList[ID]>::GetInstance().BindTxHandle([this] {
             return OnTxComplete();
         });
@@ -87,29 +88,30 @@ private:
 
     UARTBuffer<BSP_RS485UARTIndexList[ID], RS485_RX_BUFFER_LENGTH> buffer;
     friend class RS485_Agent<ID>;
-    etl::map<uint8_t, RS485_Agent<ID> *, RS485_AGENT_SIZE> agentMap;
+    etl::map<uint8_t, RS485_Agent<ID>*, RS485_AGENT_SIZE> agentMap;
 };
 
 template<size_t ID>
 class RS485_Agent {
 public:
-    RS485_Agent(uint8_t _addr, std::function<void(uint8_t *data, size_t size)> _decodeFunc): addr(_addr),
+    RS485_Agent(uint8_t _addr, std::function<void(uint8_t* data, size_t size)> _decodeFunc):
+        addr(_addr),
         decodeFunc(_decodeFunc) {
         static_assert((ID > 0) && (ID <= RS485_BUS_MAXIMUM_COUNT), "Using illegal RS485 BUS");
         RS485_Base<ID>::GetInstance().agentMap[addr] = this;
     }
 
-    void Decode(uint8_t *data, size_t size) {
+    void Decode(uint8_t* data, size_t size) {
         decodeFunc(data, size);
     }
 
-    void Transmit(uint8_t *data, size_t size) {
+    void Transmit(uint8_t* data, size_t size) {
         RS485_Base<ID>::GetInstance().Transmit(data, size);
     }
 
 private:
     uint32_t addr;
-    std::function<void(uint8_t *data, size_t size)> decodeFunc;
+    std::function<void(uint8_t* data, size_t size)> decodeFunc;
 };
 
 #endif

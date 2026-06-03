@@ -7,47 +7,41 @@
 #ifndef FINEMOTE_POV_CHASSIS_H
 #define FINEMOTE_POV_CHASSIS_H
 
-#include <array>
-#include "arm_math.h"
-#include "Matrix/matrix.h"
 #include "ChassisBase.hpp"
+#include "Matrix/matrix.h"
+#include "arm_math.h"
+#include <array>
 
 using Swerve_t = struct Swerve_t {
-    MotorBase *steerMotor;
-    MotorBase *driveMotor;
+    MotorBase* steerMotor;
+    MotorBase* driveMotor;
     float lx;
     float ly;
     float zeroPosition;
 };
 
 template<size_t N, typename OdomPolicy = WithoutOdom<3>>
-class POV_Chassis : public ChassisBase<OdomPolicy> {
+class POV_Chassis: public ChassisBase<OdomPolicy> {
 public:
-    POV_Chassis(const float _wheelDiameter, std::array<Swerve_t, N> &&configs) : modules(std::move(configs)),
+    POV_Chassis(const float _wheelDiameter, std::array<Swerve_t, N>&& configs):
+        modules(std::move(configs)),
         wheelDiameter(_wheelDiameter) {
         for (int i = 0; i < N; ++i) {
-            float hnData[2 * 3] = {1, 0, -modules[i].ly, 0, 1, modules[i].lx};
+            float hnData[2 * 3] = { 1, 0, -modules[i].ly, 0, 1, modules[i].lx };
             Hn[i] = Matrixf<2, 3>(hnData);
             Jn[i] = matrixf::eye<3, 3>();
             Xn[i] = matrixf::zeros<3, 1>();
         }
 
-        float BData[2 * 2] = {
-            100, 0,
-            0, 100
-        };
+        float BData[2 * 2] = { 100, 0, 0, 100 };
         B = Matrixf<2, 2>(BData);
-        float QData[3 * 3] = {
-            0.1, 0, 0,
-            0, 0.1, 0,
-            0, 0, 0.1
-        };
+        float QData[3 * 3] = { 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1 };
         Q = Matrixf<3, 3>(QData);
     }
 
-    void InverseKinematics(std::array<float, 3> &v) final {
+    void InverseKinematics(std::array<float, 3>& v) final {
         // Inverse Kinematics
-        for (auto &module: modules) {
+        for (auto& module: modules) {
             float vx = v[0] - module.ly * v[2];
             float vy = v[1] + module.lx * v[2];
             float v = sqrtf(vx * vx + vy * vy);
@@ -74,17 +68,15 @@ public:
 
     void ForwardKinematics() final {
         struct SwerveState {
-            float angle{0};
+            float angle { 0 };
             Matrixf<2, 1> vel;
 
             SwerveState() = default;
 
-            SwerveState(const float _angle, const float _vel, const float &wheelDiameter, const float angleOffset) {
+            SwerveState(const float _angle, const float _vel, const float& wheelDiameter, const float angleOffset) {
                 angle = (_angle + angleOffset) / 180.f * PI; //弧度制
-                float tmp[2]{
-                    _vel / 360.f * PI * wheelDiameter * cosf(angle),
-                    _vel / 360.f * PI * wheelDiameter * sinf(angle)
-                };
+                float tmp[2] { _vel / 360.f * PI * wheelDiameter * cosf(angle),
+                               _vel / 360.f * PI * wheelDiameter * sinf(angle) };
                 vel = tmp;
             }
         };
@@ -94,8 +86,12 @@ public:
         std::array<SwerveState, N> states;
 
         for (int i = 0; i < N; ++i) {
-            SwerveState swerveState_t(modules[i].steerMotor->GetState().position,
-                                      modules[i].driveMotor->GetState().speed, wheelDiameter, modules[i].zeroPosition);
+            SwerveState swerveState_t(
+                modules[i].steerMotor->GetState().position,
+                modules[i].driveMotor->GetState().speed,
+                wheelDiameter,
+                modules[i].zeroPosition
+            );
             states[i] = swerveState_t;
             Xn[i] = alpha * Xn[i] + (1 - alpha) * Matrixf<3, 1>(this->targetV.data());
             Jn[i] = matrixf::inv(alpha * alpha * matrixf::inv(Jn[i]) + 0.5 * Q);
@@ -105,10 +101,14 @@ public:
 
         Matrixf<3, 3> W_mean = matrixf::zeros<3, 3>();
         Matrixf<3, 1> w_mean = matrixf::zeros<3, 1>();
-        for (auto W_t: Wn) W_mean += W_t / N;
-        for (auto W_t: Wn) W_t = W_mean;
-        for (auto w_t: wn) w_mean += w_t / N;
-        for (auto w_t: wn) w_t = w_mean;
+        for (auto W_t: Wn)
+            W_mean += W_t / N;
+        for (auto W_t: Wn)
+            W_t = W_mean;
+        for (auto w_t: wn)
+            w_mean += w_t / N;
+        for (auto w_t: wn)
+            w_t = w_mean;
 
         for (int i = 0; i < N; ++i) {
             Xn[i] = matrixf::inv(W_mean) * w_mean;
@@ -140,11 +140,13 @@ private:
 };
 
 template<typename OdomPolicy = WithoutOdom<3>, typename... Configs>
-auto POV_ChassisBuilder(float _wheelDiameter, Configs &&... configs) {
+auto POV_ChassisBuilder(float _wheelDiameter, Configs&&... configs) {
     constexpr size_t N = sizeof...(Configs);
-    static_assert((std::is_same<std::decay_t<Configs>, Swerve_t>::value && ...),
-                  "All configs must be of type Swerve_t");
-    std::array<Swerve_t, N> modules = {std::forward<Configs>(configs)...};
+    static_assert(
+        (std::is_same<std::decay_t<Configs>, Swerve_t>::value && ...),
+        "All configs must be of type Swerve_t"
+    );
+    std::array<Swerve_t, N> modules = { std::forward<Configs>(configs)... };
     return POV_Chassis<N, OdomPolicy>(_wheelDiameter, std::move(modules));
 }
 

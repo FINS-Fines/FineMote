@@ -7,12 +7,12 @@
 #ifndef FINEMOTE_BEEPMUSIC_HPP
 #define FINEMOTE_BEEPMUSIC_HPP
 
-#include "MultiMedia/MusicLibrary.hpp"
 #include "../../Devices/DeviceBase/DeviceBase.hpp"
 #include "Bus/PWM_Base.hpp"
+#include "MultiMedia/MusicLibrary.hpp"
 
-template <size_t ID>
-class BeepMusic : public DeviceBase {
+template<size_t ID>
+class BeepMusic: public DeviceBase {
 public:
     explicit BeepMusic(uint8_t songIndex = 0) {
         Play(0);
@@ -47,14 +47,15 @@ private:
     }
 
     void BeepService() {
-
         static uint32_t noteTimer = 0;
 
         if (activate) {
             if (curNote && noteTimer >= curNote->Time) {
                 noteTimer = 0;
                 curNote++;
-                if (curNote - const_cast<MusicNote_t *>(MusicScript::Get()[curSong].script) >= MusicScript::Get()[curSong].noteNum) {
+                if (curNote - const_cast<MusicNote_t*>(MusicScript::Get()[curSong].script)
+                    >= MusicScript::Get()[curSong].noteNum)
+                {
                     Stop();
                 } else {
                     BeepImpl(curNote->Note);
@@ -68,7 +69,7 @@ private:
     }
 
     uint8_t curSong;
-    const MusicNote_t *curNote = nullptr;
+    const MusicNote_t* curNote = nullptr;
     bool activate = false;
 };
 

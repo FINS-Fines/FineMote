@@ -11,11 +11,7 @@
 
 class RemoteControl {
 public:
-    enum SWITCH_STATE_E {
-        UP_POS = 1u,
-        MID_POS = 3u,
-        DOWN_POS = 2u
-    };
+    enum SWITCH_STATE_E { UP_POS = 1u, MID_POS = 3u, DOWN_POS = 2u };
 
     struct Mouse_t {
         int32_t x, y, z, pressL, pressR;
@@ -37,9 +33,9 @@ public:
         Keyboard_t keyboard;
     };
 
-    virtual void Decode(uint8_t *data, uint16_t length) = 0;
+    virtual void Decode(uint8_t* data, uint16_t length) = 0;
 
-    const RemoteControlData_t &GetInfo() {
+    const RemoteControlData_t& GetInfo() {
         return info;
     };
 

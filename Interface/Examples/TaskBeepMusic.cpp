@@ -6,10 +6,7 @@
 
 #include "MultiMedia/BeepMusic.hpp"
 
-enum class button_state_e {
-    UNPRESSED = 0 ,
-    PRESSED
-};
+enum class button_state_e { UNPRESSED = 0, PRESSED };
 
 BeepMusic<BUZZER_PWM_ID> MusicBuzzer(0);
 
@@ -32,15 +29,18 @@ void updateButtonStateBitwise(button_state_e* current_state, bool rawIsPressed) 
     }
 }
 
-[[maybe_unused]] static auto& task_beep_music = make_task([] {
-    bool rawIsPressed = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) == buttonPressedLevel);
-    updateButtonStateBitwise(&buttonStableState,rawIsPressed );
+[[maybe_unused]] static auto& task_beep_music = make_task(
+    [] {
+        bool rawIsPressed = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) == buttonPressedLevel);
+        updateButtonStateBitwise(&buttonStableState, rawIsPressed);
 
-    if (buttonStableState != buttonLastState) {
-        if (buttonStableState == button_state_e::PRESSED) {
-            songIndex = (songIndex + 1) % 5;
-            MusicBuzzer.Play(songIndex);
+        if (buttonStableState != buttonLastState) {
+            if (buttonStableState == button_state_e::PRESSED) {
+                songIndex = (songIndex + 1) % 5;
+                MusicBuzzer.Play(songIndex);
+            }
         }
-    }
-    buttonLastState = buttonStableState;
-}, 1);
+        buttonLastState = buttonStableState;
+    },
+    1
+);

@@ -5,8 +5,8 @@
  * @date 2025-10-13
  */
 
-#ifndef DEVICESCHEDULER_H
-#define DEVICESCHEDULER_H
+#ifndef FINEMOTE_DEVICE_SCHEDULER_H
+#define FINEMOTE_DEVICE_SCHEDULER_H
 #include <etl/vector.h>
 
 #include <FreeRTOS_POSIX.h>
@@ -163,4 +163,4 @@ private:
     bool running_ { false };
 };
 
-#endif //DEVICESCHEDULER_H
+#endif // FINEMOTE_DEVICE_SCHEDULER_H

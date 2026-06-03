@@ -5,7 +5,7 @@
 #include "Control/ImplementControlBase.hpp"
 #include <cstdint>
 
-enum class Motor_Ctrl_Type_e: uint16_t {
+enum class Motor_Ctrl_Type_e : uint16_t {
     Position = 0,
     Speed,
     Torque,
@@ -25,17 +25,13 @@ using Motor_Param_t = struct Motor_Param_t {
     const float reductionRatio = 1; //减速比
 };
 
-class MotorBase : public DeviceBase {
+class MotorBase: public DeviceBase {
 public:
-    explicit MotorBase(const Motor_Param_t& params, uint8_t divisionFactor = 1)
-        : DeviceBase(divisionFactor), params(params) {
+    explicit MotorBase(const Motor_Param_t& params, uint8_t divisionFactor = 1):
+        DeviceBase(divisionFactor),
+        params(params) {}
 
-    }
-
-
-
-    void ResetController(ImplementControllerBase<1,1>& _controller) {
-
+    void ResetController(ImplementControllerBase<1, 1>& _controller) {
         controller = &_controller;
         _controller.SetTargets(&target);
         this->SetFeedback();
@@ -55,39 +51,35 @@ public:
         }
     }
 
-    void Enable() {
+    void Enable() {}
 
-    }
-
-    void Disable() {
-
-    }
+    void Disable() {}
 
     /** Todo: 筛查电机控制类型，不合理调用的Set需要警告 */
     void SetTargetSpeed(float targetSpeed) {
-        if(params.targetType != Motor_Ctrl_Type_e::Speed) {
+        if (params.targetType != Motor_Ctrl_Type_e::Speed) {
             return;
         }
         target = targetSpeed * params.reductionRatio; //多圈目标，减速后
     }
 
     void SetTargetAngle(float targetAngle) {
-        if(params.targetType != Motor_Ctrl_Type_e::Position) {
+        if (params.targetType != Motor_Ctrl_Type_e::Position) {
             return;
         }
         target = targetAngle * params.reductionRatio; //多圈目标，减速后
 
         if (params.multiTurnSamePosition) {
-            while (target - state.position < -180.f * params.reductionRatio){
+            while (target - state.position < -180.f * params.reductionRatio) {
                 target += 360.f * params.reductionRatio;
             }
-            while (target - state.position > 180.f * params.reductionRatio){
+            while (target - state.position > 180.f * params.reductionRatio) {
                 target -= 360.f * params.reductionRatio;
             }
         }
     }
 
-    Motor_State_t& GetState(){
+    Motor_State_t& GetState() {
         return state;
     }
 
@@ -99,9 +91,9 @@ protected:
     virtual void SetFeedback() = 0;
 
     float target = 0; //多圈目标，减速后
-    Motor_State_t state = {0, 0, 0, 0}; //单圈状态，不考虑减速
+    Motor_State_t state = { 0, 0, 0, 0 }; //单圈状态，不考虑减速
     Motor_Param_t params;
-    ImplementControllerBase<1,1>* controller = nullptr;
+    ImplementControllerBase<1, 1>* controller = nullptr;
 };
 
 #endif

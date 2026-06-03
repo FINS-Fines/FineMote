@@ -7,15 +7,16 @@
 #ifndef FINEMOTE_ODRIVE_H
 #define FINEMOTE_ODRIVE_H
 
-#include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
+#include "Motors/MotorBase.hpp"
 
-template <int busID>
-class Odrive : public MotorBase {
+template<int busID>
+class Odrive: public MotorBase {
 public:
-    template <typename T>
-    Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=5)
-            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
+    template<typename T>
+    Odrive(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 5):
+        MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+        canAgent(addr) {
         ResetController(_controller);
     }
 
@@ -90,11 +91,13 @@ private:
     }
 
     void Update() override {
-        uint32_t position_data = (canAgent.rxbuf[0] | (canAgent.rxbuf[1] << 8u) | (canAgent.rxbuf[2] << 16u) | (canAgent.rxbuf[3] << 24u));
+        uint32_t position_data =
+            (canAgent.rxbuf[0] | (canAgent.rxbuf[1] << 8u) | (canAgent.rxbuf[2] << 16u) | (canAgent.rxbuf[3] << 24u));
         float position_float = *reinterpret_cast<float*>(&position_data);
         state.position = position_float;
 
-        uint32_t speed_data = (canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u) | (canAgent.rxbuf[6] << 16u) | (canAgent.rxbuf[7] << 24u));
+        uint32_t speed_data =
+            (canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u) | (canAgent.rxbuf[6] << 16u) | (canAgent.rxbuf[7] << 24u));
         float speed_float = *reinterpret_cast<float*>(&speed_data);
         state.speed = speed_float;
     }

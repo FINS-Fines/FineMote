@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <functional>
 
-using ControllerOutputData = struct ControllerOutputData{
+using ControllerOutputData = struct ControllerOutputData {
     float* dataPtr;
     uint8_t size;
 };
@@ -30,7 +30,6 @@ public:
     }
 
 protected:
-
     virtual void PerformCalc() = 0;
     virtual ControllerOutputData GetOutputs() = 0;
 
@@ -39,7 +38,7 @@ protected:
 
 template<typename T, size_t M, typename... Args, size_t... I>
 std::array<T, M> CreateControllersImpl(std::index_sequence<I...>, Args&&... args) {
-    return { (static_cast<void>(I), T{std::forward<Args>(args)...})... };
+    return { (static_cast<void>(I), T { std::forward<Args>(args)... })... };
 }
 
 template<typename T, size_t M, typename... Args>
@@ -47,13 +46,13 @@ auto CreateControllers(Args&&... args) {
     static_assert(!std::is_same<T, ControllerBase>::value, "ControllerBase is not allowed");
     static_assert(std::is_base_of<ControllerBase, T>::value, "T must be a derivative of ControllerBase.");
     static_assert(sizeof...(Args) <= 1, "Only one parameter is allowed");
-    return CreateControllersImpl<T, M>(std::make_index_sequence<M>{}, std::forward<Args>(args)...);
+    return CreateControllersImpl<T, M>(std::make_index_sequence<M> {}, std::forward<Args>(args)...);
 }
 
 template<template<size_t> typename T, size_t M, typename... Args>
 auto CreateControllers(Args&&... args) {
     constexpr size_t N = sizeof...(Args);
-    return CreateControllersImpl<T<N>, M>(std::make_index_sequence<M>{}, std::forward<Args>(args)...);
+    return CreateControllersImpl<T<N>, M>(std::make_index_sequence<M> {}, std::forward<Args>(args)...);
 }
 
 #endif

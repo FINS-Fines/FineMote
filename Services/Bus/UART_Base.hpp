@@ -9,9 +9,9 @@
 
 #include <functional>
 
-#include "etl/queue.h"
-#include "DoubleBuffer.hpp"
 #include "BSP_UART.h"
+#include "DoubleBuffer.hpp"
+#include "etl/queue.h"
 
 #define UART_TX_QUEUE_SIZE 20
 
@@ -19,9 +19,9 @@ template<uint8_t ID>
 class UART_Base;
 
 template<size_t ID, size_t N>
-class UARTBuffer : public DoubleBuffer<N> {
+class UARTBuffer: public DoubleBuffer<N> {
 public:
-    explicit UARTBuffer(std::function<void(uint8_t *, size_t)> decodeCallback) : DoubleBuffer<N>(decodeCallback) {
+    explicit UARTBuffer(std::function<void(uint8_t*, size_t)> decodeCallback): DoubleBuffer<N>(decodeCallback) {
         UART_Base<ID>::GetInstance().Bind(*this);
         this->SwitchBuffer();
     }
@@ -30,7 +30,7 @@ public:
 template<uint8_t ID>
 class UART_Base {
 public:
-    static UART_Base &GetInstance() {
+    static UART_Base& GetInstance() {
         static UART_Base instance;
         return instance;
     }
@@ -38,7 +38,7 @@ public:
     /*** Part 1: Setups ***/
 
     template<size_t N>
-    void Bind(UARTBuffer<ID, N> &buffer) {
+    void Bind(UARTBuffer<ID, N>& buffer) {
         bufferHead = &buffer.GetBuffer();
         rxLength = N;
         commitBufferFunc = [&buffer](size_t size) {
@@ -54,7 +54,7 @@ public:
 
     /*** Part 2: Transmit ***/
 
-    void Transmit(uint8_t *data, uint16_t size) {
+    void Transmit(uint8_t* data, uint16_t size) {
         if (txQueue.full()) {
             txQueue.pop(); // Todo
         }
@@ -95,11 +95,11 @@ private:
 
     bool isTxComplete = true;
 
-    uint8_t **bufferHead = nullptr;
+    uint8_t** bufferHead = nullptr;
     size_t rxLength;
     std::function<void(size_t)> commitBufferFunc;
 
-    etl::queue<std::pair<uint8_t *, uint16_t>, UART_TX_QUEUE_SIZE> txQueue;
+    etl::queue<std::pair<uint8_t*, uint16_t>, UART_TX_QUEUE_SIZE> txQueue;
     std::function<bool()> OnTxCompleteFunc = [] {
         bool autoReload = true;
         return autoReload;
@@ -109,18 +109,18 @@ private:
 template<typename T = decltype(BSP_UARTList[0])>
 class FineMoteAux_UART {
 public:
-    static void OnTxComplete(T &instance) {
+    static void OnTxComplete(T& instance) {
         constexpr size_t maxID = sizeof(BSP_UARTList) / sizeof(BSP_UARTList[0]) - 1;
         TxCompleteImpl<maxID>(instance);
     }
 
-    static void OnRxComplete(T &instance, size_t size) {
+    static void OnRxComplete(T& instance, size_t size) {
         constexpr size_t maxID = sizeof(BSP_UARTList) / sizeof(BSP_UARTList[0]) - 1;
         RxCompleteImpl<maxID>(instance, size);
     }
 
     template<size_t ID>
-    static void TxCompleteImpl(T &instance) {
+    static void TxCompleteImpl(T& instance) {
         if constexpr (BSP_UARTList[ID] != nullptr) {
             if (instance == BSP_UARTList[ID]) {
                 UART_Base<ID>::GetInstance().TxHandle();
@@ -133,7 +133,7 @@ public:
     }
 
     template<size_t ID>
-    static void RxCompleteImpl(T &instance, size_t size) {
+    static void RxCompleteImpl(T& instance, size_t size) {
         if constexpr (BSP_UARTList[ID] != nullptr) {
             if (instance == BSP_UARTList[ID]) {
                 UART_Base<ID>::GetInstance().RxHandle(size);

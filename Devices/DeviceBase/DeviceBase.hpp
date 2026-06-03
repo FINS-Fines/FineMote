@@ -22,7 +22,7 @@ public:
     friend class DeviceScheduler;
 
 protected:
-    const uint32_t divisionFactor ;
+    const uint32_t divisionFactor;
 
 private:
     bool updated = false;

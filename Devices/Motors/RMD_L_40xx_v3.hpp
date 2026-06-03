@@ -7,19 +7,20 @@
 #ifndef FINEMOTE_RMD_L_40xx_V3_H
 #define FINEMOTE_RMD_L_40xx_V3_H
 
-#include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
 #include "Control/Clamp.hpp"
+#include "Motors/MotorBase.hpp"
 
 /**
  * Todo: Reduction ratio
  */
-template <int busID>
-class RMD_L_40xx_v3 : public MotorBase {
+template<int busID>
+class RMD_L_40xx_v3: public MotorBase {
 public:
-    template <typename T>
-    RMD_L_40xx_v3(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=3)
-            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
+    template<typename T>
+    RMD_L_40xx_v3(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 3):
+        MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+        canAgent(addr) {
         ResetController(_controller);
     }
 

@@ -27,22 +27,20 @@
  *
  */
 
-template <typename T, typename = void>
-struct is_complete : std::false_type {};
+template<typename T, typename = void>
+struct is_complete: std::false_type {};
 
-template <typename T>
-struct is_complete<T, std::void_t<decltype(sizeof(T))>> : std::true_type {};
+template<typename T>
+struct is_complete<T, std::void_t<decltype(sizeof(T))>>: std::true_type {};
 
-template <>
-struct is_complete<void, void> : std::true_type {};
+template<>
+struct is_complete<void, void>: std::true_type {};
 
-template <typename T>
-struct is_complete<T, std::enable_if_t<std::is_function_v<T>>> : std::true_type {};
+template<typename T>
+struct is_complete<T, std::enable_if_t<std::is_function_v<T>>>: std::true_type {};
 
-template <typename T>
+template<typename T>
 inline constexpr bool is_complete_v = is_complete<T>::value;
-
-
 
 static_assert(is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed in BSP.");
 
@@ -52,7 +50,7 @@ static_assert(is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed
  * @def TIM_Buzzer_Channel  蜂鸣器对应定时器通道
  */
 #if defined(BUZZER_PERIPHERAL)
-#define BEEPMUSIC_MODULE
+    #define BEEPMUSIC_MODULE
 #endif
 
 /**
@@ -61,7 +59,7 @@ static_assert(is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed
  * @def LED_Pin         LED对应引脚号
  */
 #if defined(LED_PERIPHERAL)
-#define LED_MODULE
+    #define LED_MODULE
 #endif
 
 /******************************************************************************************************

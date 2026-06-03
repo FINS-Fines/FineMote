@@ -15,9 +15,9 @@ typedef struct PID_Param_t {
     float kd;
 } PID_Param_t;
 
-class PID : public ImplementControllerBase<1, 1> {
+class PID: public ImplementControllerBase<1, 1> {
 public:
-    constexpr explicit PID(const PID_Param_t& params) : params(params) {}
+    constexpr explicit PID(const PID_Param_t& params): params(params) {}
 
     void PerformCalc() override {
         float error = *(this->targetPtrs[0]) - *(this->feedbackPtrs[0]);

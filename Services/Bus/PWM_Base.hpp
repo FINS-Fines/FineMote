@@ -8,10 +8,10 @@
 
 #include "BSP_PWM.h"
 
-template <size_t ID>
+template<size_t ID>
 class PWM_Base {
 public:
-    static PWM_Base &GetInstance() {
+    static PWM_Base& GetInstance() {
         static PWM_Base instance;
         return instance;
     }
@@ -29,8 +29,8 @@ private:
         BSP_PWM<ID>::GetInstance();
     }
     ~PWM_Base() = default;
-    PWM_Base(const PWM_Base &) = delete;
-    PWM_Base &operator=(const PWM_Base &) = delete;
+    PWM_Base(const PWM_Base&) = delete;
+    PWM_Base& operator=(const PWM_Base&) = delete;
 };
 
 #endif

@@ -7,15 +7,16 @@
 #ifndef FINEMOTE_EMM28_H
 #define FINEMOTE_EMM28_H
 
-#include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
+#include "Motors/MotorBase.hpp"
 
-template <int busID>
-class Emm28 : public MotorBase {
+template<int busID>
+class Emm28: public MotorBase {
 public:
-    template <typename T>
-    Emm28(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=1) :
-            MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
+    template<typename T>
+    Emm28(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 1):
+        MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+        canAgent(addr) {
         ResetController(_controller);
     }
 
@@ -42,7 +43,8 @@ private:
                 const uint16_t vel = 0x0100; // 转动速度(RPM)
                 ControllerOutputData output = controller->GetOutputs();
                 float target = output.dataPtr[0];
-                const uint32_t clk = std::abs(std::round(target * 3200.f / 360.f)); // 16 细分下发送 3200 个脉冲电机旋转一圈
+                const uint32_t clk =
+                    std::abs(std::round(target * 3200.f / 360.f)); // 16 细分下发送 3200 个脉冲电机旋转一圈
 
                 canAgent.SetDLC(8);
                 canAgent[0] = 0xFD;
@@ -75,7 +77,9 @@ private:
 
     void Update() override {
         if (canAgent.rxbuf[2] != 0xEE) {
-            float tmp = ((canAgent.rxbuf[2] << 24u) | (canAgent.rxbuf[3] << 16u) | (canAgent.rxbuf[4] << 8u) | (canAgent.rxbuf[5])) * 360.0f / 65536.0f;
+            float tmp = ((canAgent.rxbuf[2] << 24u) | (canAgent.rxbuf[3] << 16u) | (canAgent.rxbuf[4] << 8u)
+                         | (canAgent.rxbuf[5]))
+                * 360.0f / 65536.0f;
             tmp *= canAgent.rxbuf[1] == 0x00 ? -1 : 1;
             state.position = fmod(tmp, 360.);
         }

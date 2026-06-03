@@ -9,12 +9,12 @@
 
 #include <array>
 
-template <size_t N>
+template<size_t N>
 class DoubleBuffer {
 public:
-    DoubleBuffer(std::function<void(uint8_t *, size_t)> decodeCallback): DecodeCallback(decodeCallback) {}
+    DoubleBuffer(std::function<void(uint8_t*, size_t)> decodeCallback): DecodeCallback(decodeCallback) {}
 
-    uint8_t *&GetBuffer() {
+    uint8_t*& GetBuffer() {
         return currentBuffer;
     }
 
@@ -40,8 +40,8 @@ protected:
 
 private:
     std::array<std::array<uint8_t, N>, 2> Buffers = {};
-    uint8_t *currentBuffer = Buffers[0].data();
-    std::function<void(uint8_t *, size_t)> DecodeCallback;
+    uint8_t* currentBuffer = Buffers[0].data();
+    std::function<void(uint8_t*, size_t)> DecodeCallback;
 };
 
 #endif

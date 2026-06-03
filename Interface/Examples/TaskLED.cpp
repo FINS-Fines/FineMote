@@ -6,11 +6,14 @@
 
 #include "MultiMedia/LED.h"
 
-[[maybe_unused]] static auto& task_led = make_task([] {
-    static uint16_t cnt = 0;
-    cnt++;
-    if(cnt > 1000) {
-        cnt = 0;
-        LED::Toggle();
-    }
-}, 1);
+[[maybe_unused]] static auto& task_led = make_task(
+    [] {
+        static uint16_t cnt = 0;
+        cnt++;
+        if (cnt > 1000) {
+            cnt = 0;
+            LED::Toggle();
+        }
+    },
+    1
+);

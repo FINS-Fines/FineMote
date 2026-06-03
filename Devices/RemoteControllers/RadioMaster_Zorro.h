@@ -10,7 +10,7 @@
 #include "ProjectConfig.h"
 #include "RemoteControl.h"
 
-class RadioMaster_Zorro : public RemoteControl{
+class RadioMaster_Zorro: public RemoteControl {
 public:
     RadioMaster_Zorro() {}
     void Decode(uint8_t* data, uint16_t length) override;

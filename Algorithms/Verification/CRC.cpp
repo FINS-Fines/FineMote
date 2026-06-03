@@ -6,7 +6,7 @@
 
 #include "CRC.h"
 
-uint8_t CRC8Calc(uint8_t *data, uint16_t length) {
+uint8_t CRC8Calc(uint8_t* data, uint16_t length) {
     static etl::crc8_ccitt crc8;
 
     crc8.reset();
@@ -16,7 +16,7 @@ uint8_t CRC8Calc(uint8_t *data, uint16_t length) {
     return crc8.value();
 }
 
-uint16_t CRC16Calc(uint8_t *data, uint16_t length) {
+uint16_t CRC16Calc(uint8_t* data, uint16_t length) {
     etl::crc16_modbus crc16;
 
     for (uint16_t i = 0; i < length; i++) {
@@ -25,7 +25,7 @@ uint16_t CRC16Calc(uint8_t *data, uint16_t length) {
     return crc16.value();
 }
 
-uint32_t CRC32Calc(uint8_t *data, uint16_t length) {
+uint32_t CRC32Calc(uint8_t* data, uint16_t length) {
     static etl::crc32 crc32;
 
     crc32.reset();

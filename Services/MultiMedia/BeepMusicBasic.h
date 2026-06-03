@@ -59,7 +59,7 @@ typedef enum : uint16_t {
     H7 = 1976,
 } Note_e;
 
-typedef struct __attribute__((packed)){
+typedef struct __attribute__((packed)) {
     Note_e Note;
     uint16_t Time;
 } MusicNote_t;
@@ -70,6 +70,6 @@ typedef struct {
     const uint16_t noteNum;
 } Song_t;
 
-#define SONG_INIT(_NAME) {#_NAME, _NAME##_s, sizeof(_NAME##_s)/sizeof(MusicNote_t)}
+#define SONG_INIT(_NAME) { #_NAME, _NAME##_s, sizeof(_NAME##_s) / sizeof(MusicNote_t) }
 
 #endif

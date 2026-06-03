@@ -7,13 +7,13 @@
 #ifndef FINEMOTE_MOTOR4315_H
 #define FINEMOTE_MOTOR4315_H
 
-#include "Motors/MotorBase.hpp"
 #include "Bus/RS485_Base.hpp"
+#include "Motors/MotorBase.hpp"
 #include "Verification/CRC.h"
 
 #define MOTOR_MAP_LENGTH 10
 
-template <uint8_t ID>
+template<uint8_t ID>
 class HTMotorProxy_RS485 {
 public:
     HTMotorProxy_RS485(MotorBase* motor, uint8_t addr) {
@@ -38,7 +38,8 @@ private:
         if (CRC16Calc(data, 13) == (data[13] | data[14] << 8u) && motorMap.contains(data[2])) {
             MotorBase* motor = motorMap[data[2]];
             if (data[3] == 0x55) {
-                motor->GetState().position = -1 * ((data[7] | (data[8] << 8u) | (data[9] << 16u) | (data[10] << 24u)) * 360.0f / 16384.0f);
+                motor->GetState().position =
+                    -1 * ((data[7] | (data[8] << 8u) | (data[9] << 16u) | (data[10] << 24u)) * 360.0f / 16384.0f);
                 motor->GetState().speed = -1 * static_cast<int16_t>(data[11] | (data[12] << 8u));
                 motor->GetState().torque = 0; // 电机应答不返回电流值
                 motor->GetState().temperature = 0; // 电机应答不返回温度参数
@@ -47,12 +48,14 @@ private:
     }
 };
 
-template <uint8_t BusID>
-class Motor4315 : public MotorBase {
+template<uint8_t BusID>
+class Motor4315: public MotorBase {
 public:
-    template <typename T>
-    Motor4315(const Motor_Param_t&& params, T& _controller, uint8_t addr, uint8_t divisionFactor=5)
-            : MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), id(addr), commuAgent(this, addr) { // Todo: ID和地址分离逻辑
+    template<typename T>
+    Motor4315(const Motor_Param_t&& params, T& _controller, uint8_t addr, uint8_t divisionFactor = 5):
+        MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+        id(addr),
+        commuAgent(this, addr) { // Todo: ID和地址分离逻辑
         ResetController(_controller);
     }
 

@@ -7,9 +7,9 @@
 #ifndef FINEMOTE_CAN_BASE_HPP
 #define FINEMOTE_CAN_BASE_HPP
 
+#include "BSP_CAN.h"
 #include "etl/map.h"
 #include "etl/queue.h"
-#include "BSP_CAN.h"
 
 #define CAN_MAP_SIZE 20
 #define CAN_TX_QUEUE_SIZE 16
@@ -30,14 +30,14 @@ typedef struct {
 template<size_t ID>
 class CAN_Base {
 public:
-    static CAN_Base &GetInstance() {
+    static CAN_Base& GetInstance() {
         static CAN_Base instance;
         return instance;
     }
 
-    CAN_Base(const CAN_Base &) = delete;
+    CAN_Base(const CAN_Base&) = delete;
 
-    CAN_Base &operator=(const CAN_Base &) = delete;
+    CAN_Base& operator=(const CAN_Base&) = delete;
 
     void RxHandle() {
         uint8_t tempBuf[8];
@@ -75,7 +75,7 @@ public:
         }
     }
 
-    bool Transmit(CAN_Package_t &txbuf) {
+    bool Transmit(CAN_Package_t& txbuf) {
         if (dataQueue.full()) {
             dataQueue.pop();
         }
@@ -87,13 +87,13 @@ public:
         return true;
     }
 
-    void BindRxBuffer(uint8_t *buffer, uint32_t addr) {
+    void BindRxBuffer(uint8_t* buffer, uint32_t addr) {
         rxBufferMap[addr] = buffer;
     }
 
 private:
-    etl::map<uint32_t, uint8_t *, CAN_MAP_SIZE> rxBufferMap;
-    etl::queue<CAN_Package_t,CAN_TX_QUEUE_SIZE> dataQueue;
+    etl::map<uint32_t, uint8_t*, CAN_MAP_SIZE> rxBufferMap;
+    etl::queue<CAN_Package_t, CAN_TX_QUEUE_SIZE> dataQueue;
     bool isTxComplete = true;
 
     CAN_Base() {
@@ -104,7 +104,7 @@ private:
 template<size_t ID>
 class CAN_Agent {
 public:
-    explicit CAN_Agent(uint32_t addr) : addr(addr) {
+    explicit CAN_Agent(uint32_t addr): addr(addr) {
         static_assert(ID > 0 && ID <= CAN_BUS_MAXIMUM_COUNT && BSP_CANList[ID] != nullptr, "Using illegal CAN BUS");
         CAN_Base<ID>::GetInstance().BindRxBuffer(rxbuf, addr);
     }
@@ -128,7 +128,7 @@ public:
         CAN_Base<ID>::GetInstance().Transmit(txbuf);
     }
 
-    uint8_t &operator[](std::size_t index) {
+    uint8_t& operator[](std::size_t index) {
         return txbuf.message[index];
     }
 
@@ -137,10 +137,10 @@ public:
     }
 
     uint32_t addr;
-    uint8_t rxbuf[8] = {0};
+    uint8_t rxbuf[8] = { 0 };
 
 private:
-    CAN_Package_t txbuf = {8};
+    CAN_Package_t txbuf = { 8 };
 };
 
 template<typename T = decltype(BSP_CANList[0])>

@@ -5,13 +5,13 @@
 #ifndef FINEMOTE_CHASSISBASE_H
 #define FINEMOTE_CHASSISBASE_H
 
-template <int DOFs>
+template<int DOFs>
 class WithoutOdom {
 public:
     void SetOdom(const std::array<float, DOFs>& x) {}
 
     const std::array<float, DOFs>& GetOdom() {
-        static std::array<float, DOFs> v = {0};
+        static std::array<float, DOFs> v = { 0 };
         return v;
     }
 
@@ -36,16 +36,16 @@ public:
     }
 
 private:
-    std::array<float, 3> estimatedX = {0};
+    std::array<float, 3> estimatedX = { 0 };
 };
 
-template <typename OdomPolicy>
-class ChassisBase : public DeviceBase {
+template<typename OdomPolicy>
+class ChassisBase: public DeviceBase {
 public:
-    virtual void InverseKinematics(std::array<float,3>&) = 0; // 底盘到轮组
+    virtual void InverseKinematics(std::array<float, 3>&) = 0; // 底盘到轮组
     virtual void ForwardKinematics() = 0; // 轮组到底盘
 
-    template <typename T>
+    template<typename T>
     void SetVelocity(T&& v) {
         targetV = std::forward<T>(v);
     }
@@ -53,8 +53,8 @@ public:
 protected:
     OdomPolicy odom;
 
-    std::array<float, 3> targetV = {0};
-    std::array<float, 3> estimatedV = {0};
+    std::array<float, 3> targetV = { 0 };
+    std::array<float, 3> estimatedV = { 0 };
 };
 
 #endif

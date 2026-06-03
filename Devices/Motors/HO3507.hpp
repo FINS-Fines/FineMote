@@ -7,18 +7,19 @@
 #ifndef FINEMOTE_MOTOR3507_H
 #define FINEMOTE_MOTOR3507_H
 
-#include "Motors/MotorBase.hpp"
 #include "Bus/CAN_Base.hpp"
+#include "Motors/MotorBase.hpp"
 
 /**
  * Todo: Reduction ratio
  */
-template <int busID>
-class HO3507 : public MotorBase {
+template<int busID>
+class HO3507: public MotorBase {
 public:
-    template <typename T>
-    HO3507(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor=5) :
-            MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor), canAgent(addr) {
+    template<typename T>
+    HO3507(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 5):
+        MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
+        canAgent(addr) {
         ResetController(_controller);
         initTick = HAL_GetTick();
     }
