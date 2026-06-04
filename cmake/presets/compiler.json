@@ -1,0 +1,29 @@
+{
+  "version": 5,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}"
+    },
+    {
+      "name": "compiler-arm-none-eabi-gcc",
+      "displayName": "arm-none-eabi-gcc",
+      "hidden": true,
+      "inherits": [
+        "base"
+      ],
+      "toolchainFile": "${sourceDir}/cmake/arm-none-eabi-gcc/toolchain.cmake"
+    },
+    {
+      "name": "compiler-armclang",
+      "displayName": "ArmClang",
+      "hidden": true,
+      "inherits": [
+        "base"
+      ],
+      "toolchainFile": "${sourceDir}/cmake/armclang/toolchain.cmake"
+    }
+  ]
+}

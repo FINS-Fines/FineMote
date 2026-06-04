@@ -1,0 +1,53 @@
+{
+  "version": 5,
+  "include": [
+    "../../cmake/presets/compiler.json",
+    "../../cmake/presets/config.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "arm-none-eabi-gcc-MC_Board-debug",
+      "displayName": "arm-none-eabi-gcc / MC_Board / Debug",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "config-debug"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "MC_Board"
+      }
+    },
+    {
+      "name": "arm-none-eabi-gcc-MC_Board-release",
+      "displayName": "arm-none-eabi-gcc / MC_Board / Release",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "config-release"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "MC_Board"
+      }
+    },
+    {
+      "name": "armclang-MC_Board-debug",
+      "displayName": "ArmClang / MC_Board / Debug",
+      "inherits": [
+        "compiler-armclang",
+        "config-debug"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "MC_Board"
+      }
+    },
+    {
+      "name": "armclang-MC_Board-release",
+      "displayName": "ArmClang / MC_Board / Release",
+      "inherits": [
+        "compiler-armclang",
+        "config-release"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "MC_Board"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "version": 5,
+  "configurePresets": [
+    {
+      "name": "config-debug",
+      "displayName": "Debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "config-release",
+      "displayName": "Release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}

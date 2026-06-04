@@ -1,0 +1,53 @@
+{
+  "version": 5,
+  "include": [
+    "../../cmake/presets/compiler.json",
+    "../../cmake/presets/config.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "arm-none-eabi-gcc-Robomaster_C-debug",
+      "displayName": "arm-none-eabi-gcc / Robomaster_C / Debug",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "config-debug"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "Robomaster_C"
+      }
+    },
+    {
+      "name": "arm-none-eabi-gcc-Robomaster_C-release",
+      "displayName": "arm-none-eabi-gcc / Robomaster_C / Release",
+      "inherits": [
+        "compiler-arm-none-eabi-gcc",
+        "config-release"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "Robomaster_C"
+      }
+    },
+    {
+      "name": "armclang-Robomaster_C-debug",
+      "displayName": "ArmClang / Robomaster_C / Debug",
+      "inherits": [
+        "compiler-armclang",
+        "config-debug"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "Robomaster_C"
+      }
+    },
+    {
+      "name": "armclang-Robomaster_C-release",
+      "displayName": "ArmClang / Robomaster_C / Release",
+      "inherits": [
+        "compiler-armclang",
+        "config-release"
+      ],
+      "cacheVariables": {
+        "BOARD_NAME": "Robomaster_C"
+      }
+    }
+  ]
+}
