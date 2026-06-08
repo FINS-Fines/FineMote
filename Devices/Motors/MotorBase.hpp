@@ -112,18 +112,21 @@ public:
             uint32_t ticks = xTaskGetTickCount();
             msg.header.stamp.sec = ticks / configTICK_RATE_HZ;
             msg.header.stamp.nanosec = (ticks % configTICK_RATE_HZ) * (1000000000 / configTICK_RATE_HZ);
-            if (msg.position.capacity >= 1) {
-                msg.position.data[0] = s.position;
-                msg.position.size = 1;
-            }
-            if (msg.velocity.capacity >= 1) {
-                msg.velocity.data[0] = s.speed;
-                msg.velocity.size = 1;
-            }
-            if (msg.effort.capacity >= 1) {
-                msg.effort.data[0] = s.torque;
-                msg.effort.size = 1;
-            }
+
+            msg.position.data = &position_buf_;
+            msg.position.size = 1;
+            msg.position.capacity = 1;
+            position_buf_ = s.position;
+
+            msg.velocity.data = &velocity_buf_;
+            msg.velocity.size = 1;
+            msg.velocity.capacity = 1;
+            velocity_buf_ = s.speed;
+
+            msg.effort.data = &effort_buf_;
+            msg.effort.size = 1;
+            msg.effort.capacity = 1;
+            effort_buf_ = s.torque;
         }
     }
 
@@ -138,6 +141,11 @@ protected:
     Motor_Param_t params;
     ImplementControllerBase<1,1>* controller = nullptr;
     StateSnapshot<Motor_State_t> stateSnapshot_;
+
+private:
+    mutable double position_buf_ = 0.0;
+    mutable double velocity_buf_ = 0.0;
+    mutable double effort_buf_ = 0.0;
 };
 
 #endif
