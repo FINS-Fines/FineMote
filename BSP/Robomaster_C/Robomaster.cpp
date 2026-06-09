@@ -18,6 +18,8 @@ extern "C" {
 #endif
 
 void BSP_Setup() {
+    extern volatile int g_step;
+    g_step = 90;
     HAL_TIM_Base_Start_IT(&TIM_Control);
 }
 

@@ -6,8 +6,16 @@
 
 #include "MC_Board.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern DMA_HandleTypeDef hdma_spi2_rx;
 extern DMA_HandleTypeDef hdma_spi2_tx;
+
+#ifdef __cplusplus
+}
+#endif
 
 SPI_WITH_DMA_t spiWithDMA{&hspi2,&hdma_spi2_rx,&hdma_spi2_tx,
                           &htim3,TIM_CHANNEL_2};

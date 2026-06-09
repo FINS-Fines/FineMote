@@ -27,6 +27,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "IMUTask.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -117,6 +118,7 @@ int main(void)
   MX_IWDG_Init();
   MX_TIM7_Init();
   MX_I2C2_Init();
+  INS_init();
   /* USER CODE BEGIN 2 */
       firstEnter = 0;
   } else {

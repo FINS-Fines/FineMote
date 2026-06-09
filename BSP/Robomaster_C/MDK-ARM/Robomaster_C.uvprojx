@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>STM32F407IGHx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F4xx_DFP.3.0.0</PackID>
+          <PackID>Keil.STM32F4xx_DFP.3.1.1</PackID>
           <PackURL>https://www.keil.com/pack/</PackURL>
           <Cpu>IRAM(0x20000000-0x2001BFFF) IRAM2(0x2001C000-0x2001FFFF) IROM(0x8000000-0x80FFFFF)  CLOCK(25000000) FPU2 CPUTYPE("Cortex-M4") TZ</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx,__ROBOMASTER_C,__KEIL_APP</Define>
               <Undefine></Undefine>
-              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../FineMote_BSP;../../../Interface;../../../Services;../../../Devices;../../../Algorithms;../../../Components;../../../ThirdParty/etl/include</IncludePath>
+              <IncludePath>../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/Inc;..;../FineMote_BSP;../../../Interface;../../../Services;../../../Devices;../../../Algorithms;../../../Components;../../../ThirdParty/etl/include;..\..\..\Algorithms\Control</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -644,6 +644,11 @@
               <FileType>8</FileType>
               <FilePath>..\..\..\Interface\UserTasks\UserTask1.cpp</FilePath>
             </File>
+            <File>
+              <FileName>TaskMotorTest.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Interface\UserTasks\TaskMotorTest.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -682,7 +687,15 @@
               <FileType>8</FileType>
               <FilePath>..\..\..\Devices\RemoteControllers\RemoteControl.cpp</FilePath>
             </File>
+            <File>
+              <FileName>RadioMaster_Pocket.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Devices\RemoteControllers\RadioMaster_Pocket.cpp</FilePath>
+            </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>New Group</GroupName>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>

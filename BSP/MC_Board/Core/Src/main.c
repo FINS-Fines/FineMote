@@ -30,7 +30,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "IMUTask.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -120,6 +120,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
       HAL_GPIO_WritePin(GPIOC, Power_OUT1_EN_Pin|Power_5V_EN_Pin|RS485_DIR1_Pin|LED1_Pin
                                |GPIO_PIN_1|Power_OUT2_EN_Pin, GPIO_PIN_SET);
+
+      INS_init();
 
       firstEnter = 0;
   } else {

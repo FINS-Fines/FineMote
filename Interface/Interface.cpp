@@ -33,6 +33,8 @@ void Loop() {
 #endif
 
 void MainRTLoop() {
+    extern volatile int g_step;
+    g_step++;
     HAL_IWDG_Refresh(&hiwdg);
     DeviceBase::DevicesHandle();
     FineMoteScheduler();

@@ -77,7 +77,14 @@ set(CMAKE_EXE_LINKER_FLAGS " \
 
 #*******************************************************************************************#
 # 生成可执行文件
-add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT})
+add_executable(${BOARD_NAME} ${SOURCES} ${LINKER_SCRIPT}
+        ../../Interface/UserTasks/TaskMotorTest.cpp
+        ../../Devices/RemoteControllers/RadioMaster_Pocket.h
+        ../../Devices/RemoteControllers/RadioMaster_Pocket.cpp
+        FineMote_BSP/BSP_SPI.cpp
+        FineMote_BSP/BSP_SPI.h
+        ../../Algorithms/MahonyAHRS.c
+        ../../Interface/UserTasks/IMUTask.cpp)
 
 set(HEX_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.hex)
 set(BIN_FILE ${CMAKE_BINARY_DIR}/bin/${BOARD_NAME}.bin)
