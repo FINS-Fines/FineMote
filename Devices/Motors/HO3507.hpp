@@ -131,7 +131,7 @@ private:
                 float txPosition = -output.dataPtr[0]; //方向取CCW
                 uint16_t txPositionCode = txPosition / 360.0f * 0x8000 + 0x8000;
                 uint16_t velocity = (100 / 200) * 0x800 + 0x800; //100为设置速度，200为最大速度
-                uint16_t torque = (1 / 4) * 0x800 + 0x800; //100为设置速度，200为最大速度
+                uint16_t torque = (1 / 4) * 0x800 + 0x800;       //100为设置速度，200为最大速度
                 canAgent[0] = (txPositionCode >> 8) & 0xFF;
                 canAgent[1] = txPositionCode & 0xFF;
                 canAgent[2] = 0xB8;

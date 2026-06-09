@@ -28,7 +28,7 @@ public:
     }
 
     ControllerOutputData GetOutputs() override {
-        return { this->outputs.data(), 1 };
+        return {this->outputs.data(), 1};
     }
 
 private:

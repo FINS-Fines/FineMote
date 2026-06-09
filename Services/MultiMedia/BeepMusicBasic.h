@@ -13,7 +13,7 @@
 /**
  * 音高定义
  */
-typedef enum : uint16_t {
+typedef enum: uint16_t {
     _0 = 0,
 
     LL5 = 196,
@@ -70,6 +70,9 @@ typedef struct {
     const uint16_t noteNum;
 } Song_t;
 
-#define SONG_INIT(_NAME) { #_NAME, _NAME##_s, sizeof(_NAME##_s) / sizeof(MusicNote_t) }
+#define SONG_INIT(_NAME)                                                                                               \
+    {                                                                                                                  \
+        #_NAME, _NAME##_s, sizeof(_NAME##_s) / sizeof(MusicNote_t)                                                     \
+    }
 
 #endif

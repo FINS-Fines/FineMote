@@ -137,10 +137,10 @@ public:
     }
 
     uint32_t addr;
-    uint8_t rxbuf[8] = { 0 };
+    uint8_t rxbuf[8] = {0};
 
 private:
-    CAN_Package_t txbuf = { 8 };
+    CAN_Package_t txbuf = {8};
 };
 
 template<typename T = decltype(BSP_CANList[0])>

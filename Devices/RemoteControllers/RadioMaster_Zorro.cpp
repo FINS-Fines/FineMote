@@ -38,11 +38,11 @@ void RadioMaster_Zorro::Decode(uint8_t* data, uint16_t length) {
     }
 
     info.sA = ((data[6] >> 4 | data[7] << 4) & 0x07FF) == 191 ? UP_POS : DOWN_POS;
-    info.sB = ((data[7] >> 7 | data[8] << 1 | data[9] << 9) & 0x07FF) == 191 ? UP_POS
-        : ((data[7] >> 7 | data[8] << 1 | data[9] << 9) & 0x07FF) == 997     ? MID_POS
-                                                                             : DOWN_POS;
-    info.sC = ((data[9] >> 2 | data[10] << 6) & 0x07FF) == 191 ? UP_POS
-        : ((data[9] >> 2 | data[10] << 6) & 0x07FF) == 997     ? MID_POS
-                                                               : DOWN_POS;
+    info.sB = ((data[7] >> 7 | data[8] << 1 | data[9] << 9) & 0x07FF) == 191   ? UP_POS
+              : ((data[7] >> 7 | data[8] << 1 | data[9] << 9) & 0x07FF) == 997 ? MID_POS
+                                                                               : DOWN_POS;
+    info.sC = ((data[9] >> 2 | data[10] << 6) & 0x07FF) == 191   ? UP_POS
+              : ((data[9] >> 2 | data[10] << 6) & 0x07FF) == 997 ? MID_POS
+                                                                 : DOWN_POS;
     info.sD = ((data[10] >> 5 | data[11] << 3) & 0x07FF) == 191 ? UP_POS : DOWN_POS;
 }

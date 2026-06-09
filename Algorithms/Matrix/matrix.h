@@ -111,11 +111,9 @@ public:
     Matrixf<rows, cols> block(const int& start_row, const int& start_col) {
         Matrixf<rows, cols> res;
         for (int row = start_row; row < start_row + rows; row++) {
-            memcpy(
-                (float*)res[0] + (row - start_row) * cols,
-                (float*)this->data_ + row * _cols + start_col,
-                cols * sizeof(float)
-            );
+            memcpy((float*)res[0] + (row - start_row) * cols,
+                   (float*)this->data_ + row * _cols + start_col,
+                   cols * sizeof(float));
         }
         return res;
     }
@@ -165,13 +163,13 @@ namespace matrixf {
 // Zero matrix
 template<int _rows, int _cols>
 Matrixf<_rows, _cols> zeros(void) {
-    float data[_rows * _cols] = { 0 };
+    float data[_rows * _cols] = {0};
     return Matrixf<_rows, _cols>(data);
 }
 // Ones matrix
 template<int _rows, int _cols>
 Matrixf<_rows, _cols> ones(void) {
-    float data[_rows * _cols] = { 0 };
+    float data[_rows * _cols] = {0};
     for (int i = 0; i < _rows * _cols; i++) {
         data[i] = 1;
     }
@@ -180,7 +178,7 @@ Matrixf<_rows, _cols> ones(void) {
 // Identity matrix
 template<int _rows, int _cols>
 Matrixf<_rows, _cols> eye(void) {
-    float data[_rows * _cols] = { 0 };
+    float data[_rows * _cols] = {0};
     for (int i = 0; i < fmin(_rows, _cols); i++) {
         data[i * _cols + i] = 1;
     }

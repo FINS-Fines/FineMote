@@ -32,7 +32,7 @@ public:
     }
 
     std::array<float, 3> GetVelCmd() const {
-        std::array<float, 3> retval = { velCmd[0], velCmd[1], rtCmd[2] };
+        std::array<float, 3> retval = {velCmd[0], velCmd[1], rtCmd[2]};
         return std::move(retval);
     }
 

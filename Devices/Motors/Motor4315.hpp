@@ -41,7 +41,7 @@ private:
                 motor->GetState().position =
                     -1 * ((data[7] | (data[8] << 8u) | (data[9] << 16u) | (data[10] << 24u)) * 360.0f / 16384.0f);
                 motor->GetState().speed = -1 * static_cast<int16_t>(data[11] | (data[12] << 8u));
-                motor->GetState().torque = 0; // 电机应答不返回电流值
+                motor->GetState().torque = 0;      // 电机应答不返回电流值
                 motor->GetState().temperature = 0; // 电机应答不返回温度参数
             }
         }
@@ -84,7 +84,7 @@ private:
 
                 txbuf[0] = 0x3E; // 协议头
                 txbuf[1] = 0x00; // 包序号
-                txbuf[2] = id; // ID
+                txbuf[2] = id;   // ID
                 txbuf[3] = 0x55; // 绝对位置闭环控制命令码
                 txbuf[4] = 0x04; // 数据包长度
                 txbuf[5] = txAngle;

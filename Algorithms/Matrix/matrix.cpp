@@ -8,7 +8,7 @@
 
 // hat of vector
 Matrixf<3, 3> vector3f::hat(Matrixf<3, 1> vec) {
-    float hat[9] = { 0, -vec[2][0], vec[1][0], vec[2][0], 0, -vec[0][0], -vec[1][0], vec[0][0], 0 };
+    float hat[9] = {0, -vec[2][0], vec[1][0], vec[2][0], 0, -vec[0][0], -vec[1][0], vec[0][0], 0};
     return Matrixf<3, 3>(hat);
 }
 

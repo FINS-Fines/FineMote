@@ -12,17 +12,17 @@ enum class Motor_Ctrl_Type_e : uint16_t {
 };
 
 typedef struct {
-    float position; //单位为度
-    float speed; //单位为DPS
-    float torque; //转矩电流的相对值，具体值参考电调手册
+    float position;     //单位为度
+    float speed;        //单位为DPS
+    float torque;       //转矩电流的相对值，具体值参考电调手册
     int8_t temperature; //电机温度，单位摄氏度
 } Motor_State_t;
 
 using Motor_Param_t = struct Motor_Param_t {
-    Motor_Ctrl_Type_e ctrlType; //控制电机的方式
-    Motor_Ctrl_Type_e targetType; //控制电机哪个状态
+    Motor_Ctrl_Type_e ctrlType;         //控制电机的方式
+    Motor_Ctrl_Type_e targetType;       //控制电机哪个状态
     bool multiTurnSamePosition = false; //多圈电机是否在同一位置
-    const float reductionRatio = 1; //减速比
+    const float reductionRatio = 1;     //减速比
 };
 
 class MotorBase: public DeviceBase {
@@ -90,8 +90,8 @@ public:
 protected:
     virtual void SetFeedback() = 0;
 
-    float target = 0; //多圈目标，减速后
-    Motor_State_t state = { 0, 0, 0, 0 }; //单圈状态，不考虑减速
+    float target = 0;                   //多圈目标，减速后
+    Motor_State_t state = {0, 0, 0, 0}; //单圈状态，不考虑减速
     Motor_Param_t params;
     ImplementControllerBase<1, 1>* controller = nullptr;
 };

@@ -20,10 +20,8 @@ public:
 
     template<size_t NextInputSize, size_t NextOutputSize>
     void Cascade(ImplementControllerBase<NextInputSize, NextOutputSize>& nextController) {
-        static_assert(
-            OutputSize == NextInputSize,
-            "Output size of current controller must match input size of the next one."
-        );
+        static_assert(OutputSize == NextInputSize,
+                      "Output size of current controller must match input size of the next one.");
         nextController.SetTargets(this->outputs);
         nextController.SetFeedbackPointersShifted(*this, InputSize);
         nextCalc = std::bind(&ImplementControllerBase<NextInputSize, NextOutputSize>::Calc, &nextController);
@@ -38,7 +36,7 @@ public:
     template<typename... Args>
     void SetTargets(Args... args) {
         static_assert(sizeof...(args) == InputSize, "Number of target pointers must match controller's input size.");
-        targetPtrs = { args... };
+        targetPtrs = {args...};
     }
 
     template<size_t SrcInputSize, size_t SrcOutputSize>
@@ -50,17 +48,17 @@ public:
     template<typename... Args>
     void SetFeedbacks(Args... args) {
         static_assert(sizeof...(args) >= InputSize, "Number of feedback pointers must match controller's input size.");
-        feedbackPtrs = { args... };
+        feedbackPtrs = {args...};
     }
 
     ControllerOutputData GetOutputs() const {
-        return { (float*)outputs.data(), (uint8_t)OutputSize };
+        return {(float*)outputs.data(), (uint8_t)OutputSize};
     }
 
 protected:
-    std::array<float*, InputSize> targetPtrs {};
-    std::vector<float*> feedbackPtrs {};
-    std::array<float, OutputSize> outputs {};
+    std::array<float*, InputSize> targetPtrs{};
+    std::vector<float*> feedbackPtrs{};
+    std::array<float, OutputSize> outputs{};
 };
 
 template<size_t K>
@@ -71,7 +69,7 @@ public:
         this->outputs[0] = *(this->targetPtrs[0]) * static_cast<float>(K);
     }
     ControllerOutputData GetOutputs() override {
-        return { this->outputs.data(), 1 };
+        return {this->outputs.data(), 1};
     }
 };
 

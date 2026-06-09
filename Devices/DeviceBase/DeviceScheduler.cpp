@@ -103,7 +103,7 @@ void DeviceScheduler::Start() {
     int priority = MAX_SCHEDULER_PRIORITY;
 
     for (Bucket& bucket: buckets_) {
-        sched_param param {};
+        sched_param param{};
         param.sched_priority = priority;
 
         pthread_attr_t attr;
@@ -138,7 +138,7 @@ void DeviceScheduler::Start() {
     auto& devices = bucket->devices;
 
     const uint32_t period = bucket->period;
-    timespec next_wake_time {};
+    timespec next_wake_time{};
     if (clock_gettime(CLOCK_MONOTONIC, &next_wake_time) != 0) {
         Error_Handler();
     }
@@ -160,7 +160,7 @@ void DeviceScheduler::Start() {
 
         bool slept = false;
         while (true) {
-            timespec now {};
+            timespec now{};
             if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
                 Error_Handler();
             }

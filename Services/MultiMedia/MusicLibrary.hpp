@@ -18,9 +18,14 @@
 struct MusicScript {
     static auto& Get() {
         static const Song_t songs[] = {
-            SONG_INIT(SuperMario), SONG_INIT(LiuSha),     SONG_INIT(YMCA),
+            SONG_INIT(SuperMario),
+            SONG_INIT(LiuSha),
+            SONG_INIT(YMCA),
 
-            SONG_INIT(Windmill),   SONG_INIT(Astronomia), SONG_INIT(IronTorrent), SONG_INIT(Senbonzakura),
+            SONG_INIT(Windmill),
+            SONG_INIT(Astronomia),
+            SONG_INIT(IronTorrent),
+            SONG_INIT(Senbonzakura),
         };
         return songs;
     }

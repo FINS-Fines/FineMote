@@ -42,5 +42,4 @@ void updateButtonStateBitwise(button_state_e* current_state, bool rawIsPressed) 
         }
         buttonLastState = buttonStableState;
     },
-    1
-);
+    1);

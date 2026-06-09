@@ -32,7 +32,7 @@ private:
 
 public:
     static constexpr bool value = etl::is_class<Fn>::value && etl::is_same<typename Traits::return_type, void>::value
-        && Traits::argument_count == 0;
+                                  && Traits::argument_count == 0;
 };
 
 template<typename F>
@@ -64,7 +64,7 @@ public:
     void Handle() override {}
 
 private:
-    explicit Task(Fn&& func, const uint32_t divisionFactor): DeviceBase { divisionFactor }, func_(etl::move(func)) {}
+    explicit Task(Fn&& func, const uint32_t divisionFactor): DeviceBase{divisionFactor}, func_(etl::move(func)) {}
 
     Fn func_;
 
@@ -101,10 +101,8 @@ Task<typename etl::decay<F>::type>& make_task(F&& func, uint32_t divisionFactor)
 
     static_assert(!etl::is_lvalue_reference<F>::value, "Task function must be passed as an inline lambda expression");
 
-    static_assert(
-        is_task_func_v<Fn>,
-        "Task function must be a non-capturing lambda with no parameters and void return type"
-    );
+    static_assert(is_task_func_v<Fn>,
+                  "Task function must be a non-capturing lambda with no parameters and void return type");
 
     static bool constructed = false;
     if (constructed) {
@@ -112,7 +110,7 @@ Task<typename etl::decay<F>::type>& make_task(F&& func, uint32_t divisionFactor)
     };
     constructed = true;
 
-    static Task<Fn> task { Fn { etl::forward<F>(func) }, divisionFactor };
+    static Task<Fn> task{Fn{etl::forward<F>(func)}, divisionFactor};
     return task;
 }
 

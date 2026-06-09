@@ -79,7 +79,7 @@ private:
         if (canAgent.rxbuf[2] != 0xEE) {
             float tmp = ((canAgent.rxbuf[2] << 24u) | (canAgent.rxbuf[3] << 16u) | (canAgent.rxbuf[4] << 8u)
                          | (canAgent.rxbuf[5]))
-                * 360.0f / 65536.0f;
+                        * 360.0f / 65536.0f;
             tmp *= canAgent.rxbuf[1] == 0x00 ? -1 : 1;
             state.position = fmod(tmp, 360.);
         }

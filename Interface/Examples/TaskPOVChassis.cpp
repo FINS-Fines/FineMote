@@ -25,17 +25,23 @@
 
     #include "Control/PID.hpp"
 
-constexpr PID_Param_t speedPID = { 0.23f, 0.008f, 0.3f };
+constexpr PID_Param_t speedPID = {0.23f, 0.008f, 0.3f};
 auto wheelControllers = CreateControllers<PID, 4>(speedPID);
 auto swerveControllers = CreateControllers<Amplifier<1>, 4>();
 
-    #define TORQUE_2_SPEED { Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed }
+    #define TORQUE_2_SPEED                                                                                             \
+        {                                                                                                              \
+            Motor_Ctrl_Type_e::Torque, Motor_Ctrl_Type_e::Speed                                                        \
+        }
 Motor4010<1> CBRMotor(TORQUE_2_SPEED, wheelControllers[0], 0x144);
 Motor4010<1> CBLMotor(TORQUE_2_SPEED, wheelControllers[1], 0x143);
 Motor4010<1> CFLMotor(TORQUE_2_SPEED, wheelControllers[2], 0x142);
 Motor4010<1> CFRMotor(TORQUE_2_SPEED, wheelControllers[3], 0x141);
 
-    #define DIRECT_POSITION { Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position, true }
+    #define DIRECT_POSITION                                                                                            \
+        {                                                                                                              \
+            Motor_Ctrl_Type_e::Position, Motor_Ctrl_Type_e::Position, true                                             \
+        }
 Motor4315<1> SBRMotor(DIRECT_POSITION, swerveControllers[0], 0x04, 20);
 Motor4315<1> SBLMotor(DIRECT_POSITION, swerveControllers[1], 0x03, 20);
 Motor4315<1> SFLMotor(DIRECT_POSITION, swerveControllers[2], 0x02, 20);
@@ -80,13 +86,11 @@ constexpr float ROBOT_LENGTH = 0.240225f;
 constexpr float ROBOT_WIDTH = 0.24f;
 constexpr float WHEEL_DIAMETER = 0.0483f;
 
-auto chassis = POV_ChassisBuilder<PlanarOdom>(
-    WHEEL_DIAMETER,
-    Swerve_t { &SFRMotor, &CFRMotor, ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180 },
-    Swerve_t { &SFLMotor, &CFLMotor, ROBOT_LENGTH / 2, ROBOT_WIDTH / 2 },
-    Swerve_t { &SBLMotor, &CBLMotor, -ROBOT_LENGTH / 2, ROBOT_WIDTH / 2 },
-    Swerve_t { &SBRMotor, &CBRMotor, -ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180 }
-);
+auto chassis = POV_ChassisBuilder<PlanarOdom>(WHEEL_DIAMETER,
+                                              Swerve_t{&SFRMotor, &CFRMotor, ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180},
+                                              Swerve_t{&SFLMotor, &CFLMotor, ROBOT_LENGTH / 2, ROBOT_WIDTH / 2},
+                                              Swerve_t{&SBLMotor, &CBLMotor, -ROBOT_LENGTH / 2, ROBOT_WIDTH / 2},
+                                              Swerve_t{&SBRMotor, &CBRMotor, -ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2, 180});
 
 /**
  * Part 3: Command input definitions.
@@ -115,13 +119,12 @@ UARTBuffer<3, 200> uart3Buffer([](uint8_t* data, size_t length) {
         //        cascaded=1;
         //    }
         if (remote.GetInfo().sC == RemoteControl::SWITCH_STATE_E::UP_POS) {
-            std::array<float, 3> targetV = { remote.GetInfo().rightCol * SPEED_LIMIT,
-                                             -remote.GetInfo().rightRol * SPEED_LIMIT,
-                                             -remote.GetInfo().leftRol * PI };
+            std::array<float, 3> targetV = {remote.GetInfo().rightCol * SPEED_LIMIT,
+                                            -remote.GetInfo().rightRol * SPEED_LIMIT,
+                                            -remote.GetInfo().leftRol * PI};
             chassis.SetVelocity(std::move(targetV));
         }
     },
-    1
-);
+    1);
 
 #endif

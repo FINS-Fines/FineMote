@@ -53,17 +53,13 @@
 // --------------------------------
 
 // ------- Static assertions -------
-static_assert(
-    MAX_SCHEDULER_PRIORITY < configMAX_PRIORITIES,
-    "MAX_SCHEDULER_PRIORITY must be less than configMAX_PRIORITIES"
-);
+static_assert(MAX_SCHEDULER_PRIORITY < configMAX_PRIORITIES,
+              "MAX_SCHEDULER_PRIORITY must be less than configMAX_PRIORITIES");
 
 static_assert(MIN_SCHEDULER_PRIORITY > 1, "MIN_SCHEDULER_PRIORITY must be greater than 1(Idle task priority)");
 
-static_assert(
-    MAX_SCHEDULER_PRIORITY - MIN_SCHEDULER_PRIORITY + 1 >= MAX_BUCKETS,
-    "Not enough priority levels for the number of buckets"
-);
+static_assert(MAX_SCHEDULER_PRIORITY - MIN_SCHEDULER_PRIORITY + 1 >= MAX_BUCKETS,
+              "Not enough priority levels for the number of buckets");
 // ----------------------------------
 
 /**
@@ -73,8 +69,8 @@ static_assert(
  */
 struct Bucket {
     etl::vector<DeviceBase*, MAX_DEVICE_NUM> devices;
-    pthread_t thread {};
-    uint32_t period {};
+    pthread_t thread{};
+    uint32_t period{};
 
     Bucket() = default;
 
@@ -159,8 +155,8 @@ private:
      */
     [[noreturn]] static void* BucketThreadFunc(void* arg);
 
-    etl::vector<Bucket, MAX_BUCKETS> buckets_ {};
-    bool running_ { false };
+    etl::vector<Bucket, MAX_BUCKETS> buckets_{};
+    bool running_{false};
 };
 
 #endif // FINEMOTE_DEVICE_SCHEDULER_H
