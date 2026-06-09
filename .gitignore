@@ -8,6 +8,9 @@
 .codex
 .agents/
 
+# Qodana
+.qodana/
+
 # CLion
 .idea/*
 !.idea/copyright/

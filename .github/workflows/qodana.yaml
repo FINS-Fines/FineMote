@@ -1,11 +1,11 @@
 name: Qodana
 
 on:
-  workflow_dispatch:
-  pull_request:
   push:
-    branches:
-      - main
+    branches: [ "**" ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   qodana:
@@ -16,29 +16,33 @@ jobs:
       pull-requests: write
       checks: write
 
+    env:
+      QODANA_CMAKE_PRESET: arm-none-eabi-gcc-MC_Board-debug
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
+          submodules: recursive
 
       - name: Install Arm GNU Toolchain
+        id: arm-toolchain
         uses: carlosperate/arm-none-eabi-gcc-action@v1
         with:
           release: 'latest'
 
-      - name: Probe tools
+      - name: Configure CMake
         run: |
-          arm-none-eabi-gcc --version
-          arm-none-eabi-g++ --version
-          cmake --version
-          ninja --version
+          cmake --preset "${QODANA_CMAKE_PRESET}" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Qodana Scan
         uses: JetBrains/qodana-action@v2026.1
         with:
           args: |
-            --within-docker false
+            --image jetbrains/qodana-clang:2026.1
+            --compile-commands build/${{ env.QODANA_CMAKE_PRESET }}/compile_commands.json
+            --env QODANA_CMAKE_PRESET=${{ env.QODANA_CMAKE_PRESET }}
+            --volume ${{ steps.arm-toolchain.outputs.path }}/..:${{ steps.arm-toolchain.outputs.path }}/..:ro
             --print-problems
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
