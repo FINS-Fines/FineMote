@@ -68,6 +68,6 @@ static_assert(is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed
  * 3. 功能选配
  *******************************************************************************************************/
 
-// #define WITH_POV_EXAMPLE
+#define WITH_POV_EXAMPLE
 
 #endif
