@@ -79,7 +79,7 @@ public:
 protected:
     template <typename MsgT>
     void UpdateToRos(MsgT& msg) {
-        if constexpr (!WITH_MICRO_ROS) return;
+        if constexpr (!microros_supported) return;
 
         Chassis_State_t state = GetChassisState();
 

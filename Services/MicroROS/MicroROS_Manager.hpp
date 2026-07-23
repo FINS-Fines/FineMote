@@ -10,10 +10,6 @@
 #include "Board.h"
 #include "etl/list.h"
 
-#include <FreeRTOS_POSIX.h>
-#include <FreeRTOS_POSIX/pthread.h>
-#include <FreeRTOS_POSIX/unistd.h>
-
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
@@ -212,9 +208,9 @@ class MicroROS_Manager<false>
 public:
     static MicroROS_Manager& GetInstance()
     {
-        static_assert(
-            WITH_MICRO_ROS,
-            "MicroROS is disabled in Board.h. Please set WITH_MICRO_ROS = true to use MicroROS_Base."
+        static_assert(microros_supported,
+            "This BSP does not support micro-ROS.\n"
+            "Ensure FreeRTOS-POSIX is linked in CMake and the headers are in the include path."
         );
         static MicroROS_Manager instance;
         return instance;

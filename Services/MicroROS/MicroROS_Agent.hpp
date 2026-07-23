@@ -12,6 +12,14 @@
 #include <type_traits>
 #include <utility>
 
+#include <pthread.h>
+#include <unistd.h>
+#include <time.h>
+
+#ifndef MICROROS_NODE_NAME
+#define MICROROS_NODE_NAME "FineMote"
+#endif
+
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
@@ -19,15 +27,23 @@
 
 #include "MicroROS/MicroROS_MessageTypes.hpp"
 
-#ifndef MICROROS_NODE_NAME
-#define MICROROS_NODE_NAME "FineMote"
-#endif
+template <typename = void>
+struct posix_ready : std::false_type {};
 
+template <>
+struct posix_ready<std::void_t<
+    decltype(::pthread_create(std::declval<pthread_t*>(),std::declval<const pthread_attr_t*>(),std::declval<void*(*)(void*)>(),std::declval<void*>())),
+    decltype(::clock_gettime(0, std::declval<struct timespec*>())),
+    decltype(::usleep(0u)),
+    decltype(::sleep(0u))
+>> : std::true_type {};
 
-template <bool enable = true>
+inline constexpr bool microros_supported = posix_ready<>::value;
+
+template <bool enable = microros_supported>
 class MicroROS_Manager;
 
-template <bool enable = true>
+template <bool enable = microros_supported>
 class ROSAgent
 {
 public:

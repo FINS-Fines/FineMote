@@ -8,6 +8,7 @@
 #include "task.h"
 #include <cstdint>
 #include <sensor_msgs/msg/joint_state.h>
+#include "MicroROS/MicroROS_Agent.hpp"
 
 enum class Motor_Ctrl_Type_e: uint16_t {
     Position = 0,
@@ -107,7 +108,7 @@ public:
     }
 
     void UpdateToRos(sensor_msgs__msg__JointState& msg) const {
-        if constexpr (WITH_MICRO_ROS) {
+        if constexpr (microros_supported) {
             Motor_State_t s = stateSnapshot_.Read();
             uint32_t ticks = xTaskGetTickCount();
             msg.header.stamp.sec = ticks / configTICK_RATE_HZ;
