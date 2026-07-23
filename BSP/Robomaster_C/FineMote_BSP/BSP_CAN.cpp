@@ -1,10 +1,10 @@
 /*******************************************************************************
-* Copyright (c) 2024.
+* Copyright (c) 2026.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
 
-#include "BSP_CAN.h"
+
 #include "Bus/CAN_Base.hpp"
 
 #ifdef __cplusplus
