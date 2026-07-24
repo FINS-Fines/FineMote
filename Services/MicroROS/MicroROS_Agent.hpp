@@ -12,9 +12,9 @@
 #include <type_traits>
 #include <utility>
 
-#include <pthread.h>
-#include <unistd.h>
-#include <time.h>
+#include <FreeRTOS_POSIX.h>
+#include <FreeRTOS_POSIX/pthread.h>
+#include <FreeRTOS_POSIX/unistd.h>
 
 #ifndef MICROROS_NODE_NAME
 #define MICROROS_NODE_NAME "FineMote"
@@ -40,17 +40,22 @@ struct posix_ready<std::void_t<
 
 inline constexpr bool microros_supported = posix_ready<>::value;
 
-template <bool enable = microros_supported>
+template <typename = void>
 class MicroROS_Manager;
 
-template <bool enable = microros_supported>
+template <typename = void>
 class ROSAgent
 {
+    static_assert(microros_supported,
+        "This BSP lacks a POSIX compatibility layer. Link a POSIX library (e.g. FreeRTOS-POSIX) and ensure its headers are in the include path."
+    );
+};
+
+template <>
+class ROSAgent<std::enable_if_t<microros_supported>>
+{
 public:
-    ROSAgent()
-    {
-        MicroROS_Manager<enable>::GetInstance().RegisterAgent(this);
-    }
+    ROSAgent();
 
     virtual bool Init(rcl_node_t* node, rclc_support_t* support, rclc_executor_t* executor) = 0;
     virtual void Execute() = 0;

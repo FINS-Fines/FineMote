@@ -22,8 +22,11 @@
 constexpr size_t MICROROS_MAX_HANDLES = 10;
 constexpr size_t MICROROS_MAX_AGENTS = 10;
 
-template <bool enable>
-class MicroROS_Manager
+template <typename>
+class MicroROS_Manager;
+
+template <>
+class MicroROS_Manager<std::enable_if_t<microros_supported>>
 {
 public:
     enum class State { WAITING_AGENT, INITIALIZING, RUNNING, ERROR };
@@ -202,19 +205,9 @@ private:
     pthread_t thread_{};
 };
 
-template <>
-class MicroROS_Manager<false>
+inline ROSAgent<std::enable_if_t<microros_supported>>::ROSAgent()
 {
-public:
-    static MicroROS_Manager& GetInstance()
-    {
-        static_assert(microros_supported,
-            "This BSP does not support micro-ROS.\n"
-            "Ensure FreeRTOS-POSIX is linked in CMake and the headers are in the include path."
-        );
-        static MicroROS_Manager instance;
-        return instance;
-    }
-};
+    MicroROS_Manager<>::GetInstance().RegisterAgent(this);
+}
 
 #endif

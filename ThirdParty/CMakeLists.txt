@@ -12,7 +12,6 @@ add_library(FreeRTOS-POSIX STATIC)
 
 target_include_directories(FreeRTOS-POSIX PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/std-posix"
         "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/include/private"
         "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include/portable"
