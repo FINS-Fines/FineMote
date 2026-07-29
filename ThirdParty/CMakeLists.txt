@@ -1,26 +1,39 @@
-cmake_minimum_required(VERSION 3.22)
+if(BOARD_NAME_UPPER IN_LIST ESP_IDF_BOARDS)
+    set(ETL_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/etl/include)
 
-set(CMSISCORE "${PROJECT_SOURCE_DIR}/BSP/${BOARD_NAME}/Drivers/CMSIS")
-add_subdirectory(CMSIS-DSP)
+    add_library(etl::etl INTERFACE IMPORTED)
 
-target_link_libraries(CMSISDSP PRIVATE finemote::board)
+    set_target_properties(etl::etl PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${ETL_INCLUDE_DIR}"
+    )
 
-add_subdirectory(etl)
+    add_subdirectory(micro-ROS)
 
-# FreeRTOS-POSIX
-add_library(FreeRTOS-POSIX STATIC)
+elseif(BOARD_NAME_UPPER IN_LIST STM32_BOARDS)
+    cmake_minimum_required(VERSION 3.22)
 
-target_include_directories(FreeRTOS-POSIX PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/include/private"
-        "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include/portable"
-)
+    set(CMSISCORE "${PROJECT_SOURCE_DIR}/BSP/${BOARD_NAME}/Drivers/CMSIS")
+    add_subdirectory(CMSIS-DSP)
 
-file(GLOB FreeRTOS_POSIX_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/source/*.c"
-)
+    target_link_libraries(CMSISDSP PRIVATE finemote::board)
 
-target_sources(FreeRTOS-POSIX PRIVATE ${FreeRTOS_POSIX_SOURCES})
+    add_subdirectory(etl)
 
-target_link_libraries(FreeRTOS-POSIX PRIVATE finemote::board)
+    # FreeRTOS-POSIX
+    add_library(FreeRTOS-POSIX STATIC)
+
+    target_include_directories(FreeRTOS-POSIX PUBLIC
+            "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/include"
+            "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/include/private"
+            "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include"
+            "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/include/portable"
+    )
+
+    file(GLOB FreeRTOS_POSIX_SOURCES CONFIGURE_DEPENDS
+            "${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-POSIX/FreeRTOS-Plus-POSIX/source/*.c"
+    )
+
+    target_sources(FreeRTOS-POSIX PRIVATE ${FreeRTOS_POSIX_SOURCES})
+
+    target_link_libraries(FreeRTOS-POSIX PRIVATE finemote::board)
+endif()
