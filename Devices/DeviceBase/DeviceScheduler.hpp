@@ -9,8 +9,17 @@
 #define FINEMOTE_DEVICE_SCHEDULER_H
 #include <etl/vector.h>
 
+#ifdef BSP_ESPIDF
+#include "freertos/FreeRTOS.h"
+#include "time_ext.h"
+#include "pthread.h"
+#include "pthread_ext.h"
+#elif BSP_STM32
 #include <FreeRTOS_POSIX.h>
 #include <FreeRTOS_POSIX/pthread.h>
+#include <FreeRTOS_POSIX/time.h>
+#include <FreeRTOS_POSIX/unistd.h>
+#endif
 
 #include "DeviceBase.hpp"
 
@@ -39,7 +48,11 @@
  * @note Must be less than or equal to (MAX_SCHEDULER_PRIORITY - MIN_SCHEDULER_PRIORITY + 1), by default set to 16
  */
 #ifndef MAX_BUCKETS
+#ifdef BSP_ESPIDF
+    #define MAX_BUCKETS 10
+#elif BSP_STM32
     #define MAX_BUCKETS 16
+#endif
 #endif
 
 /**
@@ -82,7 +95,8 @@ struct Bucket {
     Bucket& operator=(const Bucket&) = delete;
 
     Bucket(Bucket&& other) noexcept: devices(etl::move(other.devices)), thread(other.thread), period(other.period) {
-        other.thread = nullptr;
+        //other.thread = nullptr;
+        other.thread = 0;
     }
 
     Bucket& operator=(Bucket&& other) noexcept {
@@ -90,7 +104,8 @@ struct Bucket {
             devices = etl::move(other.devices);
             thread = other.thread;
             period = other.period;
-            other.thread = nullptr;
+            //other.thread = nullptr;
+            other.thread = 0;
         }
         return *this;
     }
