@@ -7,3 +7,10 @@
 [submodule "ThirdParty/FreeRTOS-POSIX"]
 	path = ThirdParty/FreeRTOS-POSIX
 	url = https://github.com/FreeRTOS/Lab-Project-FreeRTOS-POSIX.git
+
+
+
+[submodule "BSP/Esp32s3"]
+	path = BSP/Esp32s3
+	url = https://gitee.com/LisiHAHAHA/finemote_bsp_esp32s3.git
+	branch = main
