@@ -22,7 +22,9 @@ set(CMAKE_ASM_FLAGS_INIT "--target=${TRIPLE}")
 add_compile_options(
         "$<$<CONFIG:Release>:-Os;-gdwarf-4>"
         "$<$<CONFIG:Debug>:-O1;-gdwarf-4>"
+        "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-Wpedantic>"
 )
+
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 

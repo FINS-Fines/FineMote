@@ -13,14 +13,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(_FINEMOTE_WARNING_FLAGS
-        -Wall
-        -Wextra
-        -Wpedantic
-)
-
-add_compile_options(${_FINEMOTE_WARNING_FLAGS})
-
 # --------------- load finemote core ---------------
 add_library(finemote_core OBJECT)
 add_library(finemote::core ALIAS finemote_core)

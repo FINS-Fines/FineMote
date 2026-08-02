@@ -12,6 +12,7 @@ set(_FINEMOTE_TOOLCHAIN_ID arm-none-eabi-gcc CACHE INTERNAL "FineMote toolchain 
 add_compile_options(
         "$<$<CONFIG:Release>:-Os;-g3>"
         "$<$<CONFIG:Debug>:-Og;-g3>"
+        "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-Wpedantic>"
 )
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
