@@ -60,26 +60,40 @@ target_compile_options(finemote_core PRIVATE
         "-fno-exceptions"
 )
 
-message(STATUS "finemote_core initialized with modules: ${CORE_MODULE}")
-
-# --------------- load finemote bsp ---------------
-add_subdirectory(${PROJECT_SOURCE_DIR}/BSP/${BOARD_NAME})
-
-target_link_libraries(finemote_core PUBLIC finemote::board)
+message(STATUS "FineMote_core initialized with modules: ${CORE_MODULE}")
 
 # --------------- load third party libs ---------------
 add_subdirectory(ThirdParty)
 
-target_link_libraries(finemote_core PUBLIC
-        CMSISDSP
-        etl::etl
-        FreeRTOS-POSIX
-)
+# --------------- load finemote bsp ---------------
+set(FINEMOTE_BSP_DIR "${PROJECT_SOURCE_DIR}/BSP/${BOARD_NAME}")
+
+add_subdirectory("${FINEMOTE_BSP_DIR}")
+
+if(TARGET finemote::board)
+    target_link_libraries(finemote_core PUBLIC finemote::board)
+endif()
+# --------------- load third party libs ---------------
+if(FINEMOTE_LINK_OWNER STREQUAL "ROOT")
+    if(ENABLE_CMSISDSP)
+        target_link_libraries(finemote_core PUBLIC CMSISDSP)
+    endif()
+
+    if(ENABLE_ETL)
+        target_link_libraries(finemote_core PUBLIC etl::etl)
+    endif()
+
+    if(ENABLE_FREERTOS_POSIX)
+        target_link_libraries(finemote_core PUBLIC FreeRTOS-POSIX)
+    endif()
+
+endif()
 
 # ------------------ application ------------------
-target_link_libraries(${PROJECT_NAME} PRIVATE
-        finemote::core
-        finemote::bsp
-)
-
-finemote_postprocess(${PROJECT_NAME})
+if(FINEMOTE_APPLICATION_OWNER STREQUAL "ROOT")
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+            finemote::core
+            finemote::bsp
+    )
+    finemote_postprocess(${PROJECT_NAME})
+endif()

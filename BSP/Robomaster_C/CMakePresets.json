@@ -6,48 +6,52 @@
   ],
   "configurePresets": [
     {
+      "name": "Robomaster_C-base",
+      "hidden": true,
+      "cacheVariables": {
+        "BOARD_NAME": "Robomaster_C",
+        "FINEMOTE_APPLICATION_OWNER": "ROOT",
+        "FINEMOTE_LINK_OWNER": "ROOT",
+        "ENABLE_CMSISDSP": true,
+        "ENABLE_ETL": true,
+        "ENABLE_FREERTOS_POSIX": true
+      }
+    },
+    {
       "name": "arm-none-eabi-gcc-Robomaster_C-debug",
       "displayName": "arm-none-eabi-gcc / Robomaster_C / Debug",
       "inherits": [
+        "Robomaster_C-base",
         "compiler-arm-none-eabi-gcc",
         "config-debug"
-      ],
-      "cacheVariables": {
-        "BOARD_NAME": "Robomaster_C"
-      }
+      ]
     },
     {
       "name": "arm-none-eabi-gcc-Robomaster_C-release",
       "displayName": "arm-none-eabi-gcc / Robomaster_C / Release",
       "inherits": [
+        "Robomaster_C-base",
         "compiler-arm-none-eabi-gcc",
         "config-release"
-      ],
-      "cacheVariables": {
-        "BOARD_NAME": "Robomaster_C"
-      }
+      ]
     },
     {
       "name": "armclang-Robomaster_C-debug",
       "displayName": "ArmClang / Robomaster_C / Debug",
       "inherits": [
+        "Robomaster_C-base",
         "compiler-armclang",
         "config-debug"
-      ],
-      "cacheVariables": {
-        "BOARD_NAME": "Robomaster_C"
-      }
+      ]
     },
     {
       "name": "armclang-Robomaster_C-release",
       "displayName": "ArmClang / Robomaster_C / Release",
       "inherits": [
+        "Robomaster_C-base",
         "compiler-armclang",
         "config-release"
-      ],
-      "cacheVariables": {
-        "BOARD_NAME": "Robomaster_C"
-      }
+      ]
     }
   ]
 }

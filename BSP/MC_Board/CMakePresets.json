@@ -6,48 +6,52 @@
   ],
   "configurePresets": [
     {
+      "name": "MC_Board-base",
+      "hidden": true,
+      "cacheVariables": {
+        "BOARD_NAME": "MC_Board",
+        "FINEMOTE_APPLICATION_OWNER": "ROOT",
+        "FINEMOTE_LINK_OWNER": "ROOT",
+        "ENABLE_CMSISDSP": true,
+        "ENABLE_ETL": true,
+        "ENABLE_FREERTOS_POSIX": true
+      }
+    },
+    {
       "name": "arm-none-eabi-gcc-MC_Board-debug",
       "displayName": "arm-none-eabi-gcc / MC_Board / Debug",
       "inherits": [
+        "MC_Board-base",
         "compiler-arm-none-eabi-gcc",
         "config-debug"
-      ],
-      "cacheVariables": {
-        "BOARD_NAME": "MC_Board"
-      }
+      ]
     },
     {
       "name": "arm-none-eabi-gcc-MC_Board-release",
       "displayName": "arm-none-eabi-gcc / MC_Board / Release",
       "inherits": [
+        "MC_Board-base",
         "compiler-arm-none-eabi-gcc",
         "config-release"
-      ],
-      "cacheVariables": {
-        "BOARD_NAME": "MC_Board"
-      }
+      ]
     },
     {
       "name": "armclang-MC_Board-debug",
       "displayName": "ArmClang / MC_Board / Debug",
       "inherits": [
+        "MC_Board-base",
         "compiler-armclang",
         "config-debug"
-      ],
-      "cacheVariables": {
-        "BOARD_NAME": "MC_Board"
-      }
+      ]
     },
     {
       "name": "armclang-MC_Board-release",
       "displayName": "ArmClang / MC_Board / Release",
       "inherits": [
+        "MC_Board-base",
         "compiler-armclang",
         "config-release"
-      ],
-      "cacheVariables": {
-        "BOARD_NAME": "MC_Board"
-      }
+      ]
     }
   ]
 }
