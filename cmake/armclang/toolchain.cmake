@@ -23,6 +23,7 @@ add_compile_options(
         "$<$<CONFIG:Release>:-Os;-gdwarf-4>"
         "$<$<CONFIG:Debug>:-O1;-gdwarf-4>"
         "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-Wpedantic>"
+        "$<$<COMPILE_LANGUAGE:CXX>:-std=c++17>"
 )
 
 
