@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2024.
+ * Copyright (c) 2026.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
 
-#ifndef FINEMOTE_RMD_L_40xx_V3_H
-#define FINEMOTE_RMD_L_40xx_V3_H
+#ifndef FINEMOTE_RMD_CAN_V2_H
+#define FINEMOTE_RMD_CAN_V2_H
 
 #include "Bus/CAN_Base.hpp"
 #include "Control/Clamp.hpp"
@@ -15,13 +15,27 @@
  * Todo: Reduction ratio
  */
 template<int busID>
-class RMD_L_40xx_v3: public MotorBase {
+class RMD_CAN_v2: public MotorBase {
 public:
     template<typename T>
-    RMD_L_40xx_v3(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint8_t divisionFactor = 3):
+    RMD_CAN_v2(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint32_t divisionFactor = 1):
         MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
-        canAgent(addr) {
+        canAgent(addr),temperature(0){
         ResetController(_controller);
+    }
+
+protected:
+    void SetFeedback() final {
+        switch (this->params.targetType) {
+            case Motor_Ctrl_Type_e::Position:
+                controller->SetFeedbacks(&state.position);
+                break;
+            case Motor_Ctrl_Type_e::Speed:
+                controller->SetFeedbacks(&state.speed);
+                break;
+            default:
+                break;
+        }
     }
 
     void Handle() final {
@@ -29,25 +43,22 @@ public:
         MessageGenerate();
     }
 
-    CAN_Agent<busID> canAgent;
+    void Update() final {
+        state.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) * 360.0f / 16384.0f;
+        state.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
+        state.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
+        temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
+    }
 
 private:
-    void SetFeedback() final {
-        switch (params.targetType) {
-            case Motor_Ctrl_Type_e::Position:
-                controller->SetFeedbacks(&state.position, &state.speed);
-                break;
-            case Motor_Ctrl_Type_e::Speed:
-                controller->SetFeedbacks(&state.speed);
-                break;
-        }
-    }
+    int8_t temperature; //电机温度，单位摄氏度
+    CAN_Agent<busID> canAgent;
 
     void MessageGenerate() {
         switch (params.ctrlType) {
             case Motor_Ctrl_Type_e::Torque: {
                 ControllerOutputData output = controller->GetOutputs();
-                int16_t txTorque = Clamp(1 * output.dataPtr[0], -1000.f, 1000.f);
+                auto txTorque = static_cast<int16_t>(Clamp(1 * output.dataPtr[0], -500.f, 500.f));
 
                 canAgent[0] = 0xA1;
                 canAgent[1] = 0x00;
@@ -62,7 +73,7 @@ private:
             case Motor_Ctrl_Type_e::Position: {
                 constexpr uint16_t txSpeed = 0x800;
                 ControllerOutputData output = controller->GetOutputs();
-                int32_t txAngle = 100 * output.dataPtr[0];
+                auto txAngle = static_cast<int32_t>(100 * output.dataPtr[0]);
 
                 canAgent[0] = 0xA4;
                 canAgent[1] = 0x00;
@@ -74,15 +85,10 @@ private:
                 canAgent[7] = txAngle >> 24;
                 break;
             }
+            default:
+                break;
         }
-        canAgent.Transmit(canAgent.addr - 0x100);
-    }
-
-    void Update() override {
-        state.position = static_cast<int16_t>(canAgent.rxbuf[6] | (canAgent.rxbuf[7] << 8u)) / 65536.0f * 360.0f;
-        state.speed = static_cast<int16_t>(canAgent.rxbuf[4] | (canAgent.rxbuf[5] << 8u));
-        state.torque = static_cast<int16_t>(canAgent.rxbuf[2] | (canAgent.rxbuf[3] << 8u));
-        state.temperature = static_cast<int8_t>(canAgent.rxbuf[1]);
+        canAgent.Transmit(canAgent.addr);
     }
 };
 

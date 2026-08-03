@@ -1,11 +1,16 @@
-#ifndef FINEMOTE_MOTORBASE_H
-#define FINEMOTE_MOTORBASE_H
+/*******************************************************************************
+* Copyright (c) 2026.
+ * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
+ * All rights reserved.
+ ******************************************************************************/
 
-#include "../DeviceBase/DeviceBase.hpp"
+#ifndef FINEMOTE_MOTORBASE_HPP
+#define FINEMOTE_MOTORBASE_HPP
+
+#include "DeviceBase/DeviceBase.hpp"
 #include "Control/ImplementControlBase.hpp"
-#include <cstdint>
 
-enum class Motor_Ctrl_Type_e : uint16_t {
+enum class Motor_Ctrl_Type_e : uint8_t {
     Position = 0,
     Speed,
     Torque,
@@ -15,7 +20,6 @@ typedef struct {
     float position; //单位为度
     float speed; //单位为DPS
     float torque; //转矩电流的相对值，具体值参考电调手册
-    int8_t temperature; //电机温度，单位摄氏度
 } Motor_State_t;
 
 using Motor_Param_t = struct Motor_Param_t {
@@ -27,7 +31,7 @@ using Motor_Param_t = struct Motor_Param_t {
 
 class MotorBase: public DeviceBase {
 public:
-    explicit MotorBase(const Motor_Param_t& params, uint8_t divisionFactor = 1):
+    explicit MotorBase(const Motor_Param_t& params, uint32_t divisionFactor = 1):
         DeviceBase(divisionFactor),
         params(params) {}
 
@@ -37,16 +41,16 @@ public:
         this->SetFeedback();
     }
 
-    void Stop() {
+    void SoftwareStop() {
         switch (params.targetType) {
             case Motor_Ctrl_Type_e::Position:
-                SetTargetAngle(state.position);
+                SetTarget(state.position);
                 break;
             case Motor_Ctrl_Type_e::Speed:
-                SetTargetSpeed(0);
+                SetTarget(0);
                 break;
             case Motor_Ctrl_Type_e::Torque:
-                /** ToDo */
+                SetTarget(0);
                 break;
         }
     }
@@ -55,35 +59,40 @@ public:
 
     void Disable() {}
 
-    /** Todo: 筛查电机控制类型，不合理调用的Set需要警告 */
-    void SetTargetSpeed(float targetSpeed) {
-        if (params.targetType != Motor_Ctrl_Type_e::Speed) {
-            return;
+    void SetTarget(float _target) {
+        switch (params.targetType) {
+            case Motor_Ctrl_Type_e::Position:
+                target = _target * params.reductionRatio; //多圈目标，减速后
+
+                if (params.multiTurnSamePosition) {
+                    while (target - state.position < -180.f * params.reductionRatio) {
+                        target += 360.f * params.reductionRatio;
+                    }
+                    while (target - state.position > 180.f * params.reductionRatio) {
+                        target -= 360.f * params.reductionRatio;
+                    }
+                }
+                break;
+
+            case Motor_Ctrl_Type_e::Speed:
+                target = _target * params.reductionRatio;
+                break;
+
+            case Motor_Ctrl_Type_e::Torque:
+                target = _target;
+                break;
         }
-        target = targetSpeed * params.reductionRatio; //多圈目标，减速后
     }
 
-    void SetTargetAngle(float targetAngle) {
-        if (params.targetType != Motor_Ctrl_Type_e::Position) {
-            return;
-        }
-        target = targetAngle * params.reductionRatio; //多圈目标，减速后
-
-        if (params.multiTurnSamePosition) {
-            while (target - state.position < -180.f * params.reductionRatio) {
-                target += 360.f * params.reductionRatio;
-            }
-            while (target - state.position > 180.f * params.reductionRatio) {
-                target -= 360.f * params.reductionRatio;
-            }
-        }
+    void SetState(const Motor_State_t& _state) {
+        state = _state;
     }
 
-    Motor_State_t& GetState() {
+    [[nodiscard]] const Motor_State_t& GetState() {
         return state;
     }
 
-    const float GetMultiTurnPosition() {
+    [[nodiscard]] float GetMultiTurnPosition() const {
         return state.position / params.reductionRatio;
     }
 
@@ -91,7 +100,7 @@ protected:
     virtual void SetFeedback() = 0;
 
     float target = 0; //多圈目标，减速后
-    Motor_State_t state = { 0, 0, 0, 0 }; //单圈状态，不考虑减速
+    Motor_State_t state = { 0, 0, 0 }; //单圈状态，不考虑减速
     Motor_Param_t params;
     ImplementControllerBase<1, 1>* controller = nullptr;
 };
