@@ -61,8 +61,8 @@ public:
                 v = -v;
             }
 
-            module.steerMotor->SetTargetAngle(angle + module.zeroPosition);
-            module.driveMotor->SetTargetSpeed(v / wheelDiameter / PI * 360);
+            module.steerMotor->SetTarget(angle + module.zeroPosition);
+            module.driveMotor->SetTarget(v / wheelDiameter / PI * 360);
         }
     }
 

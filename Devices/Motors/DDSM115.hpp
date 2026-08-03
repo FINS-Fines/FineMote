@@ -88,7 +88,7 @@ private:
                 float targetSpeed = output.dataPtr[0]; // 单位为DPS（度每秒）
                 // 转换为RPM：1 RPM = 6 DPS
                 float targetSpeedRPM = targetSpeed / 6.0f;
-                targetSpeedRPM = Clamp(targetSpeedRPM,-330,330);
+                targetSpeedRPM = Clamp(targetSpeedRPM, -330.0f, 330.0f);
                 auto txSpeed = static_cast<int16_t>(targetSpeedRPM);
                     txbuf[0] = addr;
                     txbuf[1] = 0x64;

@@ -77,8 +77,8 @@ private:
 
                 canAgent[0] = 0xA4;
                 canAgent[1] = 0x00;
-                canAgent[2] = txSpeed;
-                canAgent[3] = txSpeed >> 8;
+                canAgent[2] = static_cast<uint8_t>(txSpeed & 0xFFU);
+                canAgent[3] = static_cast<uint8_t>((txSpeed >> 8U) & 0xFFU);
                 canAgent[4] = txAngle;
                 canAgent[5] = txAngle >> 8;
                 canAgent[6] = txAngle >> 16;
