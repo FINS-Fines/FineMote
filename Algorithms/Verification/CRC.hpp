@@ -72,8 +72,7 @@ public:
 template<typename CRCx, typename T>
 auto CRCCalc(const uint8_t* data, const T length) {
     CRC_t<CRCx> crc;
-    crc.Calc(data, length);
-    return crc.value();
+    return crc.Calc(data, length);
 }
 
 #endif
