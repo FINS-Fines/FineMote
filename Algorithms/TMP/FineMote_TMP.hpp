@@ -1,18 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2024.
+* Copyright (c) 2026.
  * IWIN-FINS Lab, Shanghai Jiao Tong University, Shanghai, China.
  * All rights reserved.
  ******************************************************************************/
 
-#ifndef FINEMOTE_VERIFY_H
-#define FINEMOTE_VERIFY_H
+#ifndef FINEMOTE_FINEMOTE_TMP_HPP
+#define FINEMOTE_FINEMOTE_TMP_HPP
 
-#include "etl/crc.h"
-
-uint8_t CRC8Calc(uint8_t* data, uint16_t length);
-
-uint16_t CRC16Calc(uint8_t* data, uint16_t length);
-
-uint32_t CRC32Calc(uint8_t* data, uint16_t length);
+#include "is_complete.hpp"
 
 #endif
