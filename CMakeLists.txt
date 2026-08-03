@@ -87,6 +87,10 @@ if(FINEMOTE_LINK_OWNER STREQUAL "ROOT")
         target_link_libraries(finemote_core PUBLIC FreeRTOS-POSIX)
     endif()
 
+    if(ENABLE_RTT)
+        target_link_libraries(finemote_core PUBLIC RTT)
+    endif()
+
 endif()
 
 # ------------------ application ------------------

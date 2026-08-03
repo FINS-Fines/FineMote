@@ -30,3 +30,7 @@ endif()
 if(ENABLE_ETL)
     add_subdirectory(etl)
 endif()
+
+if(ENABLE_RTT)
+    add_subdirectory(RTT)
+endif()
