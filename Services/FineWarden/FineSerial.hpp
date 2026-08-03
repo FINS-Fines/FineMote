@@ -9,7 +9,12 @@
 
 #include "ProjectConfig.h"
 
-#include "Verification/CRC.h"
+#include "Verification/CRC.hpp"
+
+#include <array>
+#include <cstdint>
+#include <cstring>
+#include <utility>
 
 class FineSerial {
 public:
@@ -17,7 +22,8 @@ public:
         constexpr uint8_t FRAME_HEADER = 0xAA;
         constexpr uint8_t FRAME_TRAILER = 0xBB;
 
-        uint8_t crc = CRC8Calc(data + 3, size - 5);
+        CRC_t<crc8_ccitt> crc8;
+        const uint8_t crc = crc8.Calc(data + 3, static_cast<uint16_t>(size - 5U));
         if (data[0] != FRAME_HEADER || data[size - 1] != FRAME_TRAILER || data[size - 2] != crc || size != 5 + data[2])
         {
             return;

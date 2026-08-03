@@ -47,10 +47,4 @@ static_assert(FineMote_TMP::is_complete_v<PeripheralsInit>, "PeripheralsInit mus
     #define LED_MODULE
 #endif
 
-/******************************************************************************************************
- * 3. 功能选配
- *******************************************************************************************************/
-
-// #define WITH_POV_EXAMPLE
-
 #endif
