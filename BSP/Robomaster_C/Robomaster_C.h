@@ -38,6 +38,24 @@ public:
 };
 
 /**
+ * SPI Definitions
+ */
+constexpr SPI_HandleTypeDef *BSP_SPIList[] = {nullptr, &hspi1};
+constexpr size_t SPI_BUS_MAXIMUM_COUNT = sizeof(BSP_SPIList) / sizeof(BSP_SPIList[0]) - 1;
+
+struct SPI_CS {
+    GPIO_TypeDef *port;
+    uint16_t pin;
+};
+
+const SPI_CS SPI_CSList[] = {
+    {nullptr, 0},
+    {CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin},
+    {CS1_GYRO_GPIO_Port, CS1_GYRO_Pin},
+};
+constexpr size_t SPI_DEVICE_MAXIMUM_COUNT = sizeof(SPI_CSList) / sizeof(SPI_CSList[0]) - 1;
+
+/**
  * UART Definitions
  */
 constexpr UART_HandleTypeDef *BSP_UARTList[] = {nullptr, &huart6, &huart1, &huart3};
