@@ -7,6 +7,7 @@
   },
   "include": [
     "BSP/MC_Board/CMakePresets.json",
-    "BSP/Robomaster_C/CMakePresets.json"
+    "BSP/Robomaster_C/CMakePresets.json",
+    "BSP/Esp32s3/CMakePresets.json"
   ]
 }

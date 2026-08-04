@@ -13,3 +13,7 @@
 [submodule "ThirdParty/eigen"]
 	path = ThirdParty/eigen
 	url = https://github.com/eigen-mirror/eigen.git
+[submodule "BSP/Esp32s3"]
+	path = BSP/Esp32s3
+	url = https://gitee.com/LisiHAHAHA/finemote_bsp_esp32s3.git
+	branch = main
