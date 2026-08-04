@@ -6,6 +6,9 @@
 
 #include "Robomaster_C.h"
 
+#include "MicroROS/Transport/MicroROS_Uart_Transport.hpp"
+#include "MicroROS/MicroROS_Manager.hpp"
+
 extern SPI_HandleTypeDef hspi1;
 extern DMA_HandleTypeDef hdma_spi1_rx;
 extern DMA_HandleTypeDef hdma_spi1_tx;
@@ -19,6 +22,9 @@ extern "C" {
 
 void BSP_Setup() {
     HAL_TIM_Base_Start_IT(&TIM_Control);
+
+    static MicroROS_UartTransport<2> backend;
+    MicroROS_Manager<>::GetInstance().Start(backend);
 }
 
 #ifdef __cplusplus

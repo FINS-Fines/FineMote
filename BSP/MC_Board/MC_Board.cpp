@@ -6,6 +6,9 @@
 
 #include "MC_Board.h"
 
+#include "MicroROS/Transport/MicroROS_Uart_Transport.hpp"
+#include "MicroROS/MicroROS_Manager.hpp"
+
 extern DMA_HandleTypeDef hdma_spi2_rx;
 extern DMA_HandleTypeDef hdma_spi2_tx;
 
@@ -18,6 +21,9 @@ extern "C" {
 
 void BSP_Setup() {
     HAL_TIM_Base_Start_IT(&TIM_Control);
+
+    static MicroROS_UartTransport<5> backend;
+    MicroROS_Manager<>::GetInstance().Start(backend);
 }
 
 #ifdef __cplusplus
