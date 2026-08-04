@@ -7,3 +7,9 @@
 [submodule "ThirdParty/FreeRTOS-POSIX"]
 	path = ThirdParty/FreeRTOS-POSIX
 	url = https://github.com/FreeRTOS/Lab-Project-FreeRTOS-POSIX.git
+[submodule "ThirdParty/blasfeo"]
+	path = ThirdParty/blasfeo
+	url = https://github.com/giaf/blasfeo
+[submodule "ThirdParty/eigen"]
+	path = ThirdParty/eigen
+	url = https://github.com/eigen-mirror/eigen.git

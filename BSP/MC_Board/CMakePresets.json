@@ -14,7 +14,10 @@
         "FINEMOTE_LINK_OWNER": "ROOT",
         "ENABLE_CMSISDSP": true,
         "ENABLE_ETL": true,
-        "ENABLE_FREERTOS_POSIX": true
+        "ENABLE_FREERTOS_POSIX": true,
+        "ENABLE_BLASFEO": true,
+        "ENABLE_EIGEN": true,
+        "FINEMOTE_EIGEN_USE_BLAS": true
       }
     },
     {

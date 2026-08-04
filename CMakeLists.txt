@@ -65,6 +65,7 @@ message(STATUS "FineMote_core initialized with modules: ${CORE_MODULE}")
 # --------------- load third party libs ---------------
 add_subdirectory(ThirdParty)
 
+
 # --------------- load finemote bsp ---------------
 set(FINEMOTE_BSP_DIR "${PROJECT_SOURCE_DIR}/BSP/${BOARD_NAME}")
 
@@ -85,6 +86,23 @@ if(FINEMOTE_LINK_OWNER STREQUAL "ROOT")
 
     if(ENABLE_FREERTOS_POSIX)
         target_link_libraries(finemote_core PUBLIC FreeRTOS-POSIX)
+    endif()
+
+    if(ENABLE_BLASFEO)
+        target_link_libraries(finemote_core PUBLIC blasfeo)
+
+        if(ENABLE_EIGEN AND FINEMOTE_EIGEN_USE_BLAS)
+            # Eigen's native EIGEN_USE_BLAS path: declares all F77 BLAS symbols
+            # and dispatches large GEMM/GEMV/SYRK/SYMV/TRMM/TRSM to them. BLASFEO
+            # only exports a subset (dgemm_/sgemm_/dgemv_/dsymv_/dsyrk_/dtrmm_/
+            # dtrsm_/strsm_/...); unsupported ops (complex, ?trmv, ?symm, float
+            # gemv/syrk/trmm) only fail at link time if user code actually
+            # triggers them — acceptable per project scope.
+            target_compile_definitions(finemote_core PUBLIC EIGEN_USE_BLAS)
+            message(STATUS "Eigen: EIGEN_USE_BLAS=ON (BLAS symbols from BLASFEO)")
+        elseif(ENABLE_EIGEN)
+            message(STATUS "FINEMOTE_EIGEN_USE_BLAS=OFF (Eigen BuiltIn; BLASFEO still linked for mbench)")
+        endif()
     endif()
 
 endif()
