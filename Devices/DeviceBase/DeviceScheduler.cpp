@@ -175,7 +175,10 @@ void DeviceScheduler::Start() {
                 break;
             }
 
-            if (usleep(sleep_duration) != 0) {
+            //if (usleep(sleep_duration) != 0) {
+            //    Error_Handler();
+            //}
+            if (clock_nanosleep(CLOCK_MONOTONIC,TIMER_ABSTIME,&next_wake_time,nullptr) != 0) {
                 Error_Handler();
             }
             slept = true;
