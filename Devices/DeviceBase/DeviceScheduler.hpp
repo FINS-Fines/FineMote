@@ -80,7 +80,7 @@ struct Bucket {
     Bucket& operator=(const Bucket&) = delete;
 
     Bucket(Bucket&& other) noexcept: devices(etl::move(other.devices)), thread(other.thread), period(other.period) {
-        other.thread = nullptr;
+        other.thread = pthread_t {};
     }
 
     Bucket& operator=(Bucket&& other) noexcept {
@@ -88,7 +88,7 @@ struct Bucket {
             devices = etl::move(other.devices);
             thread = other.thread;
             period = other.period;
-            other.thread = nullptr;
+            other.thread = pthread_t {};
         }
         return *this;
     }
