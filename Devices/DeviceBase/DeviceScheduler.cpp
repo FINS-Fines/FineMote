@@ -4,8 +4,6 @@
 #include "DeviceScheduler.hpp"
 #include "DeviceBase.hpp"
 
-#include <FreeRTOS_POSIX/time.h>
-#include <FreeRTOS_POSIX/unistd.h>
 #include <etl/algorithm.h>
 #include <limits>
 

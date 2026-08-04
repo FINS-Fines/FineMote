@@ -9,9 +9,7 @@
 #define FINEMOTE_DEVICE_SCHEDULER_H
 #include <etl/vector.h>
 
-#include <FreeRTOS_POSIX.h>
-#include <FreeRTOS_POSIX/pthread.h>
-
+#include "BSP_POSIX.h"
 #include "DeviceBase.hpp"
 
 // -------- Configuration --------
