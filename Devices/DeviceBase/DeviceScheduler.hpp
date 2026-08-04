@@ -37,7 +37,7 @@
  * @note Must be less than or equal to (MAX_SCHEDULER_PRIORITY - MIN_SCHEDULER_PRIORITY + 1), by default set to 16
  */
 #ifndef MAX_BUCKETS
-    #define MAX_BUCKETS 16
+    #define MAX_BUCKETS BSP_MAX_BUCKETS
 #endif
 
 /**

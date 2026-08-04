@@ -37,6 +37,8 @@ public:
     }
 };
 
+#define BSP_MAX_BUCKETS 16
+
 /**
  * SPI Definitions
  */
