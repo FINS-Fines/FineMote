@@ -4,7 +4,7 @@
  * All rights reserved.
  ******************************************************************************/
 
-#include "BSP_CAN.h"
+
 #include "Bus/CAN_Base.hpp"
 
 #ifdef __cplusplus

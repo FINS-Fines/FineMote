@@ -4,10 +4,22 @@
  * All rights reserved.
  ******************************************************************************/
 
-#ifndef BSP_CAN_H
-#define BSP_CAN_H
+#ifndef MC_Board01_BSP_CAN_HPP
+#define MC_Board01_BSP_CAN_HPP
 
 #include "Board.h"
+
+template<uint8_t ID>
+struct CAN_Parameters {
+    static constexpr uint32_t CAN_MAP_SIZE = 20;
+    static constexpr uint32_t CAN_TX_QUEUE_SIZE = 16;
+};
+
+template<>
+struct CAN_Parameters<2> {
+    static constexpr uint32_t CAN_MAP_SIZE = 10;
+    static constexpr uint32_t CAN_TX_QUEUE_SIZE = 16;
+};
 
 class BSP_CANs {
 public:
@@ -34,9 +46,18 @@ public:
         return instance;
     }
 
-    void Transmit(CAN_TxHeaderTypeDef *Header, uint8_t *data);
+    void Transmit(FineMote_CAN_HeaderTypeDef *Header, uint8_t *data);
 
-    void Receive(CAN_RxHeaderTypeDef *Header, uint8_t *data);
+    void Receive(FineMote_CAN_HeaderTypeDef *Header, uint8_t *data);
+
+    static constexpr uint32_t GetCAN_MAP_SIZE() {
+        return CAN_Parameters<ID>::CAN_MAP_SIZE;
+    }
+
+    static constexpr uint32_t GetCAN_TX_QUEUE_SIZE() {
+        return CAN_Parameters<ID>::CAN_TX_QUEUE_SIZE;
+    }
+
 
 private:
     BSP_CAN() {
@@ -63,6 +84,7 @@ private:
                 break;
             case 2: canFilter.FilterBank = 14;
                 break;
+            default:break;
         }
         canFilter.SlaveStartFilterBank = 14;
         HAL_CAN_ConfigFilter(BSP_CANList[ID], &canFilter);
@@ -76,14 +98,36 @@ private:
 };
 
 template<uint8_t ID>
-void BSP_CAN<ID>::Receive(CAN_RxHeaderTypeDef *Header, uint8_t *data) {
-    HAL_CAN_GetRxMessage(BSP_CANList[ID], CAN_RX_FIFO0, Header, data);
+void BSP_CAN<ID>::Receive(FineMote_CAN_HeaderTypeDef *Header, uint8_t *data) {
+  CAN_RxHeaderTypeDef CAN_Header = {0};
+  HAL_CAN_GetRxMessage(BSP_CANList[ID], CAN_RX_FIFO0, &CAN_Header, data);
+  if(CAN_Header.IDE == CAN_ID_STD){
+    Header->IDE = CAN_ID_STD;
+    Header->ID = CAN_Header.StdId;
+  }
+  else if(CAN_Header.IDE == CAN_ID_EXT){
+    Header->IDE = CAN_ID_EXT;
+    Header->ID = CAN_Header.ExtId;
+  }
+  Header->RTR = CAN_Header.RTR;
+  Header->DLC = CAN_Header.DLC;
 }
 
 template<uint8_t ID>
-void BSP_CAN<ID>::Transmit(CAN_TxHeaderTypeDef *Header, uint8_t *data) {
-    uint32_t TxMailbox = 0;
-    HAL_CAN_AddTxMessage(BSP_CANList[ID], Header, data, &TxMailbox);
+void BSP_CAN<ID>::Transmit(FineMote_CAN_HeaderTypeDef *Header, uint8_t *data) {
+  uint32_t TxMailbox = 0;
+  CAN_TxHeaderTypeDef CAN_Header;
+  if(Header->IDE == CAN_ID_STD){
+    CAN_Header.IDE = CAN_ID_STD;
+    CAN_Header.StdId = Header->ID;
+  }
+  else if(Header->IDE == CAN_ID_EXT){
+    CAN_Header.IDE = CAN_ID_EXT;
+    CAN_Header.ExtId = Header->ID;
+  }
+  CAN_Header.RTR = Header->RTR;
+  CAN_Header.DLC = Header->DLC;
+  HAL_CAN_AddTxMessage(BSP_CANList[ID], &CAN_Header, data, &TxMailbox);
 }
 
 #endif
