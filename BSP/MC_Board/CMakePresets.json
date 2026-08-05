@@ -18,8 +18,10 @@
         "ENABLE_RTT": true,
         "ENABLE_BLASFEO": true,
         "ENABLE_EIGEN": true,
-        "FINEMOTE_EIGEN_USE_BLAS": true
-      }
+        "FINEMOTE_EIGEN_USE_BLAS": true,
+        "ENABLE_MICRO_ROS": true,
+        "MICROROS_LIB_FILE": "libmicroros_m4.a"
+        }
     },
     {
       "name": "arm-none-eabi-gcc-MC_Board-debug",

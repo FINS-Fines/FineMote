@@ -111,6 +111,9 @@ if(FINEMOTE_LINK_OWNER STREQUAL "ROOT")
         endif()
     endif()
 
+    if(ENABLE_MICRO_ROS)
+        target_link_libraries(finemote_core PUBLIC micro-ROS)
+    endif()
 endif()
 
 # ------------------ application ------------------

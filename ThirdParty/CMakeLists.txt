@@ -35,6 +35,11 @@ if(ENABLE_RTT)
     add_subdirectory(RTT)
 endif()
 
+if(ENABLE_MICRO_ROS)
+    add_subdirectory(micro-ROS)
+endif()
+
+
 # ---------- BLASFEO ----------
 if(ENABLE_BLASFEO)
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/blasfeo/CMakeLists.txt")
