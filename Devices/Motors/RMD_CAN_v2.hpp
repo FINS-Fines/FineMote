@@ -18,9 +18,9 @@ template<int busID>
 class RMD_CAN_v2: public MotorBase {
 public:
     template<typename T>
-    RMD_CAN_v2(const Motor_Param_t&& params, T& _controller, uint32_t addr, uint32_t divisionFactor = 1):
+    RMD_CAN_v2(const Motor_Param_t&& params, T& _controller, uint32_t motorID, uint32_t divisionFactor = 1):
         MotorBase(std::forward<const Motor_Param_t>(params), divisionFactor),
-        canAgent(addr),temperature(0){
+        canAgent(0x140 + motorID),temperature(0){
         ResetController(_controller);
     }
 
