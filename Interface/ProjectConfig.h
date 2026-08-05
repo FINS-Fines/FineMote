@@ -7,14 +7,12 @@
 #ifndef FINEMOTE_PROJECTCONFIG_H
 #define FINEMOTE_PROJECTCONFIG_H
 
-#include <type_traits>
-
 /******************************************************************************************************
 1.根据cmakelist中选择的构建目标，导入对应BSP包
 ******************************************************************************************************/
 
 #include "Board.h"
-
+#include "TMP/FineMote_TMP.hpp"
 /******************************************************************************************************
 2.处理各模块对BSP包的依赖关系，若满足全部依赖则启用模块，此处需要以注释形式给出应由BSP包实现的依赖条件的具体内容
  以@def 标记需要的宏定义，@variable 标记需要定义的变量，实现依赖条件后可由BSP包定义依赖条件对应宏定义
@@ -27,22 +25,7 @@
  *
  */
 
-template<typename T, typename = void>
-struct is_complete: std::false_type {};
-
-template<typename T>
-struct is_complete<T, std::void_t<decltype(sizeof(T))>>: std::true_type {};
-
-template<>
-struct is_complete<void, void>: std::true_type {};
-
-template<typename T>
-struct is_complete<T, std::enable_if_t<std::is_function_v<T>>>: std::true_type {};
-
-template<typename T>
-inline constexpr bool is_complete_v = is_complete<T>::value;
-
-static_assert(is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed in BSP.");
+static_assert(FineMote_TMP::is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed in BSP.");
 
 /**
  * BUZZER_PERIPHERAL PWM驱动的蜂鸣器
@@ -66,6 +49,10 @@ static_assert(is_complete_v<PeripheralsInit>, "PeripheralsInit must be completed
  * 3. 功能选配
  *******************************************************************************************************/
 
-// #define WITH_POV_EXAMPLE
+#define WITH_POV_EXAMPLE
 
+// #define USER_TASK1
+
+#define USER_TASK2
 #endif
+
