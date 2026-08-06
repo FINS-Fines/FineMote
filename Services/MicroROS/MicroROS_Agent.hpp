@@ -22,15 +22,45 @@
     #define MICROROS_NODE_NAME "FineMote"
 #endif
 
-template<bool enable = true>
+#ifdef ESP_PLATFORM
+    #include <pthread.h>
+    #include <unistd.h>
+    #include <time.h>
+#else
+    #include <FreeRTOS_POSIX.h>
+    #include <FreeRTOS_POSIX/pthread.h>
+    #include <FreeRTOS_POSIX/time.h>
+    #include <FreeRTOS_POSIX/unistd.h>
+#endif
+
+template <typename = void>
+struct posix_ready : std::false_type {};
+
+template <>
+struct posix_ready<std::void_t<
+    decltype(::pthread_create(std::declval<pthread_t*>(), std::declval<const pthread_attr_t*>(), std::declval<void* (*)(void*)>(), std::declval<void*>())),
+    decltype(::clock_gettime(0, std::declval<struct timespec*>())),
+    decltype(::usleep(0u)),
+    decltype(::sleep(0u))
+>> : std::true_type {};
+
+inline constexpr bool microros_supported = posix_ready<>::value;
+
+static_assert(microros_supported,
+    "MicroROS is disabled: this BSP lacks a POSIX compatibility layer. "
+    "Link a POSIX library (e.g. FreeRTOS-POSIX on STM32) and ensure its headers are in the include path."
+);
+
+template <typename = void>
 class MicroROS_Manager;
 
-template<bool enable = true>
-class ROSAgent {
+template <typename = void>
+class ROSAgent;
+
+template <>
+class ROSAgent<std::enable_if_t<microros_supported>> {
 public:
-    ROSAgent() {
-        MicroROS_Manager<enable>::GetInstance().RegisterAgent(this);
-    }
+    ROSAgent();
 
     virtual ~ROSAgent() = default;
 

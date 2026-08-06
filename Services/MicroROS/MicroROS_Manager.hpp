@@ -30,9 +30,8 @@
 
 constexpr size_t MICROROS_MAX_HANDLES = 10;
 constexpr size_t MICROROS_MAX_AGENTS = 10;
-
-template<bool enable>
-class MicroROS_Manager {
+template <>
+class MicroROS_Manager<std::enable_if_t<microros_supported>> {
 public:
     enum class State { WAITING_AGENT, INITIALIZING, RUNNING, ERROR };
 
@@ -252,10 +251,8 @@ private:
     pthread_t thread_ {};
 };
 
-template<>
-class MicroROS_Manager<false> {
-public:
-    static MicroROS_Manager& GetInstance() = delete;
-};
+inline ROSAgent<std::enable_if_t<microros_supported>>::ROSAgent() {
+    MicroROS_Manager<>::GetInstance().RegisterAgent(this);
+}
 
 #endif
