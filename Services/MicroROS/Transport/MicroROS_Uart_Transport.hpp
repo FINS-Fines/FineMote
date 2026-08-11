@@ -12,12 +12,7 @@
 #include <cstdint>
 #include <cstring>
 
-#ifdef ESP_PLATFORM
-    #include <unistd.h>
-#else
-    #include <FreeRTOS_POSIX.h>
-    #include <FreeRTOS_POSIX/unistd.h>
-#endif
+#include "BSP_POSIX.h"
 
 #include <rmw_microros/custom_transport.h>
 #include <uxr/client/transport.h>

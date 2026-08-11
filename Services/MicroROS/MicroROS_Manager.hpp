@@ -10,14 +10,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#ifdef ESP_PLATFORM
-    #include <pthread.h>
-    #include <unistd.h>
-#else
-    #include <FreeRTOS_POSIX.h>
-    #include <FreeRTOS_POSIX/pthread.h>
-    #include <FreeRTOS_POSIX/unistd.h>
-#endif
+#include "BSP_POSIX.h"
 
 #include <etl/list.h>
 #include <rcl/rcl.h>
