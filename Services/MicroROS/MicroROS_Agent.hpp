@@ -22,16 +22,7 @@
     #define MICROROS_NODE_NAME "FineMote"
 #endif
 
-#ifdef ESP_PLATFORM
-    #include <pthread.h>
-    #include <unistd.h>
-    #include <time.h>
-#else
-    #include <FreeRTOS_POSIX.h>
-    #include <FreeRTOS_POSIX/pthread.h>
-    #include <FreeRTOS_POSIX/time.h>
-    #include <FreeRTOS_POSIX/unistd.h>
-#endif
+#include "BSP_POSIX.h"
 
 template <typename = void>
 struct posix_ready : std::false_type {};
