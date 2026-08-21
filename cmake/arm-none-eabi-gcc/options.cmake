@@ -49,11 +49,21 @@ macro(finemote_toolchain)
     list(GET _FINEMOTE_STARTUP_CANDIDATES 0 _FINEMOTE_STARTUP_SOURCE)
     set(_FINEMOTE_STARTUP_SOURCE "${_FINEMOTE_STARTUP_SOURCE}" CACHE INTERNAL "Board startup source" FORCE)
 
-    # linker script
-    set(_FINEMOTE_LINKER_SCRIPT "${_FINEMOTE_BOARD_DIR}/STM32F407XX_FLASH.ld")
-    if (NOT EXISTS "${_FINEMOTE_LINKER_SCRIPT}")
-        message(FATAL_ERROR "GCC linker script not found: ${_FINEMOTE_LINKER_SCRIPT}")
+    # linker script: use the board-provided script.
+    file(GLOB _FINEMOTE_LINKER_SCRIPTS
+            "${_FINEMOTE_BOARD_DIR}/*.ld"
+    )
+    list(LENGTH _FINEMOTE_LINKER_SCRIPTS _FINEMOTE_LINKER_SCRIPT_COUNT)
+    if (_FINEMOTE_LINKER_SCRIPT_COUNT EQUAL 0)
+        message(FATAL_ERROR "No GCC linker script found under ${_FINEMOTE_BOARD_DIR}")
+    elseif (_FINEMOTE_LINKER_SCRIPT_COUNT GREATER 1)
+        message(FATAL_ERROR
+                "Multiple GCC linker scripts found under ${_FINEMOTE_BOARD_DIR}; "
+                "this is currently unsupported. Modify cmake/arm-none-eabi-gcc/options.cmake "
+                "to define how the linker script should be selected."
+        )
     endif ()
+    list(GET _FINEMOTE_LINKER_SCRIPTS 0 _FINEMOTE_LINKER_SCRIPT)
 
     # linker options
     set(_FINEMOTE_BOARD_LINK_OPTIONS
