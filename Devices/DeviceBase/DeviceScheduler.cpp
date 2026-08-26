@@ -116,6 +116,9 @@ void DeviceScheduler::Start() {
         if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0) {
             Error_Handler();
         }
+#ifdef FINEMOTE_CONFIG_THREAD_PIN_TO_ONE_CORE
+        BSP_ThreadPinToOneCore();
+#endif
 
         if (pthread_create(&bucket.thread, &attr, &DeviceScheduler::BucketThreadFunc, &bucket) != 0) {
             Error_Handler();
