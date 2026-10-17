@@ -11,6 +11,7 @@
 #include <sensor_msgs/msg/joint_state.h>
 #include <std_msgs/msg/bool.h>
 #include <std_msgs/msg/int32.h>
+#include <std_msgs/msg/string.h>
 
 template<typename T>
 struct RosMsgTraits {
@@ -33,5 +34,6 @@ DEFINE_MICROROS_MSG(sensor_msgs__msg__JointState, sensor_msgs, msg, JointState)
 DEFINE_MICROROS_MSG(geometry_msgs__msg__Twist, geometry_msgs, msg, Twist)
 DEFINE_MICROROS_MSG(std_msgs__msg__Bool, std_msgs, msg, Bool)
 DEFINE_MICROROS_MSG(std_msgs__msg__Int32, std_msgs, msg, Int32)
+DEFINE_MICROROS_MSG(std_msgs__msg__String, std_msgs, msg, String)
 
 #endif
