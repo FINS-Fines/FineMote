@@ -66,6 +66,8 @@ private:
     PlatformErr scheduledResult_ = PLATFORM_NOT_INITIALIZED;
     uint32_t failureRetryCycles_ = 0U;
     uint32_t retryCyclesRemaining_ = 0U;
+    uint32_t p7ProbeCyclesRemaining_ = 0U;
+    bool p7OutputLow_ = false;
     bool samplePending_ = false;
 };
 
@@ -161,10 +163,40 @@ void PCF8574<BusId>::Update() {
         return;
     }
 
+    if (p7OutputLow_) {
+        if (p7ProbeCyclesRemaining_ > 0U) {
+            --p7ProbeCyclesRemaining_;
+            return;
+        }
+        scheduledResult_ = Write(0xFFU);
+        if (scheduledResult_ != PLATFORM_OK) {
+            samplePending_ = true;
+            retryCyclesRemaining_ = failureRetryCycles_;
+            return;
+        }
+    }
+
     scheduledResult_ = Read(scheduledValue_);
     samplePending_ = true;
     if (scheduledResult_ != PLATFORM_OK) {
         retryCyclesRemaining_ = failureRetryCycles_;
+        return;
+    }
+
+    if ((scheduledValue_ & 0x80U) == 0U) {
+        scheduledResult_ = Write(0x7FU);
+        if (scheduledResult_ != PLATFORM_OK) {
+            retryCyclesRemaining_ = failureRetryCycles_;
+            return;
+        }
+        p7OutputLow_ = true;
+        p7ProbeCyclesRemaining_ = 120U;
+        scheduledValue_ = 0U;
+    } else if (p7OutputLow_) {
+        p7OutputLow_ = false;
+        p7ProbeCyclesRemaining_ = 0U;
+    } else {
+        p7ProbeCyclesRemaining_ = 0U;
     }
 }
 
